@@ -149,6 +149,39 @@ export default function ProfilePage() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+             <Card className="xl:col-span-1">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    <CardTitle>Personal Information</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Update your personal details.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first-name">Nombre</Label>
+                    <Input id="first-name" defaultValue="Admin" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last-name">Apellido</Label>
+                    <Input id="last-name" defaultValue="" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Correo Electrónico</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      defaultValue="admin@ventarapida.com"
+                    />
+                  </div>
+                </CardContent>
+                <CardFooter>
+                    <Button>Save Changes</Button>
+                </CardFooter>
+              </Card>
+
             <Card className="xl:col-span-2">
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -229,72 +262,70 @@ export default function ProfilePage() {
                 <Button>Save Changes</Button>
               </CardFooter>
             </Card>
+          </div>
 
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
+          <div className="grid gap-6 mt-6 lg:grid-cols-2 xl:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <div className="p-1 bg-green-500 rounded-md">
+                      <MessageSquare className="h-4 w-4 text-white" />
+                  </div>
+                  <CardTitle>WhatsApp Integration</CardTitle>
+                </div>
+                <CardDescription>
+                  Connect your WhatsApp Business account.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <div className="flex items-center justify-between rounded-lg bg-muted p-4">
+                      <div>
+                          <p className="font-semibold">Status</p>
+                          <p className="text-sm text-destructive">Not Connected</p>
+                      </div>
+                      <Button>Connect</Button>
+                  </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                   <div className="flex items-center gap-2">
-                    <div className="p-1 bg-green-500 rounded-md">
-                        <MessageSquare className="h-4 w-4 text-white" />
-                    </div>
-                    <CardTitle>WhatsApp Integration</CardTitle>
-                  </div>
-                  <CardDescription>
-                    Connect your WhatsApp Business account.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                   <div className="flex items-center justify-between rounded-lg bg-muted p-4">
-                        <div>
-                            <p className="font-semibold">Status</p>
-                            <p className="text-sm text-destructive">Not Connected</p>
-                        </div>
-                        <Button>Connect</Button>
-                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                   <div className="flex items-center gap-2">
-                    <Phone className="h-5 w-5" />
-                    <CardTitle>Contact Verification</CardTitle>
-                  </div>
-                  <CardDescription>
-                    Verify your phone number via SMS to receive alerts.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                  <Phone className="h-5 w-5" />
+                  <CardTitle>Contact Verification</CardTitle>
+                </div>
+                <CardDescription>
+                  Verify your phone number via SMS to receive alerts.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+                <Button className="w-full">Send Verification Code</Button>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                  <Button className="w-full">Send Verification Code</Button>
-                   <div className="space-y-2">
-                    <Label htmlFor="code">Verification Code</Label>
-                    <Input
-                      id="code"
-                      placeholder="Enter 6-digit code"
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                    <Button variant="outline" className="w-full">
-                        <BadgeCheck className="mr-2 h-4 w-4" />
-                        Verify Code
-                    </Button>
-                </CardFooter>
-              </Card>
-            </div>
+                  <Label htmlFor="code">Verification Code</Label>
+                  <Input
+                    id="code"
+                    placeholder="Enter 6-digit code"
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                  <Button variant="outline" className="w-full">
+                      <BadgeCheck className="mr-2 h-4 w-4" />
+                      Verify Code
+                  </Button>
+              </CardFooter>
+            </Card>
           </div>
         </main>
       </div>
     </div>
   );
 }
-
-    
