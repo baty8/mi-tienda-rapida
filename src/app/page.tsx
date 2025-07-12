@@ -3,6 +3,7 @@ import {
   ShoppingBag,
   Package,
   LineChart,
+  User,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -47,6 +48,14 @@ export default function Home() {
                 <Link href="/dashboard">
                   <LineChart />
                   Dashboard
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={false}>
+                <Link href="/profile">
+                  <User />
+                  Profile
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
