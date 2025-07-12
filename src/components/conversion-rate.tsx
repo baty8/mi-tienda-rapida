@@ -8,8 +8,15 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { useEffect, useState } from 'react';
 
 export function ConversionRate() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const visits = 12345;
   const sales = 2350;
   const conversionRate = (sales / visits) * 100;
@@ -26,14 +33,14 @@ export function ConversionRate() {
                     <Eye className="h-4 w-4" />
                     <span>Visits</span>
                 </div>
-                <span className="font-semibold">{visits.toLocaleString()}</span>
+                <span className="font-semibold">{isClient ? visits.toLocaleString() : visits}</span>
             </div>
              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2 text-muted-foreground">
                     <ShoppingCart className="h-4 w-4" />
                     <span>Sales</span>
                 </div>
-                <span className="font-semibold">{sales.toLocaleString()}</span>
+                <span className="font-semibold">{isClient ? sales.toLocaleString() : sales}</span>
             </div>
             <div className="space-y-2">
                  <Progress value={conversionRate} className="h-2" />
