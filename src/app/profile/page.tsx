@@ -9,6 +9,7 @@ import {
   Phone,
   MessageSquare,
   BadgeCheck,
+  Landmark,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -79,6 +80,14 @@ export default function ProfilePage() {
                 <Link href="/dashboard">
                   <LineChart />
                   Dashboard
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={false}>
+                <Link href="/finance">
+                  <Landmark />
+                  Finance
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
