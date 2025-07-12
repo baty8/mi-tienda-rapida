@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -136,18 +137,18 @@ export function ProductTable() {
     <Tabs defaultValue="all" onValueChange={setFilter}>
       <div className="flex items-center justify-between">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="visible">Visible</TabsTrigger>
-          <TabsTrigger value="hidden">Hidden</TabsTrigger>
+          <TabsTrigger value="all">Todos</TabsTrigger>
+          <TabsTrigger value="visible">Visibles</TabsTrigger>
+          <TabsTrigger value="hidden">Ocultos</TabsTrigger>
           <TabsTrigger value="out-of-stock" className="hidden sm:flex">
-            Out of Stock
+            Agotados
           </TabsTrigger>
         </TabsList>
         <div className="relative ml-auto flex-1 md:grow-0">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search..."
+            placeholder="Buscar..."
             className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
           />
         </div>
@@ -161,16 +162,16 @@ export function ProductTable() {
                   <TableHead className="w-[40px]">
                     <Checkbox />
                   </TableHead>
-                  <TableHead className="min-w-[250px]">Product</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="min-w-[250px]">Producto</TableHead>
+                  <TableHead>Etiquetas</TableHead>
                   <TableHead>Stock</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Visibility</TableHead>
+                  <TableHead>Precio</TableHead>
+                  <TableHead>Visibilidad</TableHead>
                   <TableHead className="hidden md:table-cell">
-                    Created at
+                    Fecha Creación
                   </TableHead>
                   <TableHead>
-                    <span className="sr-only">Actions</span>
+                    <span className="sr-only">Acciones</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -316,12 +317,12 @@ export function ProductTable() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                           <DropdownMenuItem>
-                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                            <Pencil className="mr-2 h-4 w-4" /> Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            <Trash2 className="mr-2 h-4 w-4" /> Borrar
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -333,11 +334,11 @@ export function ProductTable() {
           </CardContent>
           <CardFooter>
             <div className="text-xs text-muted-foreground">
-              Showing <strong>1-5</strong> of <strong>{products.length}</strong> products
+              Mostrando <strong>1-5</strong> de <strong>{products.length}</strong> productos
             </div>
             <div className="ml-auto flex items-center gap-2">
-                <Button size="sm" variant="outline">Previous</Button>
-                <Button size="sm" variant="outline">Next</Button>
+                <Button size="sm" variant="outline">Anterior</Button>
+                <Button size="sm" variant="outline">Siguiente</Button>
             </div>
           </CardFooter>
         </Card>
