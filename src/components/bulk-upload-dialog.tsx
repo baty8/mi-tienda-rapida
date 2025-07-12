@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, FileCsv, Download } from 'lucide-react';
+import { Upload, Download } from 'lucide-react';
 
 export function BulkUploadDialog() {
   const [file, setFile] = useState<File | null>(null);
@@ -62,7 +62,6 @@ export function BulkUploadDialog() {
                 </div>
                 {file && (
                     <div className="flex items-center gap-2 p-2 rounded-md bg-muted text-sm">
-                        <FileCsv className="h-5 w-5 text-muted-foreground" />
                         <span className="font-medium">{file.name}</span>
                     </div>
                 )}
