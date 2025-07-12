@@ -21,7 +21,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SalesStats } from '@/components/sales-stats';
 import { SalesChart } from '@/components/sales-chart';
-import { StockAlert } from '@/components/stock-alert';
 import { ConversionRate } from '@/components/conversion-rate';
 
 
@@ -122,7 +121,6 @@ export default function DashboardPage() {
                         <SalesChart />
                     </div>
                     <div className="space-y-6">
-                        <StockAlert />
                         <ConversionRate />
                     </div>
                 </div>
