@@ -80,7 +80,7 @@ export default function FinancePage() {
               <SidebarMenuButton asChild isActive={false}>
                 <Link href="/">
                   <Package />
-                  Products
+                  Productos
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -96,7 +96,7 @@ export default function FinancePage() {
                 <SidebarMenuButton asChild isActive={false}>
                     <Link href="/catalog">
                         <BookOpen />
-                        Catalog
+                        Catálogo
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
@@ -104,7 +104,7 @@ export default function FinancePage() {
               <SidebarMenuButton asChild isActive={true}>
                 <Link href="/finance">
                   <Landmark />
-                  Finance
+                  Finanzas
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -112,7 +112,7 @@ export default function FinancePage() {
               <SidebarMenuButton asChild isActive={false}>
                 <Link href="/profile">
                   <User />
-                  Profile
+                  Perfil
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -137,7 +137,7 @@ export default function FinancePage() {
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:justify-end">
           <SidebarTrigger className="md:hidden" />
           <h2 className="text-2xl font-bold font-headline md:hidden">
-            Financial Tools
+            Herramientas Financieras
           </h2>
         </header>
 
@@ -145,10 +145,10 @@ export default function FinancePage() {
           <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex flex-col gap-1">
               <h2 className="text-3xl font-bold font-headline">
-                Financial Tools
+                Herramientas Financieras
               </h2>
               <p className="text-muted-foreground">
-                Manage your store's finances with ease.
+                Administra las finanzas de tu tienda con facilidad.
               </p>
             </div>
           </div>
@@ -158,18 +158,18 @@ export default function FinancePage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
-                  <CardTitle>Automatic Payment Reconciliation</CardTitle>
+                  <CardTitle>Conciliación Automática de Pagos</CardTitle>
                 </div>
                 <CardDescription>
-                  Upload your payment processor statements to automatically reconcile transactions.
+                  Sube los extractos de tu procesador de pagos para conciliar transacciones automáticamente.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                  <div className="space-y-2">
-                    <Label htmlFor="payment-processor">Payment Processor</Label>
+                    <Label htmlFor="payment-processor">Procesador de Pagos</Label>
                     <Select>
                         <SelectTrigger id="payment-processor">
-                            <SelectValue placeholder="Select a processor" />
+                            <SelectValue placeholder="Selecciona un procesador" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="stripe">Stripe</SelectItem>
@@ -179,13 +179,13 @@ export default function FinancePage() {
                     </Select>
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="statement-file">Upload Statement</Label>
+                    <Label htmlFor="statement-file">Subir Extracto</Label>
                     <Input id="statement-file" type="file" />
                 </div>
               </CardContent>
               <CardFooter>
                 <Button className="w-full">
-                  <FileInput className="mr-2 h-4 w-4" /> Reconcile Payments
+                  <FileInput className="mr-2 h-4 w-4" /> Conciliar Pagos
                 </Button>
               </CardFooter>
             </Card>
@@ -194,31 +194,31 @@ export default function FinancePage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Calculator className="h-5 w-5" />
-                  <CardTitle>Margin Calculator</CardTitle>
+                  <CardTitle>Calculadora de Margen</CardTitle>
                 </div>
                 <CardDescription>
-                  Calculate your profit margin for any product.
+                  Calcula tu margen de ganancia para cualquier producto.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="cost">Cost ($)</Label>
+                    <Label htmlFor="cost">Costo ($)</Label>
                     <Input id="cost" type="number" placeholder="15.00" value={cost} onChange={(e) => setCost(parseFloat(e.target.value))}/>
                   </div>
                    <div className="space-y-2">
-                    <Label htmlFor="price">Sale Price ($)</Label>
+                    <Label htmlFor="price">Precio de Venta ($)</Label>
                     <Input id="price" type="number" placeholder="25.00" value={price} onChange={(e) => setPrice(parseFloat(e.target.value))}/>
                   </div>
                 </div>
-                <Button className="w-full" onClick={calculateMargin}>Calculate Margin</Button>
+                <Button className="w-full" onClick={calculateMargin}>Calcular Margen</Button>
                 <div className="mt-4 rounded-lg border bg-muted p-4 space-y-2">
                     <div className="flex justify-between font-medium">
-                        <span>Profit:</span>
+                        <span>Ganancia:</span>
                         <span>${profit.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg text-primary">
-                        <span>Margin:</span>
+                        <span>Margen:</span>
                         <span>{margin.toFixed(2)}%</span>
                     </div>
                 </div>
@@ -229,32 +229,32 @@ export default function FinancePage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  <CardTitle>Accounting Export</CardTitle>
+                  <CardTitle>Exportación Contable</CardTitle>
                 </div>
                 <CardDescription>
-                  Export your sales data for tax and accounting purposes.
+                  Exporta los datos de tus ventas para fines fiscales y contables.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                    <Label htmlFor="date-range">Date Range</Label>
+                    <Label htmlFor="date-range">Rango de Fechas</Label>
                     <Select>
                         <SelectTrigger id="date-range">
-                            <SelectValue placeholder="Select a range" />
+                            <SelectValue placeholder="Selecciona un rango" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="last-month">Last Month</SelectItem>
-                            <SelectItem value="last-quarter">Last Quarter</SelectItem>
-                            <SelectItem value="last-year">Last Year</SelectItem>
-                            <SelectItem value="custom">Custom Range</SelectItem>
+                            <SelectItem value="last-month">Último Mes</SelectItem>
+                            <SelectItem value="last-quarter">Último Trimestre</SelectItem>
+                            <SelectItem value="last-year">Último Año</SelectItem>
+                            <SelectItem value="custom">Rango Personalizado</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="export-format">Export Format</Label>
+                    <Label htmlFor="export-format">Formato de Exportación</Label>
                     <Select>
                         <SelectTrigger id="export-format">
-                            <SelectValue placeholder="Select a format" />
+                            <SelectValue placeholder="Selecciona un formato" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="csv">CSV</SelectItem>
@@ -266,7 +266,7 @@ export default function FinancePage() {
               </CardContent>
               <CardFooter>
                  <Button className="w-full" variant="outline">
-                    <Download className="mr-2 h-4 w-4" /> Export Data
+                    <Download className="mr-2 h-4 w-4" /> Exportar Datos
                 </Button>
               </CardFooter>
             </Card>
@@ -276,5 +276,3 @@ export default function FinancePage() {
     </div>
   );
 }
-
-    
