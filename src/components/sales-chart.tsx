@@ -1,7 +1,7 @@
 
 "use client"
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts"
 
 import {
   Card,
@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { ChartTooltipContent } from "./ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "./ui/chart"
 
 const data = [
   { day: "Monday", lastWeek: 4000, thisWeek: 2400 },
@@ -22,6 +22,18 @@ const data = [
   { day: "Sunday", lastWeek: 3490, thisWeek: 4300 },
 ]
 
+const chartConfig = {
+  thisWeek: {
+    label: "This Week",
+    color: "hsl(var(--primary))",
+  },
+  lastWeek: {
+    label: "Last Week",
+    color: "hsl(var(--secondary))",
+  },
+} satisfies ChartConfig;
+
+
 export function SalesChart() {
   return (
     <Card>
@@ -30,17 +42,30 @@ export function SalesChart() {
         <CardDescription>This Week vs. Last Week</CardDescription>
       </CardHeader>
       <CardContent className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="day" tickLine={false} axisLine={false} />
-            <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-            <Tooltip content={<ChartTooltipContent />} />
+        <ChartContainer config={chartConfig} className="h-full w-full">
+          <BarChart data={data} accessibilityLayer>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="day"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => `$${Number(value) / 1000}k`}
+            />
+            <Tooltip
+              cursor={false}
+              content={<ChartTooltipContent indicator="dot" />}
+            />
             <Legend />
-            <Bar dataKey="lastWeek" fill="hsl(var(--secondary))" name="Last Week" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="thisWeek" fill="hsl(var(--primary))" name="This Week" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="lastWeek" fill="var(--color-lastWeek)" radius={4} />
+            <Bar dataKey="thisWeek" fill="var(--color-thisWeek)" radius={4} />
           </BarChart>
-        </ResponsiveContainer>
+        </ChartContainer>
       </CardContent>
     </Card>
   )
