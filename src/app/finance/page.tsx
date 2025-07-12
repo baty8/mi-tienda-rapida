@@ -153,8 +153,8 @@ export default function FinancePage() {
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-            <Card className="lg:col-span-1 xl:col-span-1">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
@@ -190,7 +190,7 @@ export default function FinancePage() {
               </CardFooter>
             </Card>
 
-            <Card className="lg:col-span-1 xl:col-span-1">
+            <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Calculator className="h-5 w-5" />
@@ -223,52 +223,6 @@ export default function FinancePage() {
                     </div>
                 </div>
               </CardContent>
-            </Card>
-
-             <Card className="lg:col-span-2 xl:col-span-1">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  <CardTitle>Exportación Contable</CardTitle>
-                </div>
-                <CardDescription>
-                  Exporta los datos de tus ventas para fines fiscales y contables.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="date-range">Rango de Fechas</Label>
-                    <Select>
-                        <SelectTrigger id="date-range">
-                            <SelectValue placeholder="Selecciona un rango" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="last-month">Último Mes</SelectItem>
-                            <SelectItem value="last-quarter">Último Trimestre</SelectItem>
-                            <SelectItem value="last-year">Último Año</SelectItem>
-                            <SelectItem value="custom">Rango Personalizado</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="export-format">Formato de Exportación</Label>
-                    <Select>
-                        <SelectTrigger id="export-format">
-                            <SelectValue placeholder="Selecciona un formato" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="csv">CSV</SelectItem>
-                            <SelectItem value="pdf">PDF</SelectItem>
-                            <SelectItem value="quickbooks">QuickBooks</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-              </CardContent>
-              <CardFooter>
-                 <Button className="w-full" variant="outline">
-                    <Download className="mr-2 h-4 w-4" /> Exportar Datos
-                </Button>
-              </CardFooter>
             </Card>
           </div>
         </main>
