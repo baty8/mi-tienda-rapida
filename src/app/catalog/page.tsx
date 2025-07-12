@@ -121,9 +121,9 @@ const mockProducts: Product[] = [
 ];
 
 const templates = [
-  { id: 'modern', name: 'Modern', bg: 'bg-slate-900', text: 'text-white' },
-  { id: 'classic', name: 'Classic', bg: 'bg-white', text: 'text-gray-800' },
-  { id: 'vibrant', name: 'Vibrant', bg: 'bg-blue-500', text: 'text-white' },
+  { id: 'modern', name: 'Moderno', bg: 'bg-slate-900', text: 'text-white' },
+  { id: 'classic', name: 'Clásico', bg: 'bg-white', text: 'text-gray-800' },
+  { id: 'vibrant', name: 'Vibrante', bg: 'bg-blue-500', text: 'text-white' },
 ];
 
 export default function CatalogPage() {
@@ -155,7 +155,7 @@ export default function CatalogPage() {
               <SidebarMenuButton asChild isActive={false}>
                 <Link href="/">
                   <Package />
-                  Products
+                  Productos
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -171,7 +171,7 @@ export default function CatalogPage() {
                 <SidebarMenuButton asChild isActive={true}>
                     <Link href="/catalog">
                         <BookOpen />
-                        Catalog
+                        Catálogo
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
@@ -179,7 +179,7 @@ export default function CatalogPage() {
               <SidebarMenuButton asChild isActive={false}>
                 <Link href="/finance">
                   <Landmark />
-                  Finance
+                  Finanzas
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -187,7 +187,7 @@ export default function CatalogPage() {
               <SidebarMenuButton asChild isActive={false}>
                 <Link href="/profile">
                   <User />
-                  Profile
+                  Perfil
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -216,27 +216,27 @@ export default function CatalogPage() {
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:justify-end">
           <SidebarTrigger className="md:hidden" />
           <h2 className="text-2xl font-bold font-headline md:hidden">
-            Digital Catalog
+            Catálogo Digital
           </h2>
           <div className="flex items-center gap-4">
             <Dialog>
               <DialogTrigger asChild>
                 <Button>
                   <Share2 className="mr-2 h-4 w-4" />
-                  Share Catalog
+                  Compartir Catálogo
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Share your Catalog</DialogTitle>
+                  <DialogTitle>Comparte tu Catálogo</DialogTitle>
                   <DialogDescription>
-                    Anyone with this link can view your digital catalog.
+                    Cualquiera con este enlace puede ver tu catálogo digital.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex items-center space-x-2">
                   <div className="grid flex-1 gap-2">
                     <Label htmlFor="link" className="sr-only">
-                      Link
+                      Enlace
                     </Label>
                     <Input id="link" defaultValue={catalogLink} readOnly />
                   </div>
@@ -246,19 +246,19 @@ export default function CatalogPage() {
                     onClick={() => {
                       navigator.clipboard.writeText(catalogLink);
                       toast({
-                        title: 'Copied to clipboard!',
+                        title: '¡Copiado al portapapeles!',
                         description:
-                          'You can now share your catalog link.',
+                          'Ya puedes compartir el enlace de tu catálogo.',
                       });
                     }}
                   >
-                    <span className="sr-only">Copy</span>
+                    <span className="sr-only">Copiar</span>
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
                 <DialogFooter className="sm:justify-start">
-                    <Button variant="outline">Share on WhatsApp</Button>
-                    <Button variant="outline">Share on Facebook</Button>
+                    <Button variant="outline">Compartir en WhatsApp</Button>
+                    <Button variant="outline">Compartir en Facebook</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -269,10 +269,10 @@ export default function CatalogPage() {
           <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex flex-col gap-1">
               <h2 className="text-3xl font-bold font-headline">
-                Digital Catalog
+                Catálogo Digital
               </h2>
               <p className="text-muted-foreground">
-                Create, preview, and share a beautiful catalog of your products.
+                Crea, previsualiza y comparte un hermoso catálogo de tus productos.
               </p>
             </div>
           </div>
@@ -281,9 +281,9 @@ export default function CatalogPage() {
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>1. Select Products</CardTitle>
+                  <CardTitle>1. Selecciona Productos</CardTitle>
                   <CardDescription>
-                    Choose which products to include in your catalog.
+                    Elige qué productos incluir en tu catálogo.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 max-h-96 overflow-y-auto">
@@ -325,16 +325,16 @@ export default function CatalogPage() {
                 </CardContent>
                  <CardFooter>
                     <div className="text-xs text-muted-foreground">
-                        Selected {selectedProducts.length} of {mockProducts.filter(p => p.visible).length} products.
+                        Seleccionados {selectedProducts.length} de {mockProducts.filter(p => p.visible).length} productos.
                     </div>
                 </CardFooter>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>2. Choose a Template</CardTitle>
+                  <CardTitle>2. Elige una Plantilla</CardTitle>
                   <CardDescription>
-                    Select a visual theme for your catalog.
+                    Selecciona un tema visual para tu catálogo.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -378,9 +378,9 @@ export default function CatalogPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Smartphone className="h-5 w-5" />
-                            Mobile Preview
+                            Vista Previa Móvil
                         </CardTitle>
-                        <CardDescription>This is how your customers will see the catalog.</CardDescription>
+                        <CardDescription>Así es como tus clientes verán el catálogo.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="w-full max-w-sm mx-auto bg-gray-800 rounded-[2.5rem] border-[14px] border-gray-800 shadow-xl overflow-hidden">
@@ -389,7 +389,7 @@ export default function CatalogPage() {
                                     <div className="text-center mb-6">
                                         <ShoppingBag className="mx-auto h-12 w-12" />
                                         <h1 className="text-2xl font-bold font-headline mt-2">VentaRapida</h1>
-                                        <p className="text-sm opacity-80">Our Products</p>
+                                        <p className="text-sm opacity-80">Nuestros Productos</p>
                                     </div>
                                     <div className="space-y-4">
                                         {mockProducts.filter(p => selectedProducts.includes(p.id)).map(product => (
@@ -403,16 +403,16 @@ export default function CatalogPage() {
                                                 </div>
                                                 <Button size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white">
                                                     <MessageCircle className="mr-2 h-4 w-4" />
-                                                    Contact on WhatsApp
+                                                    Contactar por WhatsApp
                                                 </Button>
                                              </div>
                                         ))}
                                         {selectedProducts.length === 0 && (
-                                            <p className="text-center opacity-70 py-10">Select products to see them here.</p>
+                                            <p className="text-center opacity-70 py-10">Selecciona productos para verlos aquí.</p>
                                         )}
                                     </div>
                                     <div className="text-center mt-8 text-xs opacity-60">
-                                        <p>Powered by VentaRapida</p>
+                                        <p>Potenciado por VentaRapida</p>
                                     </div>
                                  </div>
                             </div>
@@ -426,3 +426,5 @@ export default function CatalogPage() {
     </div>
   );
 }
+
+    
