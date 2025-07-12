@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import {
   ShoppingBag,
@@ -15,15 +17,17 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AddProductDialog } from '@/components/add-product-dialog';
 import { BulkUploadDialog } from '@/components/bulk-upload-dialog';
 import { ProductTable } from '@/components/product-table';
+import { useProduct } from '@/context/ProductContext';
 
 export default function Home() {
+  const { products, addProduct } = useProduct();
+
   return (
     <div className="flex min-h-screen w-full flex-row">
       <Sidebar>
@@ -99,7 +103,7 @@ export default function Home() {
           <SidebarTrigger className="md:hidden" />
            <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
              <BulkUploadDialog />
-             <AddProductDialog />
+             <AddProductDialog onAddProduct={addProduct} />
            </div>
         </header>
 

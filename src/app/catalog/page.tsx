@@ -61,64 +61,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
-const mockProducts: Product[] = [
-  {
-    id: 'prod_001',
-    name: 'Artisan Ceramic Mug',
-    image: 'https://placehold.co/80x80.png',
-    price: 25.0,
-    stock: 150,
-    tags: ['New'],
-    visible: true,
-    category: 'Homeware',
-    createdAt: '2023-10-01',
-  },
-  {
-    id: 'prod_002',
-    name: 'Organic Cotton Tote Bag',
-    image: 'https://placehold.co/80x80.png',
-    price: 15.5,
-    stock: 300,
-    tags: ['Offer'],
-    visible: true,
-    category: 'Accessories',
-    createdAt: '2023-10-05',
-  },
-  {
-    id: 'prod_003',
-    name: 'Minimalist Desk Lamp',
-    image: 'https://placehold.co/80x80.png',
-    price: 79.99,
-    stock: 0,
-    tags: ['Out of Stock'],
-    visible: false,
-    category: 'Lighting',
-    createdAt: '2023-09-20',
-  },
-  {
-    id: 'prod_004',
-    name: 'Recycled Paper Notebook',
-    image: 'https://placehold.co/80x80.png',
-    price: 12.0,
-    stock: 500,
-    tags: [],
-    visible: true,
-    category: 'Stationery',
-    createdAt: '2023-10-10',
-  },
-  {
-    id: 'prod_005',
-    name: 'Gourmet Coffee Beans',
-    image: 'https://placehold.co/80x80.png',
-    price: 22.5,
-    stock: 80,
-    tags: ['New'],
-    visible: true,
-    category: 'Food & Drink',
-    createdAt: '2023-10-12',
-  },
-];
+import { useProduct } from '@/context/ProductContext';
 
 const templates = [
   { id: 'modern', name: 'Moderno', bg: 'bg-slate-900', text: 'text-white' },
@@ -127,6 +70,7 @@ const templates = [
 ];
 
 export default function CatalogPage() {
+  const { products } = useProduct();
   const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
   const [selectedTemplate, setSelectedTemplate] = React.useState(templates[0]);
 
@@ -287,7 +231,7 @@ export default function CatalogPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-                  {mockProducts
+                  {products
                     .filter((p) => p.visible)
                     .map((product) => (
                       <div
@@ -322,10 +266,13 @@ export default function CatalogPage() {
                         </div>
                       </div>
                     ))}
+                    {products.filter(p => p.visible).length === 0 && (
+                      <p className="text-center text-muted-foreground py-4">No tienes productos visibles para mostrar.</p>
+                    )}
                 </CardContent>
                  <CardFooter>
                     <div className="text-xs text-muted-foreground">
-                        Seleccionados {selectedProducts.length} de {mockProducts.filter(p => p.visible).length} productos.
+                        Seleccionados {selectedProducts.length} de {products.filter(p => p.visible).length} productos.
                     </div>
                 </CardFooter>
               </Card>
@@ -392,7 +339,7 @@ export default function CatalogPage() {
                                         <p className="text-sm opacity-80">Nuestros Productos</p>
                                     </div>
                                     <div className="space-y-4">
-                                        {mockProducts.filter(p => selectedProducts.includes(p.id)).map(product => (
+                                        {products.filter(p => selectedProducts.includes(p.id)).map(product => (
                                              <div key={product.id} className="bg-white/10 p-3 rounded-lg space-y-3">
                                                 <div className="flex items-center gap-4">
                                                     <Image src={product.image} alt={product.name} width={64} height={64} className="rounded-md" data-ai-hint="product image" />
@@ -426,5 +373,3 @@ export default function CatalogPage() {
     </div>
   );
 }
-
-    

@@ -7,7 +7,6 @@ import type { Product } from '@/types';
 import {
   MoreHorizontal,
   Pencil,
-  PlusCircle,
   Search,
   Trash2,
 } from 'lucide-react';
@@ -18,10 +17,7 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import {
   DropdownMenu,
@@ -47,81 +43,22 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { Checkbox } from './ui/checkbox';
-
-const mockProducts: Product[] = [
-  {
-    id: 'prod_001',
-    name: 'Artisan Ceramic Mug',
-    image: 'https://placehold.co/80x80.png',
-    price: 25.0,
-    stock: 150,
-    tags: ['New'],
-    visible: true,
-    category: 'Homeware',
-    createdAt: '2023-10-01',
-  },
-  {
-    id: 'prod_002',
-    name: 'Organic Cotton Tote Bag',
-    image: 'https://placehold.co/80x80.png',
-    price: 15.5,
-    stock: 300,
-    tags: ['Offer'],
-    visible: true,
-    category: 'Accessories',
-    createdAt: '2023-10-05',
-  },
-  {
-    id: 'prod_003',
-    name: 'Minimalist Desk Lamp',
-    image: 'https://placehold.co/80x80.png',
-    price: 79.99,
-    stock: 0,
-    tags: ['Out of Stock'],
-    visible: false,
-    category: 'Lighting',
-    createdAt: '2023-09-20',
-  },
-  {
-    id: 'prod_004',
-    name: 'Recycled Paper Notebook',
-    image: 'https://placehold.co/80x80.png',
-    price: 12.0,
-    stock: 500,
-    tags: [],
-    visible: true,
-    category: 'Stationery',
-    createdAt: '2023-10-10',
-  },
-  {
-    id: 'prod_005',
-    name: 'Gourmet Coffee Beans',
-    image: 'https://placehold.co/80x80.png',
-    price: 22.5,
-    stock: 80,
-    tags: ['New'],
-    visible: true,
-    category: 'Food & Drink',
-    createdAt: '2023-10-12',
-  },
-];
+import { useProduct } from '@/context/ProductContext';
 
 export function ProductTable() {
-  const [products, setProducts] = React.useState<Product[]>(mockProducts);
+  const { products, updateProduct, deleteProduct } = useProduct();
   const [editingCell, setEditingCell] = React.useState<{
     rowId: string;
     columnId: string;
   } | null>(null);
   const [filter, setFilter] = React.useState('all');
 
-  const handleUpdateProduct = (
+  const handleUpdate = (
     productId: string,
     field: keyof Product,
     value: any
   ) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, [field]: value } : p))
-    );
+    updateProduct(productId, { [field]: value });
     setEditingCell(null);
   };
 
@@ -176,7 +113,14 @@ export function ProductTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product) => (
+                {filteredProducts.length === 0 ? (
+                    <TableRow>
+                        <TableCell colSpan={8} className="h-24 text-center">
+                            Aún no has añadido ningún producto.
+                        </TableCell>
+                    </TableRow>
+                ) : (
+                filteredProducts.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>
                       <Checkbox />
@@ -222,6 +166,7 @@ export function ProductTable() {
                           columnId: 'stock',
                         })
                       }
+                      className="group"
                     >
                       {editingCell?.rowId === product.id &&
                       editingCell?.columnId === 'stock' ? (
@@ -230,7 +175,7 @@ export function ProductTable() {
                           defaultValue={product.stock}
                           autoFocus
                           onBlur={(e) =>
-                            handleUpdateProduct(
+                            handleUpdate(
                               product.id,
                               'stock',
                               parseInt(e.target.value, 10)
@@ -238,7 +183,7 @@ export function ProductTable() {
                           }
                           onKeyDown={(e) => {
                             if (e.key === 'Enter')
-                              handleUpdateProduct(
+                              handleUpdate(
                                 product.id,
                                 'stock',
                                 parseInt(e.currentTarget.value, 10)
@@ -247,7 +192,7 @@ export function ProductTable() {
                           className="h-8 w-20"
                         />
                       ) : (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 cursor-pointer">
                           <span>{product.stock}</span>
                           <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
                         </div>
@@ -260,6 +205,7 @@ export function ProductTable() {
                           columnId: 'price',
                         })
                       }
+                      className="group"
                     >
                       {editingCell?.rowId === product.id &&
                       editingCell?.columnId === 'price' ? (
@@ -268,7 +214,7 @@ export function ProductTable() {
                           defaultValue={product.price}
                           autoFocus
                           onBlur={(e) =>
-                            handleUpdateProduct(
+                            handleUpdate(
                               product.id,
                               'price',
                               parseFloat(e.target.value)
@@ -276,7 +222,7 @@ export function ProductTable() {
                           }
                           onKeyDown={(e) => {
                             if (e.key === 'Enter')
-                              handleUpdateProduct(
+                              handleUpdate(
                                 product.id,
                                 'price',
                                 parseFloat(e.currentTarget.value)
@@ -285,7 +231,7 @@ export function ProductTable() {
                           className="h-8 w-24"
                         />
                       ) : (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 cursor-pointer">
                            <span>
                             ${product.price.toFixed(2)}
                           </span>
@@ -297,7 +243,7 @@ export function ProductTable() {
                       <Switch
                         checked={product.visible}
                         onCheckedChange={(value) =>
-                          handleUpdateProduct(product.id, 'visible', value)
+                          handleUpdate(product.id, 'visible', value)
                         }
                       />
                     </TableCell>
@@ -321,24 +267,24 @@ export function ProductTable() {
                           <DropdownMenuItem>
                             <Pencil className="mr-2 h-4 w-4" /> Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem className="text-destructive" onClick={() => deleteProduct(product.id)}>
                             <Trash2 className="mr-2 h-4 w-4" /> Borrar
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
+                )))}
               </TableBody>
             </Table>
           </CardContent>
           <CardFooter>
             <div className="text-xs text-muted-foreground">
-              Mostrando <strong>1-5</strong> de <strong>{products.length}</strong> productos
+              Mostrando <strong>1-{filteredProducts.length}</strong> de <strong>{products.length}</strong> productos
             </div>
             <div className="ml-auto flex items-center gap-2">
-                <Button size="sm" variant="outline">Anterior</Button>
-                <Button size="sm" variant="outline">Siguiente</Button>
+                <Button size="sm" variant="outline" disabled>Anterior</Button>
+                <Button size="sm" variant="outline" disabled>Siguiente</Button>
             </div>
           </CardFooter>
         </Card>

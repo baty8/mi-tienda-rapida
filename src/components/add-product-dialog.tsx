@@ -17,9 +17,44 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, UploadCloud } from 'lucide-react';
 import { Switch } from './ui/switch';
+import type { Product } from '@/types';
 
-export function AddProductDialog() {
+type AddProductDialogProps = {
+    onAddProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category'>) => void;
+};
+
+export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
   const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState(0);
+  const [stock, setStock] = useState(0);
+  const [visible, setVisible] = useState(true);
+  const [image, setImage] = useState('https://placehold.co/80x80.png');
+
+  const handleSave = () => {
+    if (!name || price <= 0) {
+      // Basic validation
+      alert('Por favor, completa el nombre y el precio del producto.');
+      return;
+    }
+    onAddProduct({
+        name,
+        description,
+        price,
+        stock,
+        visible,
+        image,
+    });
+    // Reset form and close dialog
+    setName('');
+    setDescription('');
+    setPrice(0);
+    setStock(0);
+    setVisible(true);
+    setImage('https://placehold.co/80x80.png');
+    setOpen(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -40,11 +75,11 @@ export function AddProductDialog() {
         <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-4">
             <div className="space-y-2">
                 <Label htmlFor="name">Nombre del Producto</Label>
-                <Input id="name" placeholder="Ej: Taza de Cerámica Artesanal" />
+                <Input id="name" placeholder="Ej: Taza de Cerámica Artesanal" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="description">Descripción</Label>
-                <Textarea id="description" placeholder="Describe tu producto..."/>
+                <Textarea id="description" placeholder="Describe tu producto..." value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
              <div className="space-y-2">
                 <Label>Foto del Producto</Label>
@@ -62,25 +97,22 @@ export function AddProductDialog() {
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="price">Precio ($)</Label>
-                    <Input id="price" type="number" placeholder="25.00" />
+                    <Input id="price" type="number" placeholder="25.00" value={price} onChange={(e) => setPrice(parseFloat(e.target.value) || 0)} />
                 </div>
                  <div className="space-y-2">
-                    <Label htmlFor="stock">Stock</Label>
-                    <Input id="stock" type="number" placeholder="150" />
+                    <Label htmlFor="stock">Stock Disponible</Label>
+                    <Input id="stock" type="number" placeholder="150" value={stock} onChange={(e) => setStock(parseInt(e.target.value, 10) || 0)} />
                 </div>
             </div>
             <div className="flex items-center space-x-2">
-                <Switch id="visibility-switch" />
+                <Switch id="visibility-switch" checked={visible} onCheckedChange={setVisible} />
                 <Label htmlFor="visibility-switch">Visible en la tienda</Label>
             </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={() => {
-              // Lógica para guardar el producto
-              setOpen(false);
-          }}>Guardar Producto</Button>
+          <Button onClick={handleSave}>Guardar Producto</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
