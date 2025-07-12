@@ -24,7 +24,7 @@ import { ConversionRate } from '@/components/conversion-rate';
 
 export default function DashboardPage() {
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-row">
        <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-3 p-2">
@@ -57,7 +57,7 @@ export default function DashboardPage() {
         <SidebarFooter>
           <div className="flex items-center gap-3 p-2">
             <Avatar>
-              <AvatarImage src="https://placehold.co/40x40" alt="User avatar" />
+              <AvatarImage src="https://placehold.co/40x40" alt="User avatar" data-ai-hint="male user" />
               <AvatarFallback>VR</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
@@ -69,7 +69,7 @@ export default function DashboardPage() {
           </div>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
+      <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:justify-end">
             <SidebarTrigger className="md:hidden" />
             <h2 className="text-2xl font-bold font-headline md:hidden">Dashboard</h2>
@@ -78,7 +78,7 @@ export default function DashboardPage() {
              </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div className="flex flex-col gap-1">
                     <h2 className="text-3xl font-bold font-headline">Dashboard</h2>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
             </div>
 
         </main>
-      </SidebarInset>
+      </div>
     </div>
   );
 }
