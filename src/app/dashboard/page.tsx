@@ -37,7 +37,7 @@ export default function DashboardPage() {
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton asChild isActive={false}>
                 <Link href="/">
                   <Package />
                   Products
@@ -45,7 +45,7 @@ export default function DashboardPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive>
+              <SidebarMenuButton asChild isActive={true}>
                 <Link href="/dashboard">
                   <LineChart />
                   Dashboard

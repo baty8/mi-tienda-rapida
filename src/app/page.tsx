@@ -39,7 +39,7 @@ export default function Home() {
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive>
+              <SidebarMenuButton asChild isActive={true}>
                 <Link href="/">
                   <Package />
                   Products
@@ -47,7 +47,7 @@ export default function Home() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton asChild isActive={false}>
                 <Link href="/dashboard">
                   <LineChart />
                   Dashboard
