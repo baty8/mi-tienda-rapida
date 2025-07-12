@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/tabs';
 import { Checkbox } from './ui/checkbox';
 import { useProduct } from '@/context/ProductContext';
+import { EditProductDialog } from './edit-product-dialog';
 
 export function ProductTable() {
   const { products, updateProduct, deleteProduct } = useProduct();
@@ -52,6 +53,8 @@ export function ProductTable() {
     columnId: string;
   } | null>(null);
   const [filter, setFilter] = React.useState('all');
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [editingProduct, setEditingProduct] = React.useState<Product | null>(null);
 
   const handleUpdate = (
     productId: string,
@@ -61,16 +64,26 @@ export function ProductTable() {
     updateProduct(productId, { [field]: value });
     setEditingCell(null);
   };
+  
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+  };
 
   const filteredProducts = products.filter((product) => {
-    if (filter === 'all') return true;
-    if (filter === 'visible') return product.visible;
-    if (filter === 'hidden') return !product.visible;
-    if (filter === 'out-of-stock') return product.stock === 0;
-    return true;
+    const matchesFilter = 
+        filter === 'all' ? true :
+        filter === 'visible' ? product.visible :
+        filter === 'hidden' ? !product.visible :
+        filter === 'out-of-stock' ? product.stock === 0 :
+        true;
+    
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesFilter && matchesSearch;
   });
 
   return (
+    <>
     <Tabs defaultValue="all" onValueChange={setFilter}>
       <div className="flex items-center justify-between">
         <TabsList>
@@ -87,6 +100,8 @@ export function ProductTable() {
             type="search"
             placeholder="Buscar..."
             className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
@@ -264,7 +279,7 @@ export function ProductTable() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditProduct(product)}>
                             <Pencil className="mr-2 h-4 w-4" /> Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive" onClick={() => deleteProduct(product.id)}>
@@ -290,5 +305,16 @@ export function ProductTable() {
         </Card>
       </TabsContent>
     </Tabs>
+    {editingProduct && (
+        <EditProductDialog
+            product={editingProduct}
+            onUpdateProduct={(id, data) => {
+                updateProduct(id, data);
+                setEditingProduct(null);
+            }}
+            onClose={() => setEditingProduct(null)}
+        />
+    )}
+    </>
   );
 }

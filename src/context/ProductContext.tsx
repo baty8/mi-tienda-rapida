@@ -30,9 +30,24 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
   const updateProduct = (productId: string, updatedFields: Partial<Product>) => {
     setProducts(prevProducts =>
-      prevProducts.map(p =>
-        p.id === productId ? { ...p, ...updatedFields } : p
-      )
+      prevProducts.map(p => {
+        if (p.id === productId) {
+          const updatedProduct = { ...p, ...updatedFields };
+          // Update tags based on stock
+          if (updatedFields.stock !== undefined) {
+             if (updatedProduct.stock > 0 && updatedProduct.tags.includes('Out of Stock')) {
+                updatedProduct.tags = updatedProduct.tags.filter(t => t !== 'Out of Stock');
+                if (!updatedProduct.tags.includes('New')) {
+                    updatedProduct.tags.push('New');
+                }
+            } else if (updatedProduct.stock === 0 && !updatedProduct.tags.includes('Out of Stock')) {
+                updatedProduct.tags.push('Out of Stock');
+            }
+          }
+          return updatedProduct;
+        }
+        return p;
+      })
     );
   };
 
