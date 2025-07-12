@@ -17,9 +17,9 @@ import {
 } from "@/components/ui/table"
 
 const lowStockProducts = [
-    { name: "Minimalist Desk Lamp", stock: 3 },
-    { name: "Gourmet Coffee Beans", stock: 5 },
-    { name: "Artisan Ceramic Mug", stock: 2 },
+    { name: "Lámpara de Escritorio Minimalista", stock: 3 },
+    { name: "Granos de Café Gourmet", stock: 5 },
+    { name: "Taza de Cerámica Artesanal", stock: 2 },
 ];
 
 export function StockAlert() {
@@ -28,15 +28,15 @@ export function StockAlert() {
       <CardHeader className="flex flex-row items-center gap-2">
         <AlertTriangle className="h-5 w-5 text-destructive" />
         <div className='flex flex-col'>
-            <CardTitle>Critical Stock Alert</CardTitle>
-            <CardDescription>Products with less than 5 units in stock.</CardDescription>
+            <CardTitle>Alerta de Stock Crítico</CardTitle>
+            <CardDescription>Productos con menos de 5 unidades en stock.</CardDescription>
         </div>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Product</TableHead>
+              <TableHead>Producto</TableHead>
               <TableHead className="text-right">Stock</TableHead>
             </TableRow>
           </TableHeader>

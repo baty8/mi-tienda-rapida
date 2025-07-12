@@ -24,28 +24,28 @@ export function ConversionRate() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Conversion Rate</CardTitle>
+        <CardTitle>Tasa de Conversión</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2 text-muted-foreground">
                     <Eye className="h-4 w-4" />
-                    <span>Visits</span>
+                    <span>Visitas</span>
                 </div>
                 <span className="font-semibold">{isClient ? visits.toLocaleString() : visits}</span>
             </div>
              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2 text-muted-foreground">
                     <ShoppingCart className="h-4 w-4" />
-                    <span>Sales</span>
+                    <span>Ventas</span>
                 </div>
                 <span className="font-semibold">{isClient ? sales.toLocaleString() : sales}</span>
             </div>
             <div className="space-y-2">
                  <Progress value={conversionRate} className="h-2" />
                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Rate</span>
+                    <span className="text-sm text-muted-foreground">Tasa</span>
                     <span className="text-sm font-bold text-primary">{conversionRate.toFixed(2)}%</span>
                  </div>
             </div>

@@ -43,7 +43,7 @@ export default function DashboardPage() {
               <SidebarMenuButton asChild isActive={false}>
                 <Link href="/">
                   <Package />
-                  Products
+                  Productos
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -59,7 +59,7 @@ export default function DashboardPage() {
                 <SidebarMenuButton asChild isActive={false}>
                     <Link href="/catalog">
                         <BookOpen />
-                        Catalog
+                        Catálogo
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
               <SidebarMenuButton asChild isActive={false}>
                 <Link href="/finance">
                   <Landmark />
-                  Finance
+                  Finanzas
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -75,7 +75,7 @@ export default function DashboardPage() {
               <SidebarMenuButton asChild isActive={false}>
                 <Link href="/profile">
                   <User />
-                  Profile
+                  Perfil
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -110,7 +110,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col gap-1">
                     <h2 className="text-3xl font-bold font-headline">Dashboard</h2>
                     <p className="text-muted-foreground">
-                        An overview of your store's performance.
+                        Un resumen del rendimiento de tu tienda.
                     </p>
                 </div>
             </div>

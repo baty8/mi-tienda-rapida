@@ -13,22 +13,22 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "./ui/chart"
 
 const data = [
-  { day: "Monday", lastWeek: 4000, thisWeek: 2400 },
-  { day: "Tuesday", lastWeek: 3000, thisWeek: 1398 },
-  { day: "Wednesday", lastWeek: 2000, thisWeek: 9800 },
-  { day: "Thursday", lastWeek: 2780, thisWeek: 3908 },
-  { day: "Friday", lastWeek: 1890, thisWeek: 4800 },
-  { day: "Saturday", lastWeek: 2390, thisWeek: 3800 },
-  { day: "Sunday", lastWeek: 3490, thisWeek: 4300 },
+  { day: "Lunes", lastWeek: 4000, thisWeek: 2400 },
+  { day: "Martes", lastWeek: 3000, thisWeek: 1398 },
+  { day: "Miércoles", lastWeek: 2000, thisWeek: 9800 },
+  { day: "Jueves", lastWeek: 2780, thisWeek: 3908 },
+  { day: "Viernes", lastWeek: 1890, thisWeek: 4800 },
+  { day: "Sábado", lastWeek: 2390, thisWeek: 3800 },
+  { day: "Domingo", lastWeek: 3490, thisWeek: 4300 },
 ]
 
 const chartConfig = {
   thisWeek: {
-    label: "This Week",
+    label: "Esta Semana",
     color: "hsl(var(--primary))",
   },
   lastWeek: {
-    label: "Last Week",
+    label: "Semana Pasada",
     color: "hsl(var(--secondary))",
   },
 } satisfies ChartConfig;
@@ -38,8 +38,8 @@ export function SalesChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sales Comparison</CardTitle>
-        <CardDescription>This Week vs. Last Week</CardDescription>
+        <CardTitle>Comparación de Ventas</CardTitle>
+        <CardDescription>Esta Semana vs. Semana Pasada</CardDescription>
       </CardHeader>
       <CardContent className="h-80">
         <ChartContainer config={chartConfig} className="h-full w-full">

@@ -41,7 +41,7 @@ export default function Home() {
               <SidebarMenuButton asChild isActive={true}>
                 <Link href="/">
                   <Package />
-                  Products
+                  Productos
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -57,7 +57,7 @@ export default function Home() {
                 <SidebarMenuButton asChild isActive={false}>
                     <Link href="/catalog">
                         <BookOpen />
-                        Catalog
+                        Catálogo
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
@@ -65,7 +65,7 @@ export default function Home() {
               <SidebarMenuButton asChild isActive={false}>
                 <Link href="/finance">
                   <Landmark />
-                  Finance
+                  Finanzas
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -73,7 +73,7 @@ export default function Home() {
               <SidebarMenuButton asChild isActive={false}>
                 <Link href="/profile">
                   <User />
-                  Profile
+                  Perfil
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -106,9 +106,9 @@ export default function Home() {
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex flex-col gap-1">
-              <h2 className="text-3xl font-bold font-headline">Products</h2>
+              <h2 className="text-3xl font-bold font-headline">Productos</h2>
               <p className="text-muted-foreground">
-                A list of all products in your store.
+                Una lista de todos los productos en tu tienda.
               </p>
             </div>
           </div>
