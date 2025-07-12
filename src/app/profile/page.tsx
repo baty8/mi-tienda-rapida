@@ -7,7 +7,7 @@ import {
   Clock,
   Globe,
   Phone,
-  MessageSquare,
+  MessageCircle,
   BadgeCheck,
   Landmark,
   BookOpen,
@@ -269,7 +269,7 @@ export default function ProfilePage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <div className="p-1 bg-green-500 rounded-md">
-                      <MessageSquare className="h-4 w-4 text-white" />
+                      <MessageCircle className="h-4 w-4 text-white" />
                   </div>
                   <CardTitle>Integración con WhatsApp</CardTitle>
                 </div>

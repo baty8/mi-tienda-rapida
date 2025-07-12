@@ -14,6 +14,7 @@ import {
   Check,
   Smartphone,
   Copy,
+  MessageCircle,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -392,12 +393,18 @@ export default function CatalogPage() {
                                     </div>
                                     <div className="space-y-4">
                                         {mockProducts.filter(p => selectedProducts.includes(p.id)).map(product => (
-                                             <div key={product.id} className="flex items-center gap-4 bg-white/10 p-2 rounded-lg">
-                                                <Image src={product.image} alt={product.name} width={64} height={64} className="rounded-md" data-ai-hint="product image" />
-                                                <div className="flex-1">
-                                                    <h3 className="font-semibold">{product.name}</h3>
-                                                    <p className="text-lg font-bold">${product.price.toFixed(2)}</p>
+                                             <div key={product.id} className="bg-white/10 p-3 rounded-lg space-y-3">
+                                                <div className="flex items-center gap-4">
+                                                    <Image src={product.image} alt={product.name} width={64} height={64} className="rounded-md" data-ai-hint="product image" />
+                                                    <div className="flex-1">
+                                                        <h3 className="font-semibold">{product.name}</h3>
+                                                        <p className="text-lg font-bold">${product.price.toFixed(2)}</p>
+                                                    </div>
                                                 </div>
+                                                <Button size="sm" className="w-full bg-green-500 hover:bg-green-600 text-white">
+                                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                                    Contact on WhatsApp
+                                                </Button>
                                              </div>
                                         ))}
                                         {selectedProducts.length === 0 && (
@@ -407,7 +414,7 @@ export default function CatalogPage() {
                                     <div className="text-center mt-8 text-xs opacity-60">
                                         <p>Powered by VentaRapida</p>
                                     </div>
-                                </div>
+                                 </div>
                             </div>
                         </div>
                     </CardContent>
@@ -419,5 +426,3 @@ export default function CatalogPage() {
     </div>
   );
 }
-
-    
