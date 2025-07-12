@@ -4,6 +4,7 @@ export type Product = {
   description?: string;
   image: string;
   price: number;
+  cost: number;
   stock: number;
   tags: ('New' | 'Offer' | 'Out of Stock')[];
   visible: boolean;

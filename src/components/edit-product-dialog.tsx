@@ -31,6 +31,7 @@ export function EditProductDialog({ product, onUpdateProduct, onClose }: EditPro
   const [name, setName] = useState(product.name);
   const [description, setDescription] = useState(product.description || '');
   const [price, setPrice] = useState(product.price);
+  const [cost, setCost] = useState(product.cost);
   const [stock, setStock] = useState(product.stock);
   const [visible, setVisible] = useState(product.visible);
   const [image, setImage] = useState(product.image);
@@ -40,6 +41,7 @@ export function EditProductDialog({ product, onUpdateProduct, onClose }: EditPro
     setName(product.name);
     setDescription(product.description || '');
     setPrice(product.price);
+    setCost(product.cost);
     setStock(product.stock);
     setVisible(product.visible);
     setImage(product.image);
@@ -69,6 +71,7 @@ export function EditProductDialog({ product, onUpdateProduct, onClose }: EditPro
         name,
         description,
         price,
+        cost,
         stock,
         visible,
         image,
@@ -119,13 +122,17 @@ export function EditProductDialog({ product, onUpdateProduct, onClose }: EditPro
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label htmlFor="price">Precio ($)</Label>
+                    <Label htmlFor="cost">Costo ($)</Label>
+                    <Input id="cost" type="number" value={cost} onChange={(e) => setCost(parseFloat(e.target.value) || 0)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="price">Precio Venta ($)</Label>
                     <Input id="price" type="number" value={price} onChange={(e) => setPrice(parseFloat(e.target.value) || 0)} />
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="stock">Stock Disponible</Label>
-                    <Input id="stock" type="number" value={stock} onChange={(e) => setStock(parseInt(e.target.value, 10) || 0)} />
-                </div>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="stock">Stock Disponible</Label>
+                <Input id="stock" type="number" value={stock} onChange={(e) => setStock(parseInt(e.target.value, 10) || 0)} />
             </div>
             <div className="flex items-center space-x-2">
                 <Switch id="visibility-switch" checked={visible} onCheckedChange={setVisible} />

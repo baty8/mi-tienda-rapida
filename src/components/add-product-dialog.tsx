@@ -30,6 +30,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState(0);
+  const [cost, setCost] = useState(0);
   const [stock, setStock] = useState(0);
   const [visible, setVisible] = useState(true);
   const [image, setImage] = useState('');
@@ -49,6 +50,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
     setName('');
     setDescription('');
     setPrice(0);
+    setCost(0);
     setStock(0);
     setVisible(true);
     setImage('');
@@ -67,6 +69,7 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
         name,
         description,
         price,
+        cost,
         stock,
         visible,
         image,
@@ -123,14 +126,18 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <Label htmlFor="cost">Costo ($)</Label>
+                    <Input id="cost" type="number" placeholder="10.00" value={cost > 0 ? cost : ''} onChange={(e) => setCost(parseFloat(e.target.value) || 0)} />
+                </div>
                 <div className="space-y-2">
-                    <Label htmlFor="price">Precio ($)</Label>
+                    <Label htmlFor="price">Precio Venta ($)</Label>
                     <Input id="price" type="number" placeholder="25.00" value={price > 0 ? price : ''} onChange={(e) => setPrice(parseFloat(e.target.value) || 0)} />
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="stock">Stock Disponible</Label>
-                    <Input id="stock" type="number" placeholder="150" value={stock > 0 ? stock : ''} onChange={(e) => setStock(parseInt(e.target.value, 10) || 0)} />
-                </div>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="stock">Stock Disponible</Label>
+                <Input id="stock" type="number" placeholder="150" value={stock > 0 ? stock : ''} onChange={(e) => setStock(parseInt(e.target.value, 10) || 0)} />
             </div>
             <div className="flex items-center space-x-2">
                 <Switch id="visibility-switch" checked={visible} onCheckedChange={setVisible} />
