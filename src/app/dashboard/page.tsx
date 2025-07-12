@@ -1,3 +1,6 @@
+
+'use client';
+
 import Link from 'next/link';
 import {
   ShoppingBag,
@@ -15,16 +18,19 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SalesStats } from '@/components/sales-stats';
 import { SalesChart } from '@/components/sales-chart';
 import { ConversionRate } from '@/components/conversion-rate';
+import { useProduct } from '@/context/ProductContext';
+import { Card, CardContent } from '@/components/ui/card';
 
 
 export default function DashboardPage() {
+    const { products } = useProduct();
+
   return (
     <div className="flex min-h-screen w-full flex-row">
        <Sidebar>
@@ -114,22 +120,32 @@ export default function DashboardPage() {
                 </div>
             </div>
             
-            <div className="grid gap-6">
-                <SalesStats />
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <div className="lg:col-span-2">
-                        <SalesChart />
-                    </div>
-                    <div className="space-y-6">
-                        <ConversionRate />
+            {products.length > 0 ? (
+                <div className="grid gap-6">
+                    <SalesStats />
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                        <div className="lg:col-span-2">
+                            <SalesChart />
+                        </div>
+                        <div className="space-y-6">
+                            <ConversionRate />
+                        </div>
                     </div>
                 </div>
-            </div>
+            ) : (
+                <Card>
+                    <CardContent className="flex flex-col items-center justify-center p-12 text-center">
+                        <LineChart className="h-16 w-16 mb-4 text-muted-foreground" />
+                        <h3 className="text-xl font-semibold mb-2">No hay datos para mostrar</h3>
+                        <p className="text-muted-foreground">
+                            Añade algunos productos para empezar a ver tus estadísticas de ventas.
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
 
         </main>
       </div>
     </div>
   );
 }
-
-    

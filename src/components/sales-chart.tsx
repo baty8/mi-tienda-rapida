@@ -1,6 +1,7 @@
 
 "use client"
 
+import React, { useEffect, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts"
 
 import {
@@ -11,16 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "./ui/chart"
-
-const data = [
-  { day: "Lunes", lastWeek: 4000, thisWeek: 2400 },
-  { day: "Martes", lastWeek: 3000, thisWeek: 1398 },
-  { day: "Miércoles", lastWeek: 2000, thisWeek: 9800 },
-  { day: "Jueves", lastWeek: 2780, thisWeek: 3908 },
-  { day: "Viernes", lastWeek: 1890, thisWeek: 4800 },
-  { day: "Sábado", lastWeek: 2390, thisWeek: 3800 },
-  { day: "Domingo", lastWeek: 3490, thisWeek: 4300 },
-]
+import { useProduct } from '@/context/ProductContext';
 
 const chartConfig = {
   thisWeek: {
@@ -29,12 +21,32 @@ const chartConfig = {
   },
   lastWeek: {
     label: "Semana Pasada",
-    color: "hsl(var(--secondary))",
+    color: "hsl(var(--secondary-foreground))",
   },
 } satisfies ChartConfig;
 
+const generateChartData = (productCount: number) => {
+    const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    if (productCount === 0) {
+        return days.map(day => ({ day, lastWeek: 0, thisWeek: 0 }));
+    }
+    return days.map(day => ({
+        day,
+        lastWeek: Math.floor(Math.random() * 5000) + 1000,
+        thisWeek: Math.floor(Math.random() * 5000) + 1000,
+    }));
+}
+
 
 export function SalesChart() {
+  const { products } = useProduct();
+  const [data, setData] = useState(generateChartData(0));
+
+  useEffect(() => {
+    setData(generateChartData(products.length));
+  }, [products]);
+
+
   return (
     <Card>
       <CardHeader>

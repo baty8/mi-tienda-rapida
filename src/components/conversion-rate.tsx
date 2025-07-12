@@ -9,17 +9,26 @@ import {
 } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { useEffect, useState } from 'react';
+import { useProduct } from '@/context/ProductContext';
+
+const generateData = (productCount: number) => {
+    if (productCount === 0) {
+        return { visits: 0, sales: 0, conversionRate: 0 };
+    }
+    const visits = Math.floor(Math.random() * 10000) + 500;
+    const sales = Math.floor(Math.random() * (visits / 10)) + 50;
+    const conversionRate = (sales / visits) * 100;
+    return { visits, sales, conversionRate };
+}
+
 
 export function ConversionRate() {
-  const [isClient, setIsClient] = useState(false);
+  const { products } = useProduct();
+  const [data, setData] = useState(generateData(0));
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const visits = 12345;
-  const sales = 2350;
-  const conversionRate = (sales / visits) * 100;
+      setData(generateData(products.length));
+  }, [products]);
 
   return (
     <Card>
@@ -33,20 +42,20 @@ export function ConversionRate() {
                     <Eye className="h-4 w-4" />
                     <span>Visitas</span>
                 </div>
-                <span className="font-semibold">{isClient ? visits.toLocaleString() : visits}</span>
+                <span className="font-semibold">{data.visits.toLocaleString()}</span>
             </div>
              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2 text-muted-foreground">
                     <ShoppingCart className="h-4 w-4" />
-                    <span>Ventas</span>
+                    <span>Pedidos</span>
                 </div>
-                <span className="font-semibold">{isClient ? sales.toLocaleString() : sales}</span>
+                <span className="font-semibold">{data.sales.toLocaleString()}</span>
             </div>
             <div className="space-y-2">
-                 <Progress value={conversionRate} className="h-2" />
+                 <Progress value={data.conversionRate} className="h-2" />
                  <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Tasa</span>
-                    <span className="text-sm font-bold text-primary">{conversionRate.toFixed(2)}%</span>
+                    <span className="text-sm font-bold text-primary">{data.conversionRate.toFixed(2)}%</span>
                  </div>
             </div>
         </div>

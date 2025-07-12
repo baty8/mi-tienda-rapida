@@ -1,13 +1,13 @@
 
 "use client"
-import { DollarSign, Package, CreditCard, ArrowRight } from 'lucide-react'
+import React, { useEffect, useState } from 'react';
+import { DollarSign, Package, CreditCard } from 'lucide-react'
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Button } from './ui/button'
 import {
   Select,
   SelectContent,
@@ -15,8 +15,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useProduct } from '@/context/ProductContext';
+import { Product } from '@/types';
+
+const generateStats = (products: Product[]) => {
+    if (products.length === 0) {
+        return {
+            totalRevenue: 0,
+            orders: 0,
+            unitsSold: 0,
+            avgOrderValue: 0,
+            revenueChange: 0,
+            ordersChange: 0,
+            unitsChange: 0,
+            avgOrderChange: 0,
+        }
+    }
+
+    const orders = Math.floor(Math.random() * products.length * 5) + 5;
+    const unitsSold = orders + Math.floor(Math.random() * orders * 2);
+    const totalRevenue = products.reduce((acc, p) => acc + p.price * (Math.random() * 5), 0) * (unitsSold / products.length);
+    const avgOrderValue = orders > 0 ? totalRevenue / orders : 0;
+
+    return {
+        totalRevenue: totalRevenue,
+        orders: orders,
+        unitsSold: unitsSold,
+        avgOrderValue: avgOrderValue,
+        revenueChange: (Math.random() * 40 - 10).toFixed(1),
+        ordersChange: (Math.random() * 50).toFixed(1),
+        unitsChange: (Math.random() * 30 - 5).toFixed(1),
+        avgOrderChange: (Math.random() * 15 - 5).toFixed(1),
+    }
+}
+
 
 export function SalesStats() {
+  const { products } = useProduct();
+  const [stats, setStats] = useState(generateStats([]));
+
+  useEffect(() => {
+      setStats(generateStats(products));
+  }, [products]);
+
   return (
     <div>
         <div className="flex justify-end mb-4">
@@ -39,8 +80,8 @@ export function SalesStats() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                <div className="text-2xl font-bold">$45,231.89</div>
-                <p className="text-xs text-muted-foreground">+20.1% desde el mes pasado</p>
+                <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                <p className="text-xs text-muted-foreground">{stats.revenueChange >= 0 ? `+${stats.revenueChange}`: stats.revenueChange}% desde el mes pasado</p>
                 </CardContent>
             </Card>
             <Card>
@@ -49,8 +90,8 @@ export function SalesStats() {
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                <div className="text-2xl font-bold">+1,150</div>
-                <p className="text-xs text-muted-foreground">+180.1% desde el mes pasado</p>
+                <div className="text-2xl font-bold">+{stats.orders.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">{stats.ordersChange >= 0 ? `+${stats.ordersChange}`: stats.ordersChange}% desde el mes pasado</p>
                 </CardContent>
             </Card>
              <Card>
@@ -59,8 +100,8 @@ export function SalesStats() {
                 <Package className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                <div className="text-2xl font-bold">+1,245</div>
-                <p className="text-xs text-muted-foreground">+19% desde el mes pasado</p>
+                <div className="text-2xl font-bold">+{stats.unitsSold.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">{stats.unitsChange >= 0 ? `+${stats.unitsChange}`: stats.unitsChange}% desde el mes pasado</p>
                 </CardContent>
             </Card>
             <Card>
@@ -69,8 +110,8 @@ export function SalesStats() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                <div className="text-2xl font-bold">$125.50</div>
-                <p className="text-xs text-muted-foreground">+5.2% desde el mes pasado</p>
+                <div className="text-2xl font-bold">${stats.avgOrderValue.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                <p className="text-xs text-muted-foreground">{stats.avgOrderChange >= 0 ? `+${stats.avgOrderChange}`: stats.avgOrderChange}% desde el mes pasado</p>
                 </CardContent>
             </Card>
         </div>
