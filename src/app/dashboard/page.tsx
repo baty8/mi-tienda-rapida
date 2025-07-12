@@ -5,6 +5,7 @@ import {
   LineChart,
   User,
   Landmark,
+  BookOpen,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -53,6 +54,14 @@ export default function DashboardPage() {
                   Dashboard
                 </Link>
               </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={false}>
+                    <Link href="/catalog">
+                        <BookOpen />
+                        Catalog
+                    </Link>
+                </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={false}>
@@ -124,3 +133,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
