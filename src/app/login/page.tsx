@@ -50,25 +50,13 @@ const LoginPage = () => {
     
     setLoading(false);
 
-    if (profileError || !profile) {
-      toast({
-        variant: 'destructive',
-        title: 'Perfil no encontrado',
-        description: 'Redirigiendo al dashboard por defecto. Contacta a soporte si no eres vendedor.',
-      });
-      router.push('/dashboard');
-      router.refresh();
-      return;
-    }
-    
-    if (profile.role === 'cliente') {
-        router.push('/');
-        router.refresh();
-    } else {
-        // If role is 'vendedro', null, or anything else, go to dashboard
+    if (profile && profile.role === 'vendedro') {
         router.push('/dashboard');
-        router.refresh();
+    } else {
+        // If role is 'cliente', null, or there was an error fetching the profile, go to home page.
+        router.push('/');
     }
+    router.refresh();
   };
 
   return (
