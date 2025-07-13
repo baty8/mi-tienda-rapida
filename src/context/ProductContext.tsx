@@ -49,11 +49,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', user.id) // Correcto: filtrar por user_id (uuid)
       .order('created_at', { ascending: false });
 
     if (error) {
-      toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los productos.' });
+      toast({ variant: 'destructive', title: 'Error', description: `No se pudieron cargar los productos: ${error.message}` });
       setProducts([]);
     } else {
       const formattedProducts: Product[] = (data || []).map(formatProduct);
@@ -99,9 +99,9 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const { error } = await supabase.from('products').insert({
       ...productData,
-      user_id: user.id,
+      user_id: user.id, // Correcto: user_id es el uuid del usuario
       image_url: imageUrl,
-      in_catalog: false, // Default value
+      in_catalog: false, 
     });
 
     if (error) {
@@ -128,24 +128,24 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         }
       }
       
+      // Correcto: Actualizar usando el ID del producto (bigint), pero la política RLS usará el user_id para la seguridad.
       const { data, error } = await supabase.from('products').update(updateData).eq('id', productId).select().single();
 
       if (error) {
         toast({ variant: 'destructive', title: 'Error', description: `No se pudo actualizar el producto: ${error.message}` });
       } else {
-        // Only show toast if not just toggling catalog status, to avoid spam
         if (Object.keys(updatedFields).length > 1 || !('in_catalog' in updatedFields)) {
           toast({ title: 'Éxito', description: 'Producto actualizado.' });
         }
-        // Update local state immediately for better UX
         setProducts(prevProducts => prevProducts.map(p => p.id === productId ? formatProduct(data) : p));
       }
   };
 
   const deleteProduct = async (productId: string) => {
+    // Correcto: Borrar usando el ID del producto (bigint), la política RLS se encarga de la seguridad.
     const { error } = await supabase.from('products').delete().eq('id', productId);
     if (error) {
-       toast({ variant: 'destructive', title: 'Error', description: 'No se pudo eliminar el producto.' });
+       toast({ variant: 'destructive', title: 'Error', description: `No se pudo eliminar el producto: ${error.message}` });
     } else {
        toast({ title: 'Éxito', description: 'Producto eliminado.' });
        await fetchProducts();
