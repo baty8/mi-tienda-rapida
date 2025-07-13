@@ -8,35 +8,69 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
 
 const SignUpPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-    setError('');
-
-    const { error: signUpError } = await supabase.auth.signUp({
+    
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    setLoading(false);
-
     if (signUpError) {
-      setError(`Error al registrarse: ${signUpError.message}`);
+      toast({
+        variant: 'destructive',
+        title: 'Error al registrarse',
+        description: signUpError.message,
+      });
+      setLoading(false);
       return;
     }
 
-    // Since a database trigger now handles profile creation, we just show a success message.
-    setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.');
+    if (!signUpData.user) {
+        toast({
+            variant: 'destructive',
+            title: 'Error de Registro',
+            description: 'No se pudo obtener la información del usuario después del registro.',
+        });
+        setLoading(false);
+        return;
+    }
+
+    // Insert profile with tenant_id
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({ 
+        user_id: signUpData.user.id, 
+        role: 'vendedor',
+        tenant_id: signUpData.user.id // Use user's ID as their own tenant ID
+      }, {
+        // This is necessary because RLS might prevent insertion otherwise.
+        // It's safe here because we are creating a profile for the just-signed-up user.
+        bypassRLS: true 
+      });
+
+    if (profileError) {
+       toast({
+        variant: 'destructive',
+        title: 'Error al crear el perfil',
+        description: `Usuario creado, pero hubo un problema al configurar el perfil: ${profileError.message}`,
+      });
+    } else {
+        setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.');
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -75,7 +109,6 @@ const SignUpPage = () => {
           </Button>
         </form>
         {message && <p className="mt-4 text-center text-sm text-green-600">{message}</p>}
-        {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
         <p className="mt-6 text-center text-sm text-gray-600">
           ¿Ya tienes una cuenta?{' '}
           <Link href="/login" className="font-medium text-primary hover:text-primary/80">
