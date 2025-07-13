@@ -20,7 +20,7 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
         toast({
@@ -31,36 +31,10 @@ const LoginPage = () => {
         setLoading(false);
         return;
     }
-
-    if (data.user) {
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('user_id', data.user.id)
-            .single();
-
-        if (profileError || !profile) {
-             toast({
-                variant: 'destructive',
-                title: 'Error de Perfil',
-                description: 'No se pudo encontrar un perfil para este usuario.',
-            });
-            await supabase.auth.signOut();
-            setLoading(false);
-            return;
-        }
-        
-        // Role-based redirection
-        if (profile.role === 'vendedor') {
-            router.push('/dashboard');
-        } else {
-            router.push('/');
-        }
-        router.refresh();
-
-    } else {
-        setLoading(false);
-    }
+    
+    // Let the middleware handle the redirection.
+    // Refresh the page to trigger the middleware.
+    router.refresh();
   };
 
   return (
