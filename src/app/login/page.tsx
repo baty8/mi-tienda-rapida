@@ -25,7 +25,6 @@ const LoginPage = () => {
     }
     
     if (signInData.user) {
-        // After successful login, check the user's role from the profiles table
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('role')
@@ -34,12 +33,11 @@ const LoginPage = () => {
 
         if (profileError) {
             console.error('Error fetching profile:', profileError);
-            // Default redirection if profile is not found or there's an error
             router.push('/'); 
+            router.refresh();
             return;
         }
         
-        // Redirect based on role
         if (profile && profile.role === 'vendedor') {
             router.push('/products');
         } else {
@@ -47,7 +45,6 @@ const LoginPage = () => {
         }
         router.refresh();
     } else {
-        // Fallback in case user object is null
         setError('No se pudo obtener la información del usuario.');
     }
   };
