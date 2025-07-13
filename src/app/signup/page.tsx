@@ -22,47 +22,27 @@ const SignUpPage = () => {
     setLoading(true);
     setMessage('');
     
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    // The database trigger will now handle profile creation.
+    // We only need to sign up the user here.
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    if (signUpError) {
+    if (error) {
       toast({
         variant: 'destructive',
         title: 'Error al registrarse',
-        description: signUpError.message,
+        description: error.message,
       });
-      setLoading(false);
-      return;
-    }
-
-    if (!signUpData.user) {
+    } else if (data.user) {
+        setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.');
+    } else {
         toast({
             variant: 'destructive',
             title: 'Error de Registro',
-            description: 'No se pudo obtener la información del usuario después del registro.',
+            description: 'No se pudo completar el registro. Por favor, inténtalo de nuevo.',
         });
-        setLoading(false);
-        return;
-    }
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({ 
-        user_id: signUpData.user.id, 
-        role: 'vendedor',
-        tenant_id: signUpData.user.id,
-      });
-
-    if (profileError) {
-       toast({
-        variant: 'destructive',
-        title: 'Error al crear el perfil',
-        description: `Usuario creado, pero hubo un problema al configurar el perfil: ${profileError.message}`,
-      });
-    } else {
-        setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.');
     }
 
     setLoading(false);
