@@ -3,7 +3,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next({
+  let res = NextResponse.next({
     request: {
       headers: req.headers,
     },
@@ -18,10 +18,38 @@ export async function middleware(req: NextRequest) {
           return req.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          res.cookies.set({ name, value, ...options });
+          req.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          res = NextResponse.next({
+            request: {
+              headers: req.headers,
+            },
+          })
+          res.cookies.set({
+            name,
+            value,
+            ...options,
+          })
         },
         remove(name: string, options: CookieOptions) {
-          res.cookies.set({ name, value: '', ...options });
+          req.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          res = NextResponse.next({
+            request: {
+              headers: req.headers,
+            },
+          })
+          res.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
         },
       },
     }
@@ -33,16 +61,16 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  const sellerRoutes = ['/dashboard', '/products', '/catalog', '/profile', '/finance'];
+  const sellerRoutes = ['/dashboard', '/catalog', '/profile', '/finance', '/products'];
 
-  // si el usuario no está logueado e intenta acceder a rutas de vendedor, redirigir a login
-  if (!session && sellerRoutes.some(path => pathname.startsWith(path))) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
+  // if user is not logged in and is trying to access protected routes
+  if (!session && sellerRoutes.some(route => pathname.startsWith(route))) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
   }
 
-  // si el usuario está logueado y está en login/signup, redirigir a dashboard
+  // if user is logged in and is on the login/signup page, redirect to dashboard
   if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone()
      url.pathname = '/dashboard'
