@@ -16,7 +16,7 @@ const LoginPage = () => {
     e.preventDefault();
     setError(null);
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (signInError) {
       console.error('Login error:', signInError.message);
@@ -24,10 +24,32 @@ const LoginPage = () => {
       return;
     }
     
-    // Since all users signing up are sellers, we can directly push them to the products page.
-    // The middleware will handle unauthenticated access.
-    router.push('/products');
-    router.refresh(); // Forces a refresh to ensure middleware runs and session is updated.
+    if (signInData.user) {
+        // After successful login, check the user's role from the profiles table
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('user_id', signInData.user.id)
+            .single();
+
+        if (profileError) {
+            console.error('Error fetching profile:', profileError);
+            // Default redirection if profile is not found or there's an error
+            router.push('/'); 
+            return;
+        }
+        
+        // Redirect based on role
+        if (profile && profile.role === 'vendedor') {
+            router.push('/products');
+        } else {
+            router.push('/');
+        }
+        router.refresh();
+    } else {
+        // Fallback in case user object is null
+        setError('No se pudo obtener la información del usuario.');
+    }
   };
 
   return (
