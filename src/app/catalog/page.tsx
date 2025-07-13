@@ -15,6 +15,7 @@ import {
   Smartphone,
   Copy,
   MessageCircle,
+  LogOut,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -36,19 +37,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Product } from '@/types';
 import * as React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -62,6 +55,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProduct } from '@/context/ProductContext';
+import { useRouter } from 'next/navigation';
+import supabase from '@/lib/supabaseClient';
 
 const templates = [
   { id: 'modern', name: 'Moderno', bg: 'bg-slate-900', text: 'text-white' },
@@ -73,6 +68,12 @@ export default function CatalogPage() {
   const { products } = useProduct();
   const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
   const [selectedTemplate, setSelectedTemplate] = React.useState(templates[0]);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   const handleSelectProduct = (productId: string, checked: boolean) => {
     setSelectedProducts((prev) =>
@@ -88,7 +89,7 @@ export default function CatalogPage() {
         <SidebarHeader>
           <div className="flex items-center gap-3 p-2">
             <ShoppingBag className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold font-headline text-primary">
+            <h1 className="text-2xl font-bold font-headline text-primary group-data-[state=collapsed]:hidden">
               VentaRapida
             </h1>
           </div>
@@ -96,48 +97,56 @@ export default function CatalogPage() {
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false}>
+              <SidebarMenuButton asChild isActive={false} tooltip="Productos">
                 <Link href="/products">
                   <Package />
-                  Productos
+                  <span>Productos</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false}>
+              <SidebarMenuButton asChild isActive={false} tooltip="Dashboard">
                 <Link href="/dashboard">
                   <LineChart />
-                  Dashboard
+                  <span>Dashboard</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={true}>
+                <SidebarMenuButton asChild isActive={true} tooltip="Catálogo">
                     <Link href="/catalog">
                         <BookOpen />
-                        Catálogo
+                        <span>Catálogo</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false}>
+              <SidebarMenuButton asChild isActive={false} tooltip="Finanzas">
                 <Link href="/finance">
                   <Landmark />
-                  Finanzas
+                  <span>Finanzas</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false}>
+              <SidebarMenuButton asChild isActive={false} tooltip="Perfil">
                 <Link href="/profile">
                   <User />
-                  Perfil
+                  <span>Perfil</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
+            <SidebarMenu>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión">
+                        <LogOut />
+                        <span>Cerrar Sesión</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+           </SidebarMenu>
           <div className="flex items-center gap-3 p-2">
             <Avatar>
               <AvatarImage
@@ -147,7 +156,7 @@ export default function CatalogPage() {
               />
               <AvatarFallback>VR</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
+            <div className="flex flex-col group-data-[state=collapsed]:hidden">
               <span className="font-semibold text-sm">Admin</span>
               <span className="text-xs text-muted-foreground">
                 admin@ventarapida.com

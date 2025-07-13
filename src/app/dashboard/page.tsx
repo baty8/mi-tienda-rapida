@@ -9,6 +9,7 @@ import {
   User,
   Landmark,
   BookOpen,
+  LogOut,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -26,10 +27,18 @@ import { SalesChart } from '@/components/sales-chart';
 import { ConversionRate } from '@/components/conversion-rate';
 import { useProduct } from '@/context/ProductContext';
 import { Card, CardContent } from '@/components/ui/card';
+import { useRouter } from 'next/navigation';
+import supabase from '@/lib/supabaseClient';
 
 
 export default function DashboardPage() {
     const { products } = useProduct();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push('/login');
+    };
 
   return (
     <div className="flex min-h-screen w-full flex-row">
@@ -37,7 +46,7 @@ export default function DashboardPage() {
         <SidebarHeader>
           <div className="flex items-center gap-3 p-2">
             <ShoppingBag className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold font-headline text-primary">
+            <h1 className="text-2xl font-bold font-headline text-primary group-data-[state=collapsed]:hidden">
               VentaRapida
             </h1>
           </div>
@@ -45,54 +54,62 @@ export default function DashboardPage() {
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false}>
+              <SidebarMenuButton asChild isActive={false} tooltip="Productos">
                 <Link href="/products">
                   <Package />
-                  Productos
+                  <span>Productos</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={true}>
+              <SidebarMenuButton asChild isActive={true} tooltip="Dashboard">
                 <Link href="/dashboard">
                   <LineChart />
-                  Dashboard
+                  <span>Dashboard</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={false}>
+                <SidebarMenuButton asChild isActive={false} tooltip="Catálogo">
                     <Link href="/catalog">
                         <BookOpen />
-                        Catálogo
+                        <span>Catálogo</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false}>
+              <SidebarMenuButton asChild isActive={false} tooltip="Finanzas">
                 <Link href="/finance">
                   <Landmark />
-                  Finanzas
+                  <span>Finanzas</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false}>
+              <SidebarMenuButton asChild isActive={false} tooltip="Perfil">
                 <Link href="/profile">
                   <User />
-                  Perfil
+                  <span>Perfil</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
+            <SidebarMenu>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión">
+                        <LogOut />
+                        <span>Cerrar Sesión</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+           </SidebarMenu>
           <div className="flex items-center gap-3 p-2">
             <Avatar>
               <AvatarImage src="https://placehold.co/40x40" alt="User avatar" data-ai-hint="male user" />
               <AvatarFallback>VR</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
+            <div className="flex flex-col group-data-[state=collapsed]:hidden">
               <span className="font-semibold text-sm">Admin</span>
               <span className="text-xs text-muted-foreground">
                 admin@ventarapida.com
