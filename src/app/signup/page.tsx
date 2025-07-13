@@ -36,8 +36,9 @@ const SignUpPage = () => {
       return;
     }
 
+    // Check if we have a user and session
     if (data.user) {
-      // 2. Create a profile for the new user
+      // 2. Create a profile for the new user. This is crucial.
       const { error: profileError } = await supabase.from('profiles').insert({
         id: data.user.id,
         email: data.user.email,
@@ -56,18 +57,23 @@ const SignUpPage = () => {
         });
         return;
       }
-
+      
+      // If everything is successful
       toast({
         title: '¡Registro casi completo!',
         description: 'Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.',
       });
+      router.push('/login');
+
     } else {
-      toast({
-        variant: 'destructive',
-        title: 'Error de Registro',
-        description: 'No se pudo completar el registro. Por favor, inténtalo de nuevo.',
+       // This case might happen if user confirmation is required.
+       toast({
+        title: '¡Revisa tu correo!',
+        description: 'Te hemos enviado un enlace de confirmación para activar tu cuenta.',
       });
+      router.push('/login');
     }
+
     setLoading(false);
   };
 
