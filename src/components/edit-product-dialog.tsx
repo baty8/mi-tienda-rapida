@@ -19,46 +19,53 @@ import { Switch } from './ui/switch';
 import type { Product } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { useProduct } from '@/context/ProductContext';
 
 type EditProductDialogProps = {
     product: Product;
-    onUpdateProduct: (productId: string, data: Partial<Product>) => void;
     onClose: () => void;
 };
 
-export function EditProductDialog({ product, onUpdateProduct, onClose }: EditProductDialogProps) {
+export function EditProductDialog({ product, onClose }: EditProductDialogProps) {
+  const { updateProduct } = useProduct();
   const [open, setOpen] = useState(true);
+  
+  // Form state
   const [name, setName] = useState(product.name);
   const [description, setDescription] = useState(product.description || '');
   const [price, setPrice] = useState(product.price);
   const [cost, setCost] = useState(product.cost);
   const [stock, setStock] = useState(product.stock);
   const [visible, setVisible] = useState(product.visible);
-  const [image, setImage] = useState(product.image);
+  
+  // Image handling state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState(product.image);
 
   useEffect(() => {
-    // Reset state if product prop changes
     setName(product.name);
     setDescription(product.description || '');
     setPrice(product.price);
     setCost(product.cost);
     setStock(product.stock);
     setVisible(product.visible);
-    setImage(product.image);
+    setImagePreview(product.image);
+    setImageFile(null);
   }, [product]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result as string);
+        setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name || price <= 0) {
        toast({
         variant: 'destructive',
@@ -67,15 +74,16 @@ export function EditProductDialog({ product, onUpdateProduct, onClose }: EditPro
       });
       return;
     }
-    onUpdateProduct(product.id, {
+    
+    await updateProduct(product.id, {
         name,
         description,
         price,
         cost,
         stock,
         visible,
-        image,
-    });
+    }, imageFile || undefined);
+
     onClose();
   };
 
@@ -107,8 +115,8 @@ export function EditProductDialog({ product, onUpdateProduct, onClose }: EditPro
                 <Label>Foto del Producto</Label>
                 <div className="flex items-center justify-center w-full">
                     <label htmlFor="dropzone-file-edit" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-muted relative">
-                        {image ? (
-                            <Image src={image} alt="Vista previa del producto" layout="fill" objectFit="contain" className="rounded-lg" />
+                        {imagePreview ? (
+                            <Image src={imagePreview} alt="Vista previa del producto" layout="fill" objectFit="contain" className="rounded-lg" />
                         ) : (
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                 <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />

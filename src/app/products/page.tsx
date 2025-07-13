@@ -22,13 +22,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProductTable } from '@/components/product-table';
 import { AddProductDialog } from '@/components/add-product-dialog';
-import { useProduct } from '@/context/ProductContext';
 import { BulkUploadDialog } from '@/components/bulk-upload-dialog';
 import Link from 'next/link';
 
 export default function ProductsPage() {
-  const { addProduct } = useProduct();
-
   return (
     <div className="flex min-h-screen w-full flex-row">
       <Sidebar>
@@ -88,7 +85,7 @@ export default function ProductsPage() {
           <div className="flex items-center gap-3 p-2">
             <Avatar>
               <AvatarImage
-                src="https://placehold.co/40x40"
+                src="https://placehold.co/40x40.png"
                 alt="User avatar"
                 data-ai-hint="male user"
               />
@@ -111,7 +108,7 @@ export default function ProductsPage() {
           </h2>
           <div className="flex items-center gap-4">
             <BulkUploadDialog />
-            <AddProductDialog onAddProduct={addProduct} />
+            <AddProductDialog />
           </div>
         </header>
 

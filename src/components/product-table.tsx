@@ -45,9 +45,10 @@ import {
 import { Checkbox } from './ui/checkbox';
 import { useProduct } from '@/context/ProductContext';
 import { EditProductDialog } from './edit-product-dialog';
+import { Skeleton } from './ui/skeleton';
 
 export function ProductTable() {
-  const { products, updateProduct, deleteProduct } = useProduct();
+  const { products, loading, updateProduct, deleteProduct } = useProduct();
   const [editingCell, setEditingCell] = React.useState<{
     rowId: string;
     columnId: string;
@@ -58,7 +59,7 @@ export function ProductTable() {
 
   const handleUpdate = (
     productId: string,
-    field: keyof Product,
+    field: keyof Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'description'>,
     value: any
   ) => {
     updateProduct(productId, { [field]: value });
@@ -128,7 +129,30 @@ export function ProductTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.length === 0 ? (
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Checkbox disabled /></TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="h-16 w-16 rounded-md" />
+                          <div className="flex flex-col gap-2">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-3 w-20" />
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-11 rounded-full" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell>
+                        <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : filteredProducts.length === 0 ? (
                     <TableRow>
                         <TableCell colSpan={8} className="h-24 text-center">
                             Aún no has añadido ningún producto.
@@ -308,10 +332,6 @@ export function ProductTable() {
     {editingProduct && (
         <EditProductDialog
             product={editingProduct}
-            onUpdateProduct={(id, data) => {
-                updateProduct(id, data);
-                setEditingProduct(null);
-            }}
             onClose={() => setEditingProduct(null)}
         />
     )}

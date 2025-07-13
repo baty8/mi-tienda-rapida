@@ -20,12 +20,10 @@ import { Switch } from './ui/switch';
 import type { Product } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { useProduct } from '@/context/ProductContext';
 
-type AddProductDialogProps = {
-    onAddProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category'>) => void;
-};
-
-export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
+export function AddProductDialog() {
+  const { addProduct } = useProduct();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -33,14 +31,16 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
   const [cost, setCost] = useState(0);
   const [stock, setStock] = useState(0);
   const [visible, setVisible] = useState(true);
-  const [image, setImage] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result as string);
+        setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -53,27 +53,27 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
     setCost(0);
     setStock(0);
     setVisible(true);
-    setImage('');
+    setImageFile(null);
+    setImagePreview('');
   }
 
-  const handleSave = () => {
-    if (!name || price <= 0 || !image) {
+  const handleSave = async () => {
+    if (!name || price <= 0) {
       toast({
         variant: 'destructive',
         title: 'Campos incompletos',
-        description: 'Por favor, completa el nombre, precio y sube una imagen.',
+        description: 'Por favor, completa al menos el nombre y el precio.',
       });
       return;
     }
-    onAddProduct({
+    await addProduct({
         name,
         description,
         price,
         cost,
         stock,
         visible,
-        image,
-    });
+    }, imageFile);
     resetForm();
     setOpen(false);
   };
@@ -112,8 +112,8 @@ export function AddProductDialog({ onAddProduct }: AddProductDialogProps) {
                 <Label>Foto del Producto</Label>
                 <div className="flex items-center justify-center w-full">
                     <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-muted relative">
-                        {image ? (
-                            <Image src={image} alt="Vista previa del producto" layout="fill" objectFit="contain" className="rounded-lg" />
+                        {imagePreview ? (
+                            <Image src={imagePreview} alt="Vista previa del producto" layout="fill" objectFit="contain" className="rounded-lg" />
                         ) : (
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                 <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
