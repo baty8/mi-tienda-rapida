@@ -32,7 +32,8 @@ const LoginPage = () => {
         .single();
 
       if (profileError) {
-        console.error('Error fetching profile:', profileError.message);
+        // If profile doesn't exist, they are likely a customer. Redirect to homepage.
+        console.error('Error fetching profile, assuming customer role:', profileError.message);
         router.push('/');
         return;
       }
