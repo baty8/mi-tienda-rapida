@@ -70,30 +70,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // if user is logged in
-  if (session) {
-    // and is on the login/signup page, redirect to dashboard
-    if (pathname === '/login' || pathname === '/signup') {
-        const url = req.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return NextResponse.redirect(url)
-    }
-
-    // and tries to access a protected route, check their role
-    if (protectedSellerRoutes.some(path => pathname.startsWith(path))) {
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .single();
-
-        // if they are not a seller, redirect them away from seller pages
-        if (profile?.role !== 'vendedor') {
-            const url = req.nextUrl.clone()
-            url.pathname = '/' // Redirect non-sellers to home page
-            return NextResponse.redirect(url);
-        }
-    }
+  // if user is logged in and is on the login/signup page, redirect to dashboard
+  if (session && (pathname === '/login' || pathname === '/signup')) {
+     const url = req.nextUrl.clone()
+     url.pathname = '/dashboard'
+     return NextResponse.redirect(url)
   }
 
   return res;
@@ -109,6 +90,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * Feel free to add more paths here that should not be managed by the middleware.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|/).*)',
   ],
 };

@@ -20,9 +20,9 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
+    if (authError || !authData.user) {
         toast({
             variant: 'destructive',
             title: 'Error de inicio de sesión',
@@ -32,9 +32,32 @@ const LoginPage = () => {
         return;
     }
     
-    // Let the middleware handle the redirection.
-    // Refresh the page to trigger the middleware.
-    router.refresh();
+    // Check user role from profiles table
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .single();
+    
+    if (profileError || !profile) {
+         toast({
+            variant: 'destructive',
+            title: 'Error de Perfil',
+            description: 'No se pudo encontrar un perfil para este usuario.',
+        });
+        setLoading(false);
+        return;
+    }
+
+    // Redirect based on role
+    if (profile.role === 'vendedor') {
+        router.push('/dashboard');
+    } else {
+        router.push('/');
+    }
+    
+    // No need for router.refresh() as we are navigating directly
+    // setLoading(false) will be implicitly handled by navigation
   };
 
   return (
