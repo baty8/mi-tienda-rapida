@@ -20,12 +20,12 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
+    if (authError || !authData.user) {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
@@ -35,9 +35,32 @@ const LoginPage = () => {
       return;
     }
 
-    // On success, refresh the page to trigger the middleware
-    // The middleware will handle the redirection.
-    router.refresh();
+    // After successful login, Supabase client has the session. Now fetch profile.
+    // This will succeed once you apply the RLS policies in Supabase.
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .single();
+
+    if (profileError || !profile) {
+        toast({
+            variant: 'destructive',
+            title: 'Error de Perfil',
+            description: 'No se pudo encontrar tu perfil. Contacta a soporte.',
+        });
+        await supabase.auth.signOut(); // Log out to prevent inconsistent state
+        setLoading(false);
+        return;
+    }
+
+    if (profile.role === 'vendedro') {
+        router.push('/dashboard');
+    } else {
+        router.push('/');
+    }
+
+    // Don't setLoading(false) here because we are navigating away
   };
 
   return (
