@@ -21,9 +21,9 @@ const LoginPage = () => {
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-
+    
     setLoading(false);
-
+    
     if (error) {
         toast({
             variant: 'destructive',
@@ -33,9 +33,7 @@ const LoginPage = () => {
         return;
     }
     
-    // Redirect to dashboard on successful login
-    // The middleware will protect the routes if the user is not a seller
-    router.push('/dashboard');
+    // The middleware will handle the redirection after refresh
     router.refresh();
   };
 
