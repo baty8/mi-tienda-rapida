@@ -77,7 +77,7 @@ export default function CatalogPage() {
     checkSession();
   }, [router, fetchProducts]);
 
-  const handleToggleProductInCatalog = async (productId: string, inCatalog: boolean) => {
+  const handleToggleProductInCatalog = async (productId: number, inCatalog: boolean) => {
     await updateProduct(productId, { in_catalog: inCatalog });
   };
   

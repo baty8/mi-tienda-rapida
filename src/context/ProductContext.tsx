@@ -11,8 +11,8 @@ interface ProductContextType {
   products: Product[];
   loading: boolean;
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog'>, imageFile: File | null) => Promise<void>;
-  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category'>>, imageFile?: File | null) => Promise<void>;
-  deleteProduct: (productId: string) => Promise<void>;
+  updateProduct: (productId: number, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category'>>, imageFile?: File | null) => Promise<void>;
+  deleteProduct: (productId: number) => Promise<void>;
   fetchProducts: () => Promise<void>;
 }
 
@@ -23,7 +23,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const formatProduct = (p: any): Product => ({
-      id: p.id.toString(),
+      id: p.id, // id es ahora un número (bigint)
       name: p.name,
       description: p.description || '',
       price: p.price,
@@ -99,7 +99,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const { error } = await supabase.from('products').insert({
       ...productData,
-      user_id: user.id,
+      user_id: user.id, // Esta es la columna UUID
       image_url: imageUrl,
       in_catalog: false, 
     });
@@ -112,7 +112,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category'>>, imageFile?: File | null) => {
+  const updateProduct = async (productId: number, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category'>>, imageFile?: File | null) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -140,7 +140,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       }
   };
 
-  const deleteProduct = async (productId: string) => {
+  const deleteProduct = async (productId: number) => {
     const { error } = await supabase.from('products').delete().eq('id', productId);
     if (error) {
        toast({ variant: 'destructive', title: 'Error', description: `No se pudo eliminar el producto: ${error.message}` });

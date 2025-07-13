@@ -64,7 +64,7 @@ export default function PublicCatalogPage() {
         }
 
         const formattedProducts = productData.map((p: any) => ({
-          id: p.id.toString(),
+          id: p.id,
           name: p.name,
           description: p.description || '',
           price: p.price,

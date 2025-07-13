@@ -50,7 +50,7 @@ import { Skeleton } from './ui/skeleton';
 export function ProductTable() {
   const { products, loading, updateProduct, deleteProduct } = useProduct();
   const [editingCell, setEditingCell] = React.useState<{
-    rowId: string;
+    rowId: number;
     columnId: string;
   } | null>(null);
   const [filter, setFilter] = React.useState('all');
@@ -58,7 +58,7 @@ export function ProductTable() {
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(null);
 
   const handleUpdate = (
-    productId: string,
+    productId: number,
     field: keyof Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'description'>,
     value: any
   ) => {

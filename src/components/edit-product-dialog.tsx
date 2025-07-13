@@ -156,5 +156,3 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
     </Dialog>
   );
 }
-
-    
