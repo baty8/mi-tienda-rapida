@@ -5,27 +5,30 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import supabase from '../../lib/supabaseClient';
+import { toast } from '@/hooks/use-toast';
 
 const LoginPage = () => {
   const router = useRouter();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
 
     const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (signInError || !user) {
-      setError('Credenciales inválidas. Por favor, inténtalo de nuevo.');
-      setLoading(false);
-      return;
+        toast({
+            variant: 'destructive',
+            title: 'Error de inicio de sesión',
+            description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
+        });
+        setLoading(false);
+        return;
     }
-    
+
     // The middleware will handle redirection after refresh.
     router.refresh();
   };
@@ -57,7 +60,6 @@ const LoginPage = () => {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             />
           </div>
-          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
           <button type="submit" className="w-full bg-primary text-white py-2.5 px-4 rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 font-semibold transition-colors" disabled={loading}>
             {loading ? 'Iniciando...' : 'Login'}
           </button>
