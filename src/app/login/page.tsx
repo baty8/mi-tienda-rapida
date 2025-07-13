@@ -35,12 +35,13 @@ const LoginPage = () => {
       return;
     }
 
-    // Una vez que el RLS esté configurado en Supabase, esta consulta tendrá éxito.
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', authData.user.id)
+        .eq('user_id', authData.user.id)
         .single();
+    
+    setLoading(false);
 
     if (profileError || !profile) {
         toast({
@@ -48,8 +49,7 @@ const LoginPage = () => {
             title: 'Error de Perfil',
             description: 'No se pudo encontrar tu perfil. Contacta a soporte.',
         });
-        await supabase.auth.signOut(); // Desloguear para evitar inconsistencias
-        setLoading(false);
+        await supabase.auth.signOut();
         router.push('/');
         return;
     }
