@@ -22,18 +22,20 @@ const LoginPage = () => {
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
+    setLoading(false);
+
     if (error) {
         toast({
             variant: 'destructive',
             title: 'Error de inicio de sesión',
             description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
         });
-        setLoading(false);
         return;
     }
     
-    // The middleware will handle the redirection.
-    // We just need to refresh the page to trigger it.
+    // Redirect to dashboard on successful login
+    // The middleware will protect the routes if the user is not a seller
+    router.push('/dashboard');
     router.refresh();
   };
 
