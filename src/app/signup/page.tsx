@@ -47,17 +47,11 @@ const SignUpPage = () => {
         return;
     }
 
-    // Insert profile with tenant_id
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({ 
         user_id: signUpData.user.id, 
         role: 'vendedor',
-        tenant_id: signUpData.user.id // Use user's ID as their own tenant ID
-      }, {
-        // This is necessary because RLS might prevent insertion otherwise.
-        // It's safe here because we are creating a profile for the just-signed-up user.
-        bypassRLS: true 
       });
 
     if (profileError) {
