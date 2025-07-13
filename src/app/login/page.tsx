@@ -43,18 +43,20 @@ const LoginPage = () => {
     
     setLoading(false);
 
-    if (profileError || !profile) {
+    if (profileError || !profile || !profile.role) {
         toast({
             variant: 'destructive',
             title: 'Error de Perfil',
-            description: 'No se pudo encontrar tu perfil. Contacta a soporte.',
+            description: 'No se pudo encontrar un perfil con rol asignado. Contacta a soporte.',
         });
-        await supabase.auth.signOut();
         router.push('/');
         return;
     }
+    
+    // Trim whitespace and convert to lower case for a robust comparison
+    const userRole = profile.role.trim().toLowerCase();
 
-    if (profile.role === 'vendedro') {
+    if (userRole === 'vendedro') {
         router.push('/dashboard');
     } else {
         router.push('/');
