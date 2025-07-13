@@ -45,9 +45,6 @@ export default function PublicCatalogPage() {
 
         if (profileError || !profileData) {
           console.error('Profile fetch error:', profileError || 'No profile data found for this user ID.');
-          // Instead of throwing an error that shows a generic error page,
-          // we will set the vendor to null and show an empty catalog state.
-          // This provides a better user experience for invalid links.
           setVendor(null);
         } else {
             setVendor(profileData as VendorProfile);
@@ -59,7 +56,7 @@ export default function PublicCatalogPage() {
           .select('*')
           .eq('user_id', userId)
           .eq('visible', true)
-          .eq('in_catalog', true) // Only fetch products marked for the catalog
+          .eq('in_catalog', true)
           .order('created_at', { ascending: false });
 
         if (productError) {
@@ -120,7 +117,6 @@ export default function PublicCatalogPage() {
     );
   }
 
-  // If vendor could not be found, or if vendor has no products, show the empty state.
   const showEmptyState = !vendor || products.length === 0;
 
   return (

@@ -49,7 +49,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .eq('user_id', user.id) // Correcto: filtrar por user_id (uuid)
+      .eq('user_id', user.id) 
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -99,7 +99,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const { error } = await supabase.from('products').insert({
       ...productData,
-      user_id: user.id, // Correcto: user_id es el uuid del usuario
+      user_id: user.id,
       image_url: imageUrl,
       in_catalog: false, 
     });
@@ -108,7 +108,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       toast({ variant: 'destructive', title: 'Error', description: `No se pudo añadir el producto: ${error.message}` });
     } else {
       toast({ title: 'Éxito', description: 'Producto añadido correctamente.' });
-      await fetchProducts(); // Refresh list
+      await fetchProducts();
     }
   };
 
@@ -128,7 +128,6 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         }
       }
       
-      // Correcto: Actualizar usando el ID del producto (bigint), pero la política RLS usará el user_id para la seguridad.
       const { data, error } = await supabase.from('products').update(updateData).eq('id', productId).select().single();
 
       if (error) {
@@ -142,7 +141,6 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteProduct = async (productId: string) => {
-    // Correcto: Borrar usando el ID del producto (bigint), la política RLS se encarga de la seguridad.
     const { error } = await supabase.from('products').delete().eq('id', productId);
     if (error) {
        toast({ variant: 'destructive', title: 'Error', description: `No se pudo eliminar el producto: ${error.message}` });
