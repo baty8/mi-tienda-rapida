@@ -52,7 +52,7 @@ const LoginPage = () => {
         
         // Role-based redirection
         if (profile.role === 'vendedor') {
-            router.push('/products');
+            router.push('/dashboard');
         } else {
             router.push('/');
         }

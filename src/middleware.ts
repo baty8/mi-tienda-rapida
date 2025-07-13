@@ -70,10 +70,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // if user is logged in and is on the login/signup page, redirect to home page
+  // if user is logged in and is on the login/signup page, redirect to dashboard
   if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone()
-     url.pathname = '/'
+     url.pathname = '/dashboard'
      return NextResponse.redirect(url)
   }
 
