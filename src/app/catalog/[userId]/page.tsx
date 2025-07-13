@@ -36,7 +36,7 @@ export default function PublicCatalogPage() {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('name, avatar_url, phone')
-          .eq('user_id', userId)
+          .eq('id', userId)
           .single();
 
         if (profileError || !profileData) {
