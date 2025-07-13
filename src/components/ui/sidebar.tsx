@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -527,8 +528,10 @@ const SidebarMenuButton = React.forwardRef<
           className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
           {...props}
         >
-            {isActive && <div className="absolute left-0 h-6 w-1 bg-primary rounded-r-lg group-data-[collapsible=icon]:hidden"/>}
+          {isActive && <div className="absolute left-0 h-6 w-1 bg-primary rounded-r-lg group-data-[collapsible=icon]:hidden"/>}
+          <span className="flex items-center gap-3">
             {children}
+          </span>
         </Comp>
     )
 
