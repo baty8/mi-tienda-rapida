@@ -39,17 +39,18 @@ const LoginPage = () => {
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
-        .eq('user_id', authData.user.id)
+        .eq('id', authData.user.id)
         .single();
     
     setLoading(false);
 
     if (profileError || !profile) {
+        // This can happen if profile creation failed, but we still log them in.
         toast({
             title: '¡Bienvenido!',
-            description: 'Redirigiendo a la página principal.',
+            description: 'Redirigiendo a tu panel.',
         });
-        router.push('/');
+        router.push('/products'); // Default redirect to a safe page
         return;
     }
 

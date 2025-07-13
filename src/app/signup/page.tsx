@@ -19,34 +19,56 @@ const SignUpPage = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // The database trigger will now handle profile creation.
-    // We only need to sign up the user here.
+
+    // 1. Sign up the user
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       toast({
         variant: 'destructive',
         title: 'Error al registrarse',
         description: error.message,
       });
-    } else if (data.user) {
-        toast({
-            title: '¡Registro casi completo!',
-            description: 'Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.',
-        });
-    } else {
-        toast({
-            variant: 'destructive',
-            title: 'Error de Registro',
-            description: 'No se pudo completar el registro. Por favor, inténtalo de nuevo.',
-        });
+      return;
     }
+
+    if (data.user) {
+      // 2. Create a profile for the new user
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: data.user.id,
+        email: data.user.email,
+        role: 'vendedor',
+        name: 'Vendedor' // Default name
+      });
+
+      if (profileError) {
+        setLoading(false);
+        // This is a critical error, but we should still inform the user to check their email.
+        console.error('Failed to create profile:', profileError);
+        toast({
+          variant: 'destructive',
+          title: 'Error de perfil',
+          description: 'No se pudo crear el perfil. Contacta a soporte.',
+        });
+        return;
+      }
+
+      toast({
+        title: '¡Registro casi completo!',
+        description: 'Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.',
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error de Registro',
+        description: 'No se pudo completar el registro. Por favor, inténtalo de nuevo.',
+      });
+    }
+    setLoading(false);
   };
 
   return (

@@ -86,7 +86,6 @@ export default function PublicCatalogPage() {
   const getWhatsAppLink = (product: Product) => {
     const sellerPhoneNumber = vendor?.phone || '';
     if (!sellerPhoneNumber) {
-        // Find a way to notify user that phone is not available
         return '#';
     }
     const message = `Hola, estoy interesado en el producto "${product.name}". ¿Está disponible?`;
