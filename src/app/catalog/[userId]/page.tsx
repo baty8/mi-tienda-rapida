@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
 import { Product } from '@/types';
 import Image from 'next/image';
@@ -15,8 +16,9 @@ type VendorProfile = {
   phone: string;
 };
 
-export default function PublicCatalogPage({ params }: { params: { userId: string } }) {
-  const { userId } = params;
+export default function PublicCatalogPage() {
+  const params = useParams();
+  const userId = params.userId as string;
   const [products, setProducts] = useState<Product[]>([]);
   const [vendor, setVendor] = useState<VendorProfile | null>(null);
   const [loading, setLoading] = useState(true);
