@@ -26,7 +26,7 @@ const LoginPage = () => {
         toast({
             variant: 'destructive',
             title: 'Error de inicio de sesión',
-            description: error.message || 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
+            description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
         });
         setLoading(false);
         return;
@@ -45,14 +45,12 @@ const LoginPage = () => {
                 title: 'Error de Perfil',
                 description: 'No se pudo encontrar un perfil para este usuario.',
             });
-            await supabase.auth.signOut(); // Log out user if profile is missing
+            await supabase.auth.signOut();
             setLoading(false);
             return;
         }
 
         if (profile.role === 'vendedor') {
-            // Let the middleware handle redirection by refreshing the page.
-            // This ensures the server-side session is up-to-date.
             router.refresh();
         } else {
              toast({

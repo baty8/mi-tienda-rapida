@@ -3,7 +3,11 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
+  let res = NextResponse.next({
+    request: {
+      headers: req.headers,
+    },
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,6 +18,16 @@ export async function middleware(req: NextRequest) {
           return req.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
+          req.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          res = NextResponse.next({
+            request: {
+              headers: req.headers,
+            },
+          })
           res.cookies.set({
             name,
             value,
@@ -21,6 +35,16 @@ export async function middleware(req: NextRequest) {
           })
         },
         remove(name: string, options: CookieOptions) {
+          req.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          res = NextResponse.next({
+            request: {
+              headers: req.headers,
+            },
+          })
           res.cookies.set({
             name,
             value: '',
@@ -39,14 +63,12 @@ export async function middleware(req: NextRequest) {
 
   const protectedRoutes = ['/dashboard', '/catalog', '/profile', '/finance', '/products'];
 
-  // if user is not logged in and is trying to access protected routes
   if (!session && protectedRoutes.some(path => pathname.startsWith(path))) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // if user is logged in and is on the login/signup page, redirect to home page
   if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone()
      url.pathname = '/products'

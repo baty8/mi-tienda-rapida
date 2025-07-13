@@ -52,11 +52,7 @@ const SignUpPage = () => {
       .insert({ 
         user_id: signUpData.user.id, 
         role: 'vendedor',
-        tenant_id: signUpData.user.id, // Set tenant_id to user_id
-      }, {
-        // This is a temporary workaround for RLS issues on signup
-        // The proper long-term solution is a database trigger.
-        // For this context, we allow the app to bypass RLS for this specific operation.
+        tenant_id: signUpData.user.id,
       });
 
     if (profileError) {
