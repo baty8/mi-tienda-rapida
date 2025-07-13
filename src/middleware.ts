@@ -61,7 +61,6 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  // Protected seller routes
   const sellerRoutes = ['/dashboard', '/products', '/catalog', '/profile', '/finance'];
 
   // Rule 1: If a user is not logged in and tries to access a seller route, redirect to login.
@@ -71,13 +70,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Rule 2: If user is logged in and on login/signup page, redirect to dashboard.
-   if (session && (pathname === '/login' || pathname === '/signup')) {
+  // Rule 2: If user is logged in and is on the login/signup page, redirect them to the dashboard.
+  if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone()
      url.pathname = '/dashboard'
      return NextResponse.redirect(url)
   }
-
 
   return res;
 }
