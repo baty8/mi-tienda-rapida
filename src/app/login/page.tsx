@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import supabase from '../../lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const LoginPage = () => {
   const router = useRouter();
@@ -17,19 +20,19 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (signInError || !user) {
+    if (error) {
         toast({
             variant: 'destructive',
             title: 'Error de inicio de sesión',
-            description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
+            description: error.message || 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
         });
         setLoading(false);
         return;
     }
-
-    // The middleware will handle redirection after refresh.
+    
+    // Let the middleware handle redirection after a successful login.
     router.refresh();
   };
 
@@ -39,30 +42,30 @@ const LoginPage = () => {
         <h1 className="text-3xl font-bold text-center text-gray-900 font-headline">Iniciar Sesión</h1>
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email:</label>
-            <input
+            <Label htmlFor="email">Email:</Label>
+            <Input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              className="mt-1"
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Contraseña:</label>
-            <input
+            <Label htmlFor="password">Contraseña:</Label>
+            <Input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              className="mt-1"
             />
           </div>
-          <button type="submit" className="w-full bg-primary text-white py-2.5 px-4 rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 font-semibold transition-colors" disabled={loading}>
-            {loading ? 'Iniciando...' : 'Login'}
-          </button>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? 'Iniciando...' : 'Iniciar Sesión'}
+          </Button>
         </form>
         <div className="text-center mt-4">
           <Link href="/signup" className="text-sm text-primary hover:underline">
