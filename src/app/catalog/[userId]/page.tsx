@@ -25,7 +25,11 @@ export default function PublicCatalogPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+        setLoading(false);
+        setError("No se proporcionó un ID de vendedor.");
+        return;
+    };
 
     const fetchCatalogData = async () => {
       setLoading(true);
@@ -41,9 +45,13 @@ export default function PublicCatalogPage() {
 
         if (profileError || !profileData) {
           console.error('Profile fetch error:', profileError || 'No profile data found for this user ID.');
-          throw new Error('No se pudo encontrar la información del vendedor.');
+          // Instead of throwing an error that shows a generic error page,
+          // we will set the vendor to null and show an empty catalog state.
+          // This provides a better user experience for invalid links.
+          setVendor(null);
+        } else {
+            setVendor(profileData as VendorProfile);
         }
-        setVendor(profileData as VendorProfile);
 
         // Fetch products that are visible and selected for the catalog
         const { data: productData, error: productError } = await supabase
@@ -112,6 +120,9 @@ export default function PublicCatalogPage() {
     );
   }
 
+  // If vendor could not be found, or if vendor has no products, show the empty state.
+  const showEmptyState = !vendor || products.length === 0;
+
   return (
     <div className="min-h-screen bg-slate-50 font-body text-slate-800">
       <main className="mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
@@ -124,42 +135,44 @@ export default function PublicCatalogPage() {
           <p className="text-muted-foreground">Explora nuestros productos seleccionados</p>
         </header>
 
-        <div className="space-y-6">
-          {products.map((product) => (
-            <div key={product.id} className="transform transition-transform duration-300 hover:scale-[1.02]">
-              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
-                <div className="grid grid-cols-1 md:grid-cols-3">
-                  <div className="md:col-span-1">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      width={300}
-                      height={300}
-                      className="h-full w-full object-cover"
-                      data-ai-hint="product image"
-                    />
-                  </div>
-                  <div className="flex flex-col p-6 md:col-span-2">
-                    <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
-                    {product.description && <p className="mt-2 text-muted-foreground">{product.description}</p>}
-                    <div className="mt-4 flex-grow"></div>
-                    <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                      <p className="text-3xl font-extrabold text-primary">${product.price.toFixed(2)}</p>
-                      <Button asChild size="lg" className="w-full bg-green-500 text-lg text-white hover:bg-green-600 sm:w-auto" disabled={!vendor?.phone}>
-                        <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
-                          <MessageCircle className="mr-2 h-5 w-5" />
-                          Consultar
-                        </a>
-                      </Button>
+        {!showEmptyState && (
+            <div className="space-y-6">
+            {products.map((product) => (
+                <div key={product.id} className="transform transition-transform duration-300 hover:scale-[1.02]">
+                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-3">
+                    <div className="md:col-span-1">
+                        <Image
+                        src={product.image}
+                        alt={product.name}
+                        width={300}
+                        height={300}
+                        className="h-full w-full object-cover"
+                        data-ai-hint="product image"
+                        />
                     </div>
-                  </div>
+                    <div className="flex flex-col p-6 md:col-span-2">
+                        <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
+                        {product.description && <p className="mt-2 text-muted-foreground">{product.description}</p>}
+                        <div className="mt-4 flex-grow"></div>
+                        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                        <p className="text-3xl font-extrabold text-primary">${product.price.toFixed(2)}</p>
+                        <Button asChild size="lg" className="w-full bg-green-500 text-lg text-white hover:bg-green-600 sm:w-auto" disabled={!vendor?.phone}>
+                            <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
+                            <MessageCircle className="mr-2 h-5 w-5" />
+                            Consultar
+                            </a>
+                        </Button>
+                        </div>
+                    </div>
+                    </div>
                 </div>
-              </div>
+                </div>
+            ))}
             </div>
-          ))}
-        </div>
+        )}
         
-        {products.length === 0 && (
+        {showEmptyState && (
             <div className="py-16 text-center">
                 <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-4 text-xl font-semibold">Este catálogo está vacío</h3>

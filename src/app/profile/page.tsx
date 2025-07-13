@@ -1,6 +1,6 @@
 
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { User, Save, UploadCloud } from 'lucide-react';
 import {
   Card,
@@ -37,33 +37,36 @@ export default function ProfilePage() {
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            if (!session || sessionError) {
-                router.push('/login');
-                return;
-            }
-            
-            setUserId(session.user.id);
-            setProfile(prev => ({ ...prev, email: session.user.email || '' }));
+    const fetchProfile = useCallback(async () => {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (!session || sessionError) {
+            router.push('/login');
+            return;
+        }
+        
+        setUserId(session.user.id);
+        setProfile(prev => ({ ...prev, email: session.user.email || '' }));
 
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('name, phone, avatar_url')
-                .eq('id', session.user.id)
-                .single();
-            
-            if (data) {
-                setProfile(prev => ({ ...prev, ...data }));
-                if (data.avatar_url) {
-                    setAvatarPreview(data.avatar_url);
-                }
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('name, phone, avatar_url')
+            .eq('id', session.user.id)
+            .single();
+        
+        if (data) {
+            setProfile(prev => ({ ...prev, name: data.name, phone: data.phone, avatar_url: data.avatar_url }));
+            if (data.avatar_url) {
+                setAvatarPreview(data.avatar_url);
             }
-            setLoading(false);
-        };
-        fetchProfile();
+        } else if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar el perfil.'});
+        }
+        setLoading(false);
     }, [router]);
+
+    useEffect(() => {
+        fetchProfile();
+    }, [fetchProfile]);
 
     const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -99,14 +102,19 @@ export default function ProfilePage() {
           newAvatarUrl = publicUrl;
       }
 
+      // "Upsert" operation: update the profile or insert it if it doesn't exist.
+      // This is key to fixing profiles for users who signed up before the trigger was made.
       const { error } = await supabase
           .from('profiles')
-          .update({ 
+          .upsert({ 
+              id: userId,
               name: profile.name, 
               phone: profile.phone,
               avatar_url: newAvatarUrl,
-          })
-          .eq('id', userId);
+              email: profile.email,
+              role: 'vendedor',
+          }, { onConflict: 'id' });
+
 
       if (error) {
           toast({ variant: 'destructive', title: 'Error al guardar', description: error.message });
