@@ -34,7 +34,7 @@ const LoginPage = () => {
       setLoading(false);
       return;
     }
-    
+
     // The middleware will handle the redirection after the page is refreshed.
     router.refresh();
   };
