@@ -75,10 +75,10 @@ export default function ProductsPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith('/analysis')} tooltip="Análisis">
-                <Link href="/analysis">
+              <SidebarMenuButton asChild isActive={pathname.startsWith('/finance')} tooltip="Finanzas">
+                <Link href="/finance">
                   <TrendingUp />
-                  <span>Análisis</span>
+                  <span>Finanzas</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

@@ -38,7 +38,7 @@ import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
 
-export default function AnalysisPage() {
+export default function FinancePage() {
   const [cost, setCost] = useState(0);
   const [price, setPrice] = useState(0);
   const [margin, setMargin] = useState(0);
@@ -101,10 +101,10 @@ export default function AnalysisPage() {
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith('/analysis')} tooltip="Análisis">
-                <Link href="/analysis">
+              <SidebarMenuButton asChild isActive={pathname.startsWith('/finance')} tooltip="Finanzas">
+                <Link href="/finance">
                   <TrendingUp />
-                  <span>Análisis</span>
+                  <span>Finanzas</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -143,7 +143,7 @@ export default function AnalysisPage() {
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:justify-end">
           <SidebarTrigger className="md:hidden" />
           <h2 className="text-2xl font-bold font-headline md:hidden">
-            Análisis de Mercado
+            Análisis Financiero
           </h2>
         </header>
 
@@ -151,7 +151,7 @@ export default function AnalysisPage() {
           <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex flex-col gap-1">
               <h2 className="text-3xl font-bold font-headline">
-                Análisis de Mercado
+                Análisis Financiero
               </h2>
               <p className="text-muted-foreground">
                 Herramientas para entender y mejorar tu negocio.

@@ -61,17 +61,17 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  const protectedSellerRoutes = ['/dashboard', '/products', '/catalog', '/analysis', '/profile'];
+  const protectedSellerRoutes = ['/dashboard', '/products', '/catalog', '/profile', '/finance'];
 
-  // if user is not logged in and is trying to access protected seller routes, redirect to login
+  // Rule 1: if user is not logged in and is trying to access a protected seller route, redirect to login
   if (!session && protectedSellerRoutes.some(path => pathname.startsWith(path))) {
     const url = req.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // if user is logged in and is on the login/signup page, redirect to dashboard
-  // This is a safe fallback for sellers. Clients will be redirected from the login page itself.
+  // Rule 2: if user is logged in and is on the login/signup page, redirect them to the dashboard.
+  // This handles the redirection after a successful login.
   if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone();
      url.pathname = '/dashboard';
@@ -89,7 +89,7 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      *
-     * We want this to run on most paths to protect seller routes.
+     * We want this to run on all pages to handle session-based redirection correctly.
      */
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
