@@ -23,36 +23,20 @@ const SignUpPage = () => {
     setMessage('');
     setError('');
 
-    const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
 
+    setLoading(false);
+
     if (signUpError) {
       setError(`Error al registrarse: ${signUpError.message}`);
-      setLoading(false);
       return;
     }
 
-    if (user) {
-      // Bypass RLS to insert the profile for the new user.
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({ user_id: user.id, role: 'vendedor' }, { returning: 'minimal' });
-      
-      if (profileError) {
-        // This is a critical error, but the user is already created in auth.
-        // We inform the user, but they might need support to fix their profile.
-        setError(`Usuario creado, pero hubo un error al crear el perfil: ${profileError.message}`);
-      } else {
-        setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.');
-      }
-    } else {
-       // This case might happen if email confirmation is required.
-       setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.');
-    }
-
-    setLoading(false);
+    // Since a database trigger now handles profile creation, we just show a success message.
+    setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.');
   };
 
   return (
