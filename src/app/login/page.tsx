@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import supabase from '../../lib/supabaseClient';
+import supabase from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,54 +20,29 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (authError || !authData.user) {
+    setLoading(false);
+
+    if (error) {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
         description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
       });
-      setLoading(false);
       return;
     }
 
-    const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', authData.user.id)
-        .single();
+    toast({
+        title: '¡Bienvenido!',
+        description: 'Redirigiendo...',
+    });
     
-    if (profileError || !profile) {
-        toast({
-            title: 'Inicio de sesión exitoso',
-            description: 'Redirigiendo a la página principal.',
-        });
-        router.push('/');
-        setLoading(false);
-        return;
-    }
-
-    const userRole = profile.role?.trim().toLowerCase();
-
-    if (userRole === 'vendedor') {
-        toast({
-            title: '¡Bienvenido Vendedor!',
-            description: 'Redirigiendo a tu dashboard.',
-        });
-        router.push('/dashboard');
-    } else {
-        toast({
-            title: 'Inicio de sesión exitoso',
-            description: 'Redirigiendo a la página principal.',
-        });
-        router.push('/');
-    }
-
-    setLoading(false);
+    // Refresh the page to trigger the middleware
+    router.refresh();
   };
 
   return (

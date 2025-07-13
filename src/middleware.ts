@@ -1,83 +1,28 @@
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/middleware';
 
-export async function middleware(req: NextRequest) {
-  let res = NextResponse.next({
-    request: {
-      headers: req.headers,
-    },
-  })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return req.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          req.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          res = NextResponse.next({
-            request: {
-              headers: req.headers,
-            },
-          })
-          res.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-        },
-        remove(name: string, options: CookieOptions) {
-          req.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          res = NextResponse.next({
-            request: {
-              headers: req.headers,
-            },
-          })
-          res.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-        },
-      },
-    }
-  )
+export async function middleware(request: NextRequest) {
+  const { supabase, response } = createClient(request);
 
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const { pathname } = req.nextUrl;
+  const { pathname } = request.nextUrl;
 
-  const sellerRoutes = ['/dashboard', '/catalog', '/profile', '/finance', '/products'];
+  const protectedRoutes = ['/dashboard', '/products', '/catalog', '/finance', '/profile'];
+  const authRoutes = ['/login', '/signup'];
 
-  // if user is not logged in and is trying to access protected routes
-  if (!session && sellerRoutes.some(route => pathname.startsWith(route))) {
-    const url = req.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  if (!session && protectedRoutes.some(route => pathname.startsWith(route))) {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // if user is logged in and is on the login/signup page, redirect to dashboard
-  if (session && (pathname === '/login' || pathname === '/signup')) {
-     const url = req.nextUrl.clone()
-     url.pathname = '/dashboard'
-     return NextResponse.redirect(url)
+  if (session && authRoutes.some(route => pathname.startsWith(route))) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  return res;
+  return response;
 }
 
 export const config = {
@@ -87,8 +32,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * This ensures the middleware runs on all necessary pages for authentication checks.
+     * Feel free to modify this pattern to include more paths.
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
