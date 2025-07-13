@@ -11,9 +11,9 @@ import { ShoppingBag, MessageCircle, AlertCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type VendorProfile = {
-  name: string;
-  avatar_url: string;
-  phone: string;
+  name: string | null;
+  avatar_url: string | null;
+  phone: string | null;
 };
 
 export default function PublicCatalogPage() {
@@ -39,8 +39,9 @@ export default function PublicCatalogPage() {
           .eq('id', userId)
           .single();
 
-        if (profileError || !profileData) {
-          throw new Error('No se pudo encontrar al vendedor.');
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          throw new Error('No se pudo encontrar la información del vendedor.');
         }
         setVendor(profileData as VendorProfile);
 
@@ -84,9 +85,12 @@ export default function PublicCatalogPage() {
 
   const getWhatsAppLink = (product: Product) => {
     const sellerPhoneNumber = vendor?.phone || '';
-    if (!sellerPhoneNumber) return '#';
+    if (!sellerPhoneNumber) {
+        // Find a way to notify user that phone is not available
+        return '#';
+    }
     const message = `Hola, estoy interesado en el producto "${product.name}". ¿Está disponible?`;
-    return `https://wa.me/${sellerPhoneNumber}?text=${encodeURIComponent(message)}`;
+    return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
 
   if (loading) {
@@ -142,12 +146,12 @@ export default function PublicCatalogPage() {
                     <div className="mt-4 flex-grow"></div>
                     <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                       <p className="text-3xl font-extrabold text-primary">${product.price.toFixed(2)}</p>
-                      <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
-                        <Button size="lg" className="w-full bg-green-500 text-lg text-white hover:bg-green-600 sm:w-auto">
+                      <Button asChild size="lg" className="w-full bg-green-500 text-lg text-white hover:bg-green-600 sm:w-auto" disabled={!vendor?.phone}>
+                        <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
                           <MessageCircle className="mr-2 h-5 w-5" />
                           Consultar
-                        </Button>
-                      </a>
+                        </a>
+                      </Button>
                     </div>
                   </div>
                 </div>

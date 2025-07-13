@@ -24,7 +24,17 @@ const menuItems = [
   { href: '/profile', label: 'Perfil', icon: User },
 ];
 
-export function Sidebar() {
+type Profile = {
+  name: string | null;
+  avatar_url: string | null;
+  email: string | null;
+};
+
+interface SidebarProps {
+  profile: Profile | null;
+}
+
+export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -33,11 +43,21 @@ export function Sidebar() {
     router.push('/login');
   };
 
+  const getInitials = (name?: string | null) => {
+    if (!name) return 'VR';
+    const names = name.split(' ');
+    if (names.length > 1) {
+        return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r bg-background">
-      <div className="flex h-16 items-center justify-center border-b">
-        <Link href="/products" className="flex items-center gap-2 font-bold text-lg text-primary">
-          <ShoppingBag className="h-6 w-6" />
+    <aside className="hidden md:flex w-64 flex-col border-r bg-sidebar">
+      <div className="flex h-16 items-center justify-center border-b border-sidebar-border">
+        <Link href="/products" className="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
+          <ShoppingBag className="h-6 w-6 text-primary" />
           <span>VentaRapida</span>
         </Link>
       </div>
@@ -47,8 +67,8 @@ export function Sidebar() {
             key={item.href}
             href={item.href}
             className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-accent',
-              pathname.startsWith(item.href) && 'bg-accent text-primary font-semibold'
+              'flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground/80 transition-all hover:text-sidebar-foreground hover:bg-sidebar-accent',
+              pathname.startsWith(item.href) && 'bg-sidebar-accent text-sidebar-foreground font-semibold'
             )}
           >
             <item.icon className="h-4 w-4" />
@@ -59,20 +79,20 @@ export function Sidebar() {
       <div className="mt-auto p-2">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-accent"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground/80 transition-all hover:text-sidebar-foreground hover:bg-sidebar-accent"
         >
           <LogOut className="h-4 w-4" />
           Cerrar Sesión
         </button>
       </div>
-      <div className="flex items-center gap-3 p-4 border-t">
+      <div className="flex items-center gap-3 p-4 border-t border-sidebar-border">
         <Avatar className="h-9 w-9">
-            <AvatarImage src="https://placehold.co/40x40" alt="User avatar" data-ai-hint="male user" />
-            <AvatarFallback>VR</AvatarFallback>
+            <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.name || "User avatar"} data-ai-hint="male user" />
+            <AvatarFallback>{getInitials(profile?.name)}</AvatarFallback>
         </Avatar>
         <div>
-            <p className="text-sm font-medium leading-none">Admin</p>
-            <p className="text-xs leading-none text-muted-foreground">admin@ventarapida.com</p>
+            <p className="text-sm font-medium leading-none text-sidebar-foreground">{profile?.name || 'Vendedor'}</p>
+            <p className="text-xs leading-none text-sidebar-foreground/70">{profile?.email || ''}</p>
         </div>
       </div>
     </aside>
