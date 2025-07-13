@@ -40,7 +40,7 @@ const LoginPage = () => {
     
     setLoading(false);
 
-    if (profile && profile.role === 'vendedor') {
+    if (profile && profile.role === 'vendedro') {
         router.push('/dashboard');
         router.refresh();
     } else {
