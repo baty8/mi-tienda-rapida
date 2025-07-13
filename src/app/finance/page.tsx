@@ -77,9 +77,9 @@ export default function FinancePage() {
     <div className="flex min-h-screen w-full flex-row">
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center gap-3 p-2">
-            <ShoppingBag className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold font-headline text-primary group-data-[state=collapsed]:hidden">
+          <div className="flex items-center gap-3 p-4">
+            <ShoppingBag className="h-7 w-7 text-primary" />
+            <h1 className="text-xl font-bold font-headline text-primary group-data-[state=collapsed]:hidden">
               VentaRapida
             </h1>
           </div>
@@ -126,6 +126,10 @@ export default function FinancePage() {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
             <SidebarMenuItem>
                 <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión">
                     <LogOut />
@@ -133,9 +137,7 @@ export default function FinancePage() {
                 </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
-          <div className="flex items-center gap-3 p-2">
+          <div className="flex items-center gap-3 p-4 border-t-2 border-sidebar-border">
             <Avatar>
               <AvatarImage src="https://placehold.co/40x40" alt="User avatar" data-ai-hint="male user" />
               <AvatarFallback>VR</AvatarFallback>
