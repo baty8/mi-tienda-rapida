@@ -101,7 +101,7 @@ export default function Home() {
                   width={300}
                   height={200}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  priority={index === 0}
+                  priority={index < 4}
                 />
               </div>
               <div className="p-4">

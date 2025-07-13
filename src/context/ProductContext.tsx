@@ -36,7 +36,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       category: 'General'
   });
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -53,18 +53,17 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     if (error) {
       toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los productos.' });
-      setLoading(false);
-      return;
+      setProducts([]);
+    } else {
+      const formattedProducts: Product[] = (data || []).map(formatProduct);
+      setProducts(formattedProducts);
     }
-
-    const formattedProducts: Product[] = (data || []).map(formatProduct);
-    setProducts(formattedProducts);
     setLoading(false);
-  };
+  }, []);
   
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const uploadImage = async (file: File, userId: string): Promise<string | null> => {
     const fileName = `${userId}/${Date.now()}-${file.name}`;

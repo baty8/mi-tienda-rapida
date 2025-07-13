@@ -24,8 +24,6 @@ const LoginPage = () => {
       return;
     }
     
-    // The middleware will handle redirection after the session is established.
-    // router.refresh() is crucial to trigger the middleware check with the new session.
     router.refresh();
   };
 
