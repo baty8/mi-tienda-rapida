@@ -86,6 +86,7 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - / (the public home page, which is now handled differently)
+     * - api/auth (supabase auth routes)
      */
     '/((?!_next/static|_next/image|favicon.ico|api/auth).*)',
   ],
