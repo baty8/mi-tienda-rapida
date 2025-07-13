@@ -36,14 +36,14 @@ const LoginPage = () => {
       if (profileError) {
         console.error('Error fetching profile:', profileError.message);
         // Default redirect if profile fetch fails but login was successful
-        router.push('/dashboard');
+        router.push('/');
         return;
       }
 
       if (profileData?.role === 'vendedor') {
         router.push('/catalog');
       } else {
-        router.push('/dashboard'); 
+        router.push('/'); 
       }
     }
   };

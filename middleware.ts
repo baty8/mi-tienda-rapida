@@ -67,10 +67,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // if user is logged in and is on the login/signup page, redirect to dashboard
+  // if user is logged in and is on the login/signup page, redirect to home page
   if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone()
-     url.pathname = '/dashboard'
+     url.pathname = '/'
      return NextResponse.redirect(url)
   }
 
@@ -84,8 +84,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - / (the public home page)
+     * - / (the public home page, which is now handled differently)
      */
-    '/((?!_next/static|_next/image|favicon.ico|$).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
