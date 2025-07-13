@@ -14,13 +14,11 @@ const SignUpPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
     
     // The database trigger will now handle profile creation.
     // We only need to sign up the user here.
@@ -29,6 +27,8 @@ const SignUpPage = () => {
       password,
     });
 
+    setLoading(false);
+
     if (error) {
       toast({
         variant: 'destructive',
@@ -36,7 +36,10 @@ const SignUpPage = () => {
         description: error.message,
       });
     } else if (data.user) {
-        setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.');
+        toast({
+            title: '¡Registro casi completo!',
+            description: 'Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.',
+        });
     } else {
         toast({
             variant: 'destructive',
@@ -44,8 +47,6 @@ const SignUpPage = () => {
             description: 'No se pudo completar el registro. Por favor, inténtalo de nuevo.',
         });
     }
-
-    setLoading(false);
   };
 
   return (
@@ -58,6 +59,7 @@ const SignUpPage = () => {
             <Input
               type="email"
               id="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -69,6 +71,7 @@ const SignUpPage = () => {
             <Input
               type="password"
               id="password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -83,7 +86,6 @@ const SignUpPage = () => {
             {loading ? 'Registrando...' : 'Registrarse'}
           </Button>
         </form>
-        {message && <p className="mt-4 text-center text-sm text-green-600">{message}</p>}
         <p className="mt-6 text-center text-sm text-gray-600">
           ¿Ya tienes una cuenta?{' '}
           <Link href="/login" className="font-medium text-primary hover:text-primary/80">
