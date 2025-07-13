@@ -16,7 +16,7 @@ const LoginPage = () => {
     e.preventDefault();
     setError(null);
 
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (signInError) {
       console.error('Login error:', signInError.message);
@@ -24,29 +24,9 @@ const LoginPage = () => {
       return;
     }
     
-    if (signInData.user) {
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('user_id', signInData.user.id)
-            .single();
-
-        if (profileError) {
-            console.error('Error fetching profile:', profileError);
-            router.push('/'); 
-            router.refresh();
-            return;
-        }
-        
-        if (profile && profile.role === 'vendedor') {
-            router.push('/products');
-        } else {
-            router.push('/');
-        }
-        router.refresh();
-    } else {
-        setError('No se pudo obtener la información del usuario.');
-    }
+    // The middleware will handle redirection after the session is established.
+    // router.refresh() is crucial to trigger the middleware check with the new session.
+    router.refresh();
   };
 
   return (

@@ -60,8 +60,10 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  // if user is not logged in and is trying to access protected routes
-  if (!session && (pathname.startsWith('/dashboard') || pathname.startsWith('/catalog') || pathname.startsWith('/profile') || pathname.startsWith('/finance') || pathname.startsWith('/products'))) {
+  const sellerPaths = ['/dashboard', '/catalog', '/profile', '/finance', '/products'];
+
+  // if user is not logged in and is trying to access protected seller routes
+  if (!session && sellerPaths.some(p => pathname.startsWith(p))) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -84,8 +86,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - / (the public home page, which is now handled differently)
+     * - api/auth (Supabase auth routes)
+     * - / (the public home page)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/auth).*)',
   ],
 };
