@@ -20,42 +20,22 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (authError) {
-        setLoading(false);
-        toast({
-            variant: 'destructive',
-            title: 'Error de inicio de sesión',
-            description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
-        });
-        return;
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setLoading(false);
+      toast({
+        variant: 'destructive',
+        title: 'Error de inicio de sesión',
+        description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
+      });
+      return;
     }
 
-    if (!authData.user) {
-        setLoading(false);
-        toast({
-            variant: 'destructive',
-            title: 'Error de inicio de sesión',
-            description: 'No se pudo obtener la información del usuario.',
-        });
-        return;
-    }
-
-    const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', authData.user.id)
-        .single();
-    
-    setLoading(false);
-
-    if (profile && profile.role === 'vendedro') {
-        router.push('/dashboard');
-    } else {
-        // If role is 'cliente', null, or there was an error fetching the profile, go to home page.
-        router.push('/');
-    }
+    // This will refresh the page and the middleware will handle the redirect.
     router.refresh();
   };
 
