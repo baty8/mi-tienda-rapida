@@ -35,8 +35,7 @@ const LoginPage = () => {
       return;
     }
 
-    // After successful login, Supabase client has the session. Now fetch profile.
-    // This will succeed once you apply the RLS policies in Supabase.
+    // Una vez que el RLS esté configurado en Supabase, esta consulta tendrá éxito.
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -49,8 +48,9 @@ const LoginPage = () => {
             title: 'Error de Perfil',
             description: 'No se pudo encontrar tu perfil. Contacta a soporte.',
         });
-        await supabase.auth.signOut(); // Log out to prevent inconsistent state
+        await supabase.auth.signOut(); // Desloguear para evitar inconsistencias
         setLoading(false);
+        router.push('/');
         return;
     }
 
@@ -59,8 +59,6 @@ const LoginPage = () => {
     } else {
         router.push('/');
     }
-
-    // Don't setLoading(false) here because we are navigating away
   };
 
   return (

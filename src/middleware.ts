@@ -63,14 +63,14 @@ export async function middleware(req: NextRequest) {
 
   const sellerRoutes = ['/dashboard', '/products', '/catalog', '/profile', '/finance'];
 
-  // Rule 1: If a user is not logged in and tries to access a seller route, redirect to login.
+  // si el usuario no está logueado e intenta acceder a rutas de vendedor, redirigir a login
   if (!session && sellerRoutes.some(path => pathname.startsWith(path))) {
     const url = req.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // Rule 2: If user is logged in and is on the login/signup page, redirect them to the dashboard.
+  // si el usuario está logueado y está en login/signup, redirigir a dashboard
   if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone()
      url.pathname = '/dashboard'
@@ -87,7 +87,6 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     *
      * This ensures the middleware runs on all necessary pages for authentication checks.
      */
     '/((?!_next/static|_next/image|favicon.ico).*)',
