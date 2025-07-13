@@ -94,17 +94,15 @@ export default function DashboardPage() {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión">
+                    <LogOut />
+                    <span>Cerrar Sesión</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
-            <SidebarMenu>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión">
-                        <LogOut />
-                        <span>Cerrar Sesión</span>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-           </SidebarMenu>
           <div className="flex items-center gap-3 p-2">
             <Avatar>
               <AvatarImage src="https://placehold.co/40x40" alt="User avatar" data-ai-hint="male user" />
