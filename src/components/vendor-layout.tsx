@@ -5,6 +5,7 @@ import { ThemeProvider } from "./theme-provider";
 import { Sidebar } from "./ui/sidebar";
 import { useEffect, useState } from "react";
 import supabase from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 type Profile = {
   name: string | null;
@@ -18,27 +19,31 @@ export function VendorLayout({
     children: React.ReactNode;
   }>) {
     const [profile, setProfile] = useState<Profile | null>(null);
+    const router = useRouter();
 
     useEffect(() => {
         const fetchProfile = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('name, avatar_url')
-                    .eq('id', user.id)
-                    .single();
-                
-                setProfile({
-                    name: profileData?.name,
-                    avatar_url: profileData?.avatar_url,
-                    email: user.email,
-                });
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (!session || sessionError) {
+                router.push('/login');
+                return;
             }
+
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('name, avatar_url')
+                .eq('id', session.user.id)
+                .single();
+            
+            setProfile({
+                name: profileData?.name || null,
+                avatar_url: profileData?.avatar_url || null,
+                email: session.user.email || null,
+            });
         };
 
         fetchProfile();
-    }, []);
+    }, [router]);
 
     return (
         <ThemeProvider

@@ -56,7 +56,9 @@ export default function ProfilePage() {
             
             if (data) {
                 setProfile(prev => ({ ...prev, ...data }));
-                setAvatarPreview(data.avatar_url);
+                if (data.avatar_url) {
+                    setAvatarPreview(data.avatar_url);
+                }
             }
             setLoading(false);
         };
@@ -167,8 +169,8 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex-1">
                         <label htmlFor="avatar-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-muted relative">
-                           {avatarPreview && !avatarFile ? (
-                                <Image src={avatarPreview} alt="Vista previa" fill className="rounded-lg object-contain" />
+                           {avatarPreview ? (
+                                <Image src={avatarPreview} alt="Vista previa" layout="fill" className="rounded-lg object-contain p-2" />
                             ) : (
                                 <div className="flex flex-col items-center justify-center">
                                     <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
