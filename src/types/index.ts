@@ -13,5 +13,3 @@ export interface Product {
   category: string;
   in_catalog: boolean;
 }
-
-    

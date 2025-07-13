@@ -69,7 +69,7 @@ export default function CatalogPage() {
             router.push('/login');
         } else {
             setUserId(session.user.id);
-            const origin = window.location.origin;
+            const origin = typeof window !== 'undefined' ? window.location.origin : '';
             setCatalogLink(`${origin}/catalog/${session.user.id}`);
             fetchProducts();
         }
@@ -305,5 +305,3 @@ export default function CatalogPage() {
     </VendorLayout>
   );
 }
-
-    

@@ -169,5 +169,3 @@ export default function PublicCatalogPage({ params }: { params: { userId: string
     </div>
   );
 }
-
-    
