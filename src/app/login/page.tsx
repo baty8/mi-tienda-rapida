@@ -25,8 +25,9 @@ const LoginPage = () => {
       password,
     });
 
+    setLoading(false);
+
     if (error) {
-      setLoading(false);
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',

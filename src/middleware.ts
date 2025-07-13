@@ -71,7 +71,6 @@ export async function middleware(req: NextRequest) {
   }
 
   // Rule 2: if user is logged in and is on the login/signup page, redirect them to the dashboard.
-  // This handles the redirection after a successful login.
   if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone();
      url.pathname = '/dashboard';
