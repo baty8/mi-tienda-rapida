@@ -36,9 +36,9 @@ const LoginPage = () => {
       return;
     }
 
-    // After successful login, push to a protected route.
-    // The middleware will handle the rest.
+    // Redirección explícita al dashboard. El middleware se encargará del resto.
     router.push('/dashboard');
+    router.refresh(); // Notifica al middleware que la sesión ha cambiado.
   };
 
   return (
