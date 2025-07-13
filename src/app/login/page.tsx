@@ -20,7 +20,7 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
         toast({
@@ -31,9 +31,41 @@ const LoginPage = () => {
         setLoading(false);
         return;
     }
-    
-    // Let the middleware handle redirection after a successful login.
-    router.refresh();
+
+    if (data.user) {
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('user_id', data.user.id)
+            .single();
+
+        if (profileError || !profile) {
+             toast({
+                variant: 'destructive',
+                title: 'Error de Perfil',
+                description: 'No se pudo encontrar un perfil para este usuario.',
+            });
+            await supabase.auth.signOut(); // Log out user if profile is missing
+            setLoading(false);
+            return;
+        }
+
+        if (profile.role === 'vendedor') {
+            // Let the middleware handle redirection by refreshing the page.
+            // This ensures the server-side session is up-to-date.
+            router.refresh();
+        } else {
+             toast({
+                variant: 'destructive',
+                title: 'Acceso Denegado',
+                description: 'No tienes permisos de vendedor para acceder.',
+            });
+            await supabase.auth.signOut();
+            setLoading(false);
+        }
+    } else {
+        setLoading(false);
+    }
   };
 
   return (
