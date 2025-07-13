@@ -35,6 +35,7 @@ const LoginPage = () => {
       return;
     }
 
+    // After successful login, fetch the user's profile to get the role.
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -43,16 +44,14 @@ const LoginPage = () => {
     
     setLoading(false);
 
+    // If there was an error fetching the profile, or if the profile/role doesn't exist,
+    // or if the role is not 'vendedor', redirect to the main page.
     if (profileError || !profile || !profile.role) {
-        toast({
-            variant: 'destructive',
-            title: 'Error de Perfil',
-            description: 'No se pudo encontrar un perfil con rol asignado. Contacta a soporte.',
-        });
         router.push('/');
         return;
     }
     
+    // Clean up the role string and check if it's 'vendedor'.
     const userRole = profile.role.trim().toLowerCase();
 
     if (userRole === 'vendedor') {
