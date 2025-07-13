@@ -3,14 +3,12 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next({
+  let res = NextResponse.next({
     request: {
       headers: req.headers,
     },
   })
 
-  // Esta es la forma correcta y segura de inicializar el cliente de Supabase en el middleware.
-  // Evita los bucles de reasignación que causaban el error 502.
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -20,6 +18,16 @@ export async function middleware(req: NextRequest) {
           return req.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
+          req.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+          res = NextResponse.next({
+            request: {
+              headers: req.headers,
+            },
+          })
           res.cookies.set({
             name,
             value,
@@ -27,6 +35,16 @@ export async function middleware(req: NextRequest) {
           })
         },
         remove(name: string, options: CookieOptions) {
+          req.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          res = NextResponse.next({
+            request: {
+              headers: req.headers,
+            },
+          })
           res.cookies.set({
             name,
             value: '',
@@ -43,21 +61,23 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
+  // Protected seller routes
   const sellerRoutes = ['/dashboard', '/products', '/catalog', '/profile', '/finance'];
 
-  // Regla 1: si un usuario no está logueado y intenta acceder a una ruta de vendedor, redirigir a login.
+  // Rule 1: If a user is not logged in and tries to access a seller route, redirect to login.
   if (!session && sellerRoutes.some(path => pathname.startsWith(path))) {
     const url = req.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // Regla 2: si un usuario ya está logueado y visita la página de login/signup, redirigir al dashboard.
-  if (session && (pathname === '/login' || pathname === '/signup')) {
-     const url = req.nextUrl.clone();
-     url.pathname = '/dashboard';
-     return NextResponse.redirect(url);
+  // Rule 2: If user is logged in and on login/signup page, redirect to dashboard.
+   if (session && (pathname === '/login' || pathname === '/signup')) {
+     const url = req.nextUrl.clone()
+     url.pathname = '/dashboard'
+     return NextResponse.redirect(url)
   }
+
 
   return res;
 }

@@ -20,25 +20,50 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    // Step 1: Sign in the user
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    setLoading(false);
-
-    if (error) {
+    if (authError) {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
         description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
       });
+      setLoading(false);
       return;
     }
 
-    // Redirección explícita al dashboard. El middleware se encargará del resto.
-    router.push('/dashboard');
-    router.refresh(); // Notifica al middleware que la sesión ha cambiado.
+    if (authData.user) {
+        // Step 2: Fetch user profile to check the role
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', authData.user.id)
+            .single();
+
+        if (profileError || !profile) {
+            toast({
+                variant: 'destructive',
+                title: 'Error de Perfil',
+                description: 'No se pudo encontrar tu perfil. Contacta a soporte.',
+            });
+            // Redirect non-profile users to the main page
+            router.push('/');
+        } else {
+            // Step 3: Redirect based on role
+            if (profile.role === 'vendedro') {
+                router.push('/dashboard');
+            } else {
+                router.push('/');
+            }
+        }
+    }
+    // No need to set loading to false here, as a redirect is happening.
+    // However, if a redirect might not happen, it's good practice.
+    // setLoading(false) will cause a flicker if a redirect is successful.
   };
 
   return (
