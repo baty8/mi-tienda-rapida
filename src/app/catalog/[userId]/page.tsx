@@ -40,7 +40,7 @@ export default function PublicCatalogPage() {
           .single();
 
         if (profileError || !profileData) {
-          console.error('Profile fetch error:', profileError);
+          console.error('Profile fetch error:', profileError || 'No profile data found for this user ID.');
           throw new Error('No se pudo encontrar la información del vendedor.');
         }
         setVendor(profileData as VendorProfile);
@@ -163,7 +163,7 @@ export default function PublicCatalogPage() {
             <div className="py-16 text-center">
                 <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-4 text-xl font-semibold">Este catálogo está vacío</h3>
-                <p className="mt-2 text-muted-foreground">El vendedor aún no ha añadido productos o no ha seleccionado ninguno para mostrar.</p>
+                <p className="mt-2 text-muted-foreground">El vendedor aún no ha añadido productos o el enlace es incorrecto.</p>
             </div>
         )}
 
