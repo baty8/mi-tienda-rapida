@@ -47,6 +47,7 @@ import { useProduct } from '@/context/ProductContext';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
 import { useEffect } from 'react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const templates = [
   { id: 'modern', name: 'Moderno', bg: 'bg-slate-900', text: 'text-white' },
@@ -55,7 +56,7 @@ const templates = [
 ];
 
 export default function CatalogPage() {
-  const { products } = useProduct();
+  const { products, fetchProducts } = useProduct();
   const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
   const [selectedTemplate, setSelectedTemplate] = React.useState(templates[0]);
   const router = useRouter();
@@ -65,10 +66,18 @@ export default function CatalogPage() {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             router.push('/login');
+        } else {
+            fetchProducts();
         }
     };
     checkSession();
-  }, [router]);
+  }, [router, fetchProducts]);
+
+  const handleSelectProduct = (productId: string, checked: boolean) => {
+    setSelectedProducts(prev => 
+        checked ? [...prev, productId] : prev.filter(id => id !== productId)
+    );
+  };
 
   const catalogLink = 'https://ventarapida.com/catalog/xyz123';
 
@@ -81,6 +90,7 @@ export default function CatalogPage() {
             Catálogo Digital
           </h2>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Dialog>
               <DialogTrigger asChild>
                 <Button>
@@ -210,7 +220,7 @@ export default function CatalogPage() {
                         'relative rounded-lg border-2 p-4 cursor-pointer',
                         selectedTemplate.id === template.id
                           ? 'border-primary'
-                          : 'border-transparent'
+                          : 'border-transparent hover:border-muted-foreground/20'
                       )}
                       onClick={() => setSelectedTemplate(template)}
                     >
@@ -258,7 +268,7 @@ export default function CatalogPage() {
                                     </div>
                                     <div className="space-y-4">
                                         {products.filter(p => selectedProducts.includes(p.id)).map(product => (
-                                             <div key={product.id} className="bg-white/10 p-3 rounded-lg space-y-3">
+                                             <div key={product.id} className="bg-background/10 dark:bg-white/10 p-3 rounded-lg space-y-3">
                                                 <div className="flex items-center gap-4">
                                                     <Image src={product.image} alt={product.name} width={64} height={64} className="w-16 h-16 rounded-md object-cover" data-ai-hint="product image" />
                                                     <div className="flex-1">

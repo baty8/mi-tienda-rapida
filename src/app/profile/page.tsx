@@ -31,6 +31,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const daysOfWeek = [
   'Lunes',
@@ -64,7 +65,7 @@ export default function ProfilePage() {
             Perfil y Contacto
           </h2>
           <div className="flex items-center gap-4">
-            {/* Potentially add actions here */}
+            <ThemeToggle />
           </div>
         </header>
 

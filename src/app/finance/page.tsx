@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function FinancePage() {
   const [cost, setCost] = useState(0);
@@ -53,6 +54,9 @@ export default function FinancePage() {
           <h2 className="text-2xl font-bold font-headline md:hidden">
             Análisis Financiero
           </h2>
+           <div className="flex items-center gap-4">
+                <ThemeToggle />
+            </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">

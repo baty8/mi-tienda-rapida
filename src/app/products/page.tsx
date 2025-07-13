@@ -7,6 +7,7 @@ import { AddProductDialog } from '@/components/add-product-dialog';
 import { BulkUploadDialog } from '@/components/bulk-upload-dialog';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function ProductsPage() {
     const router = useRouter();
@@ -30,6 +31,7 @@ export default function ProductsPage() {
             Productos
           </h2>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <BulkUploadDialog />
             <AddProductDialog />
           </div>
