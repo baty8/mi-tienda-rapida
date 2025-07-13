@@ -20,6 +20,7 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
+    // 1. Authenticate user
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
     
     if (authError || !authData.user) {
@@ -32,7 +33,7 @@ const LoginPage = () => {
         return;
     }
 
-    // Fetch profile to check role
+    // 2. Fetch profile to check role
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -52,13 +53,20 @@ const LoginPage = () => {
         return;
     }
     
-    // Redirect based on role
+    // 3. Redirect based on role
     if (profile.role === 'vendedor') {
         router.push('/dashboard');
+    } else if (profile.role === 'cliente') {
+        router.push('/');
     } else {
-        router.push('/'); // Redirect non-sellers to the public catalog page
+        toast({
+            variant: 'destructive',
+            title: 'Acceso denegado',
+            description: 'Tu cuenta no tiene un rol asignado. Redirigiendo a la página principal.',
+        });
+        router.push('/');
     }
-    router.refresh();
+    router.refresh(); // Important to notify middleware and update layout
   };
 
   return (
