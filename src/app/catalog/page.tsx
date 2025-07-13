@@ -55,6 +55,7 @@ import { Label } from '@/components/ui/label';
 import { useProduct } from '@/context/ProductContext';
 import { useRouter, usePathname } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
+import { useEffect } from 'react';
 
 const templates = [
   { id: 'modern', name: 'Moderno', bg: 'bg-slate-900', text: 'text-white' },
@@ -68,6 +69,16 @@ export default function CatalogPage() {
   const [selectedTemplate, setSelectedTemplate] = React.useState(templates[0]);
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            router.push('/login');
+        }
+    };
+    checkSession();
+  }, [router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

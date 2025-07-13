@@ -34,7 +34,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
 
@@ -45,6 +45,16 @@ export default function FinancePage() {
   const [profit, setProfit] = useState(0);
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            router.push('/login');
+        }
+    };
+    checkSession();
+  }, [router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

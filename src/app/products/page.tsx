@@ -1,6 +1,6 @@
 
 'use client';
-
+import { useEffect } from 'react';
 import {
   ShoppingBag,
   Package,
@@ -31,6 +31,16 @@ import supabase from '@/lib/supabaseClient';
 export default function ProductsPage() {
     const router = useRouter();
     const pathname = usePathname();
+
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                router.push('/login');
+            }
+        };
+        checkSession();
+    }, [router]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();

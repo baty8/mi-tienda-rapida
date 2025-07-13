@@ -20,29 +20,54 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    setLoading(false);
-
-    if (error) {
+    if (authError || !authData.user) {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
         description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
       });
+      setLoading(false);
       return;
     }
 
-    toast({
-        title: '¡Bienvenido!',
-        description: 'Redirigiendo...',
-    });
+    // After successful login, get user profile to check role
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .single();
     
-    // Refresh the page to trigger the middleware, which will handle the redirect.
-    router.refresh();
+    setLoading(false);
+
+    if (profileError || !profile) {
+        toast({
+            title: '¡Bienvenido!',
+            description: 'Redirigiendo a la página principal.',
+        });
+        router.push('/');
+        return;
+    }
+
+    const userRole = profile.role ? profile.role.trim().toLowerCase() : '';
+    
+    if (userRole === 'vendedor') {
+        toast({
+            title: '¡Bienvenido, Vendedor!',
+            description: 'Redirigiendo a tus productos.',
+        });
+        router.push('/products');
+    } else {
+        toast({
+            title: '¡Bienvenido!',
+            description: 'Redirigiendo a la página principal.',
+        });
+        router.push('/');
+    }
   };
 
   return (

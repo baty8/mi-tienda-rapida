@@ -1,6 +1,6 @@
 
 'use client';
-
+import { useEffect } from 'react';
 import Link from 'next/link';
 import {
   ShoppingBag,
@@ -63,6 +63,16 @@ const daysOfWeek = [
 export default function ProfilePage() {
     const router = useRouter();
     const pathname = usePathname();
+
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                router.push('/login');
+            }
+        };
+        checkSession();
+    }, [router]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
