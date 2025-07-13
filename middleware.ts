@@ -9,8 +9,8 @@ export async function middleware(req: NextRequest) {
   })
 
   const supabase = createServerClient(
-    'https://oucrwfmkjkgvlqbsaqbj.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91Y3J3Zm1ramtndmxxYnNhcWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyOTY5ODIsImV4cCI6MjA2Nzg3Mjk4Mn0.ayJrybO13bsPC1OeWYfAUyDxRwfOBhHP7wdug4Le_FM',
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
@@ -58,25 +58,21 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  let userRole: string | null = null;
+  const { pathname } = req.nextUrl;
 
-  if (session) {
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .single(); 
-
-    if (profileError) {
-      console.error('Error fetching profile in middleware:', profileError);
-    } else if (profileData) {
-      userRole = profileData.role;
-    }
+  // if user is not logged in and is trying to access protected routes
+  if (!session && (pathname.startsWith('/dashboard') || pathname.startsWith('/catalog') || pathname.startsWith('/profile') || pathname.startsWith('/finance'))) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
   }
 
-  // For now, just log the session and role
-  console.log('Middleware - User Session:', session);
-  console.log('Middleware - User Role:', userRole);
+  // if user is logged in and is on the login/signup page, redirect to dashboard
+  if (session && (pathname === '/login' || pathname === '/signup')) {
+     const url = req.nextUrl.clone()
+     url.pathname = '/dashboard'
+     return NextResponse.redirect(url)
+  }
 
   return res;
 }
@@ -88,9 +84,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - /login (login page)
-     * - /signup (signup page)
+     * - / (the public home page)
      */
-    '/((?!_next/static|_next/image|favicon.ico|login|signup).*)',
+    '/((?!_next/static|_next/image|favicon.ico|$).*)',
   ],
 };
