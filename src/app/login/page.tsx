@@ -16,34 +16,18 @@ const LoginPage = () => {
     e.preventDefault();
     setError(null);
 
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (signInError) {
       console.error('Login error:', signInError.message);
       setError('Credenciales inválidas. Por favor, inténtalo de nuevo.');
       return;
     }
-
-    if (data.user) {
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', data.user.id)
-        .single();
-
-      if (profileError) {
-        // If profile doesn't exist, they are likely a customer. Redirect to homepage.
-        console.error('Error fetching profile, assuming customer role:', profileError.message);
-        router.push('/');
-        return;
-      }
-
-      if (profileData?.role === 'vendedor') {
-        router.push('/products');
-      } else {
-        router.push('/'); 
-      }
-    }
+    
+    // Since all users signing up are sellers, we can directly push them to the products page.
+    // The middleware will handle unauthenticated access.
+    router.push('/products');
+    router.refresh(); // Forces a refresh to ensure middleware runs and session is updated.
   };
 
   return (
