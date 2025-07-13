@@ -78,7 +78,7 @@ export default function FinancePage() {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={false}>
-                <Link href="/">
+                <Link href="/products">
                   <Package />
                   Productos
                 </Link>

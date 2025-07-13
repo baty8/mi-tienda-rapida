@@ -41,7 +41,7 @@ const LoginPage = () => {
       }
 
       if (profileData?.role === 'vendedor') {
-        router.push('/catalog');
+        router.push('/products');
       } else {
         router.push('/'); 
       }

@@ -97,7 +97,7 @@ export default function CatalogPage() {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={false}>
-                <Link href="/">
+                <Link href="/products">
                   <Package />
                   Productos
                 </Link>

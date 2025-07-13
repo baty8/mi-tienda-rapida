@@ -61,7 +61,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // if user is not logged in and is trying to access protected routes
-  if (!session && (pathname.startsWith('/dashboard') || pathname.startsWith('/catalog') || pathname.startsWith('/profile') || pathname.startsWith('/finance'))) {
+  if (!session && (pathname.startsWith('/dashboard') || pathname.startsWith('/catalog') || pathname.startsWith('/profile') || pathname.startsWith('/finance') || pathname.startsWith('/products'))) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -70,7 +70,7 @@ export async function middleware(req: NextRequest) {
   // if user is logged in and is on the login/signup page, redirect to home page
   if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone()
-     url.pathname = '/'
+     url.pathname = '/products'
      return NextResponse.redirect(url)
   }
 
