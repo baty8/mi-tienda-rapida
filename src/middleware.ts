@@ -61,10 +61,10 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  const protectedSellerRoutes = ['/dashboard', '/products', '/catalog', '/profile', '/finance'];
+  const sellerRoutes = ['/dashboard', '/products', '/catalog', '/profile', '/finance'];
 
   // Rule 1: if user is not logged in and is trying to access a protected seller route, redirect to login
-  if (!session && protectedSellerRoutes.some(path => pathname.startsWith(path))) {
+  if (!session && sellerRoutes.some(path => pathname.startsWith(path))) {
     const url = req.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
@@ -89,7 +89,7 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      *
-     * We want this to run on all pages to handle session-based redirection correctly.
+     * This ensures the middleware runs on all necessary pages for authentication checks.
      */
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
