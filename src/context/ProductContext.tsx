@@ -11,7 +11,7 @@ interface ProductContextType {
   products: Product[];
   loading: boolean;
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image'>, imageFile: File | null) => Promise<void>;
-  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'image'>>, imageFile?: File | null) => Promise<void>;
+  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category'>>, imageFile?: File | null) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   fetchProducts: () => Promise<void>;
 }
@@ -32,7 +32,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       visible: p.visible,
       image: p.image_url || 'https://placehold.co/300x200.png',
       createdAt: format(new Date(p.created_at), 'yyyy-MM-dd'),
-      tags: p.stock > 0 ? (p.new_arrival ? ['New'] : []) : ['Out of Stock'],
+      tags: p.stock > 0 ? [] : ['Out of Stock'],
       category: 'General'
   });
 
@@ -111,7 +111,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'image'>>, imageFile?: File | null) => {
+  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category'>>, imageFile?: File | null) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -125,12 +125,6 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
           toast({ variant: 'destructive', title: 'Error de Carga', description: 'No se pudo subir la nueva imagen.' });
           return;
         }
-      }
-
-      // Supabase expects snake_case, frontend uses camelCase for some fields
-      if ('imageUrl' in updateData) {
-        updateData.image_url = updateData.imageUrl;
-        delete updateData.imageUrl;
       }
       
       const { error } = await supabase.from('products').update(updateData).eq('id', productId);

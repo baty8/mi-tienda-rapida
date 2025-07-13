@@ -17,7 +17,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, UploadCloud } from 'lucide-react';
 import { Switch } from './ui/switch';
-import type { Product } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { useProduct } from '@/context/ProductContext';
