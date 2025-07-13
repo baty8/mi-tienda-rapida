@@ -90,6 +90,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * Feel free to add more paths here that should not be managed by the middleware.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|/).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
