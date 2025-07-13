@@ -45,7 +45,7 @@ import { Label } from '@/components/ui/label';
 import { useProduct } from '@/context/ProductContext';
 import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VendorLayout } from '@/components/vendor-layout';
 
@@ -59,6 +59,8 @@ export default function CatalogPage() {
   const { products, fetchProducts } = useProduct();
   const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
   const [selectedTemplate, setSelectedTemplate] = React.useState(templates[0]);
+  const [catalogLink, setCatalogLink] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -67,6 +69,9 @@ export default function CatalogPage() {
         if (!session) {
             router.push('/login');
         } else {
+            setUserId(session.user.id);
+            const origin = window.location.origin;
+            setCatalogLink(`${origin}/catalog/${session.user.id}`);
             fetchProducts();
         }
     };
@@ -79,8 +84,6 @@ export default function CatalogPage() {
     );
   };
 
-  const catalogLink = 'https://ventarapida.com/catalog/xyz123';
-
   return (
     <VendorLayout>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -91,7 +94,7 @@ export default function CatalogPage() {
           <ThemeToggle />
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
+              <Button disabled={!catalogLink}>
                 <Share2 className="mr-2 h-4 w-4" />
                 Compartir Catálogo
               </Button>
@@ -108,7 +111,7 @@ export default function CatalogPage() {
                   <Label htmlFor="link" className="sr-only">
                     Enlace
                   </Label>
-                  <Input id="link" defaultValue={catalogLink} readOnly />
+                  <Input id="link" value={catalogLink} readOnly />
                 </div>
                 <Button
                   type="submit"
@@ -127,8 +130,12 @@ export default function CatalogPage() {
                 </Button>
               </div>
               <DialogFooter className="sm:justify-start">
-                  <Button variant="outline">Compartir en WhatsApp</Button>
-                  <Button variant="outline">Compartir en Facebook</Button>
+                  <Button variant="outline" asChild>
+                    <a href={`https://wa.me/?text=${encodeURIComponent(`¡Mira mi catálogo de productos! ${catalogLink}`)}`} target="_blank" rel="noopener noreferrer">Compartir en WhatsApp</a>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(catalogLink)}`} target="_blank" rel="noopener noreferrer">Compartir en Facebook</a>
+                  </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -153,7 +160,7 @@ export default function CatalogPage() {
               <CardHeader>
                 <CardTitle>1. Selecciona Productos</CardTitle>
                 <CardDescription>
-                  Elige qué productos incluir en tu catálogo.
+                  Elige qué productos incluir en tu catálogo. Los productos marcados como 'ocultos' en la tabla de productos no aparecerán aquí.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 max-h-96 overflow-y-auto">
@@ -166,6 +173,7 @@ export default function CatalogPage() {
                     >
                       <Checkbox
                         id={`product-${product.id}`}
+                        checked={selectedProducts.includes(product.id)}
                         onCheckedChange={(checked) =>
                           handleSelectProduct(
                             product.id,
@@ -207,7 +215,7 @@ export default function CatalogPage() {
               <CardHeader>
                 <CardTitle>2. Elige una Plantilla</CardTitle>
                 <CardDescription>
-                  Selecciona un tema visual para tu catálogo.
+                  Selecciona un tema visual para tu catálogo. (Próximamente)
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4">
