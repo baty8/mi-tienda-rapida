@@ -6,16 +6,14 @@ import {
   Package,
   LineChart,
   User,
-  Landmark,
   BookOpen,
-  Eye,
   Share2,
-  Palette,
   Check,
   Smartphone,
   Copy,
   MessageCircle,
   LogOut,
+  TrendingUp,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -122,10 +120,10 @@ export default function CatalogPage() {
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/finance'} tooltip="Finanzas">
-                <Link href="/finance">
-                  <Landmark />
-                  <span>Finanzas</span>
+              <SidebarMenuButton asChild isActive={pathname.startsWith('/analysis')} tooltip="Análisis">
+                <Link href="/analysis">
+                  <TrendingUp />
+                  <span>Análisis</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

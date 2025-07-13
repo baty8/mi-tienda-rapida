@@ -7,13 +7,10 @@ import {
   LineChart,
   User,
   Landmark,
-  FileInput,
-  Download,
   Calculator,
-  FileText,
-  CreditCard,
   BookOpen,
   LogOut,
+  TrendingUp,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -37,18 +34,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
 
-export default function FinancePage() {
+export default function AnalysisPage() {
   const [cost, setCost] = useState(0);
   const [price, setPrice] = useState(0);
   const [margin, setMargin] = useState(0);
@@ -111,10 +101,10 @@ export default function FinancePage() {
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/finance'} tooltip="Finanzas">
-                <Link href="/finance">
-                  <Landmark />
-                  <span>Finanzas</span>
+              <SidebarMenuButton asChild isActive={pathname.startsWith('/analysis')} tooltip="Análisis">
+                <Link href="/analysis">
+                  <TrendingUp />
+                  <span>Análisis</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -153,7 +143,7 @@ export default function FinancePage() {
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:justify-end">
           <SidebarTrigger className="md:hidden" />
           <h2 className="text-2xl font-bold font-headline md:hidden">
-            Herramientas Financieras
+            Análisis de Mercado
           </h2>
         </header>
 
@@ -161,51 +151,15 @@ export default function FinancePage() {
           <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex flex-col gap-1">
               <h2 className="text-3xl font-bold font-headline">
-                Herramientas Financieras
+                Análisis de Mercado
               </h2>
               <p className="text-muted-foreground">
-                Administra las finanzas de tu tienda con facilidad.
+                Herramientas para entender y mejorar tu negocio.
               </p>
             </div>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  <CardTitle>Conciliación Automática de Pagos</CardTitle>
-                </div>
-                <CardDescription>
-                  Sube los extractos de tu procesador de pagos para conciliar transacciones automáticamente.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                 <div className="space-y-2">
-                    <Label htmlFor="payment-processor">Procesador de Pagos</Label>
-                    <Select>
-                        <SelectTrigger id="payment-processor">
-                            <SelectValue placeholder="Selecciona un procesador" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="stripe">Stripe</SelectItem>
-                            <SelectItem value="paypal">PayPal</SelectItem>
-                            <SelectItem value="mercado-pago">Mercado Pago</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="statement-file">Subir Extracto</Label>
-                    <Input id="statement-file" type="file" />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full">
-                  <FileInput className="mr-2 h-4 w-4" /> Conciliar Pagos
-                </Button>
-              </CardFooter>
-            </Card>
-
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -220,11 +174,11 @@ export default function FinancePage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="cost">Costo ($)</Label>
-                    <Input id="cost" type="number" placeholder="15.00" value={cost} onChange={(e) => setCost(parseFloat(e.target.value))}/>
+                    <Input id="cost" type="number" placeholder="15.00" value={cost || ''} onChange={(e) => setCost(parseFloat(e.target.value) || 0)}/>
                   </div>
                    <div className="space-y-2">
                     <Label htmlFor="price">Precio de Venta ($)</Label>
-                    <Input id="price" type="number" placeholder="25.00" value={price} onChange={(e) => setPrice(parseFloat(e.target.value))}/>
+                    <Input id="price" type="number" placeholder="25.00" value={price || ''} onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}/>
                   </div>
                 </div>
                 <Button className="w-full" onClick={calculateMargin}>Calcular Margen</Button>
@@ -239,6 +193,17 @@ export default function FinancePage() {
                     </div>
                 </div>
               </CardContent>
+            </Card>
+
+            {/* Placeholder for future analysis tools */}
+            <Card className="flex flex-col items-center justify-center bg-muted/50 border-dashed">
+                <CardHeader className="text-center">
+                    <CardTitle>Próximamente</CardTitle>
+                    <CardDescription>Nuevas herramientas de análisis.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <TrendingUp className="h-12 w-12 text-muted-foreground"/>
+                </CardContent>
             </Card>
           </div>
         </main>

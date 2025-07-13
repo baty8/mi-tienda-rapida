@@ -61,7 +61,7 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  const protectedRoutes = ['/dashboard', '/catalog', '/profile', '/finance', '/products'];
+  const protectedRoutes = ['/dashboard', '/catalog', '/profile', '/analysis', '/products'];
 
   // if user is not logged in and is trying to access protected seller routes
   if (!session && protectedRoutes.some(path => pathname.startsWith(path))) {
@@ -84,12 +84,12 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - / (the public home page)
-     * Match all paths except for the root page `/` and API routes.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
