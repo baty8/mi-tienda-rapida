@@ -36,8 +36,9 @@ const LoginPage = () => {
       return;
     }
 
-    // This will refresh the page and the middleware will handle the redirect.
-    router.refresh();
+    // After successful login, push to a protected route.
+    // The middleware will handle the rest.
+    router.push('/dashboard');
   };
 
   return (
