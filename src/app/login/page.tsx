@@ -20,12 +20,12 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (authError || !authData.user) {
+    if (error) {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
@@ -34,27 +34,9 @@ const LoginPage = () => {
       setLoading(false);
       return;
     }
-
-    const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', authData.user.id)
-        .single();
     
-    setLoading(false);
-
-    if (profileError || !profile || !profile.role) {
-      router.push('/');
-      return;
-    }
-    
-    const userRole = profile.role.trim().toLowerCase();
-
-    if (userRole.startsWith('v')) {
-        router.push('/dashboard');
-    } else {
-        router.push('/');
-    }
+    // The middleware will handle the redirection after the page is refreshed.
+    router.refresh();
   };
 
   return (
