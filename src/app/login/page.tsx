@@ -41,7 +41,7 @@ const LoginPage = () => {
         description: 'Redirigiendo...',
     });
     
-    // Refresh the page to trigger the middleware
+    // Refresh the page to trigger the middleware, which will handle the redirect.
     router.refresh();
   };
 
