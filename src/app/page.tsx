@@ -17,7 +17,6 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchProducts() {
-      console.log("Fetching products for public view...");
       const { data, error } = await supabase
         .from('products') 
         .select('*')
@@ -41,7 +40,6 @@ export default function Home() {
           category: 'General' // Category can be added if needed
         }))
         setProducts(formattedProducts);
-        console.log("Products fetched:", formattedProducts); 
       }
       setLoading(false);
     }

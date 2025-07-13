@@ -25,8 +25,6 @@ const LoginPage = () => {
     }
 
     if (data.user) {
-      console.log('User logged in:', data.user);
-      
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -35,7 +33,6 @@ const LoginPage = () => {
 
       if (profileError) {
         console.error('Error fetching profile:', profileError.message);
-        // Default redirect if profile fetch fails but login was successful
         router.push('/');
         return;
       }

@@ -112,7 +112,7 @@ export function AddProductDialog() {
                 <div className="flex items-center justify-center w-full">
                     <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-muted relative">
                         {imagePreview ? (
-                            <Image src={imagePreview} alt="Vista previa del producto" layout="fill" objectFit="contain" className="rounded-lg" />
+                            <Image src={imagePreview} alt="Vista previa del producto" fill className="rounded-lg object-contain" />
                         ) : (
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                 <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
