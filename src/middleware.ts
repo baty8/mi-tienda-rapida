@@ -3,11 +3,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  let res = NextResponse.next({
-    request: {
-      headers: req.headers,
-    },
-  })
+  const res = NextResponse.next()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,16 +14,6 @@ export async function middleware(req: NextRequest) {
           return req.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          req.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          res = NextResponse.next({
-            request: {
-              headers: req.headers,
-            },
-          })
           res.cookies.set({
             name,
             value,
@@ -35,16 +21,6 @@ export async function middleware(req: NextRequest) {
           })
         },
         remove(name: string, options: CookieOptions) {
-          req.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          res = NextResponse.next({
-            request: {
-              headers: req.headers,
-            },
-          })
           res.cookies.set({
             name,
             value: '',
@@ -88,8 +64,7 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - / (the public home page)
-     * - /api/auth (Supabase auth routes)
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/auth|/$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|/$).*)',
   ],
 };
