@@ -1,33 +1,11 @@
 
 'use client';
-import Link from 'next/link';
-import {
-  ShoppingBag,
-  Package,
-  LineChart,
-  User,
-  Landmark,
-  Calculator,
-  BookOpen,
-  LogOut,
-  TrendingUp,
-} from 'lucide-react';
-import {
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Calculator, TrendingUp } from 'lucide-react';
+import { Sidebar } from '@/components/ui/sidebar';
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -35,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
 
 export default function FinancePage() {
@@ -44,7 +22,6 @@ export default function FinancePage() {
   const [margin, setMargin] = useState(0);
   const [profit, setProfit] = useState(0);
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -55,11 +32,6 @@ export default function FinancePage() {
     };
     checkSession();
   }, [router]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
 
   const calculateMargin = () => {
     if(price > 0 && cost > 0) {
@@ -74,86 +46,10 @@ export default function FinancePage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-row">
-      <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center gap-3 p-4">
-            <ShoppingBag className="h-7 w-7 text-primary" />
-            <h1 className="text-xl font-bold font-headline text-primary group-data-[state=collapsed]:hidden">
-              VentaRapida
-            </h1>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/products'} tooltip="Productos">
-                <Link href="/products">
-                  <Package />
-                  <span>Productos</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/dashboard'} tooltip="Dashboard">
-                <Link href="/dashboard">
-                  <LineChart />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/catalog'} tooltip="Catálogo">
-                    <Link href="/catalog">
-                        <BookOpen />
-                        <span>Catálogo</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith('/finance')} tooltip="Finanzas">
-                <Link href="/finance">
-                  <TrendingUp />
-                  <span>Finanzas</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/profile'} tooltip="Perfil">
-                <Link href="/profile">
-                  <User />
-                  <span>Perfil</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión">
-                    <LogOut />
-                    <span>Cerrar Sesión</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-          <div className="flex items-center gap-3 p-4 border-t-2 border-sidebar-border">
-            <Avatar>
-              <AvatarImage src="https://placehold.co/40x40" alt="User avatar" data-ai-hint="male user" />
-              <AvatarFallback>VR</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col group-data-[state=collapsed]:hidden">
-              <span className="font-semibold text-sm">Admin</span>
-              <span className="text-xs text-muted-foreground">
-                admin@ventarapida.com
-              </span>
-            </div>
-          </div>
-        </SidebarFooter>
-      </Sidebar>
+    <div className="flex min-h-screen w-full bg-muted/40">
+      <Sidebar />
       <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:justify-end">
-          <SidebarTrigger className="md:hidden" />
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <h2 className="text-2xl font-bold font-headline md:hidden">
             Análisis Financiero
           </h2>
