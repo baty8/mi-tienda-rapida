@@ -25,11 +25,12 @@ import { ProductTable } from '@/components/product-table';
 import { AddProductDialog } from '@/components/add-product-dialog';
 import { BulkUploadDialog } from '@/components/bulk-upload-dialog';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
 
 export default function ProductsPage() {
     const router = useRouter();
+    const pathname = usePathname();
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -50,7 +51,7 @@ export default function ProductsPage() {
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={true} tooltip="Productos">
+              <SidebarMenuButton asChild isActive={pathname === '/products'} tooltip="Productos">
                 <Link href="/products">
                   <Package />
                   <span>Productos</span>
@@ -58,7 +59,7 @@ export default function ProductsPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false} tooltip="Dashboard">
+              <SidebarMenuButton asChild isActive={pathname === '/dashboard'} tooltip="Dashboard">
                 <Link href="/dashboard">
                   <LineChart />
                    <span>Dashboard</span>
@@ -66,7 +67,7 @@ export default function ProductsPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false} tooltip="Catálogo">
+              <SidebarMenuButton asChild isActive={pathname === '/catalog'} tooltip="Catálogo">
                 <Link href="/catalog">
                   <BookOpen />
                   <span>Catálogo</span>
@@ -74,7 +75,7 @@ export default function ProductsPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false} tooltip="Finanzas">
+              <SidebarMenuButton asChild isActive={pathname === '/finance'} tooltip="Finanzas">
                 <Link href="/finance">
                   <Landmark />
                   <span>Finanzas</span>
@@ -82,7 +83,7 @@ export default function ProductsPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false} tooltip="Perfil">
+              <SidebarMenuButton asChild isActive={pathname === '/profile'} tooltip="Perfil">
                 <Link href="/profile">
                   <User />
                   <span>Perfil</span>

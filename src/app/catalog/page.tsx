@@ -55,7 +55,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProduct } from '@/context/ProductContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
 
 const templates = [
@@ -69,6 +69,7 @@ export default function CatalogPage() {
   const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
   const [selectedTemplate, setSelectedTemplate] = React.useState(templates[0]);
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -97,7 +98,7 @@ export default function CatalogPage() {
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false} tooltip="Productos">
+              <SidebarMenuButton asChild isActive={pathname === '/products'} tooltip="Productos">
                 <Link href="/products">
                   <Package />
                   <span>Productos</span>
@@ -105,7 +106,7 @@ export default function CatalogPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false} tooltip="Dashboard">
+              <SidebarMenuButton asChild isActive={pathname === '/dashboard'} tooltip="Dashboard">
                 <Link href="/dashboard">
                   <LineChart />
                   <span>Dashboard</span>
@@ -113,7 +114,7 @@ export default function CatalogPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={true} tooltip="Catálogo">
+                <SidebarMenuButton asChild isActive={pathname === '/catalog'} tooltip="Catálogo">
                     <Link href="/catalog">
                         <BookOpen />
                         <span>Catálogo</span>
@@ -121,7 +122,7 @@ export default function CatalogPage() {
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false} tooltip="Finanzas">
+              <SidebarMenuButton asChild isActive={pathname === '/finance'} tooltip="Finanzas">
                 <Link href="/finance">
                   <Landmark />
                   <span>Finanzas</span>
@@ -129,7 +130,7 @@ export default function CatalogPage() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={false} tooltip="Perfil">
+              <SidebarMenuButton asChild isActive={pathname === '/profile'} tooltip="Perfil">
                 <Link href="/profile">
                   <User />
                   <span>Perfil</span>
