@@ -53,10 +53,9 @@ const LoginPage = () => {
         return;
     }
     
-    // Trim whitespace and convert to lower case for a robust comparison
     const userRole = profile.role.trim().toLowerCase();
 
-    if (userRole === 'vendedro') {
+    if (userRole === 'vendedor') {
         router.push('/dashboard');
     } else {
         router.push('/');
