@@ -50,7 +50,7 @@ const LoginPage = () => {
     
     const userRole = profile.role.trim().toLowerCase();
 
-    if (userRole === 'vendedor') {
+    if (userRole.startsWith('v')) {
         router.push('/dashboard');
     } else {
         router.push('/');
