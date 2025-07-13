@@ -38,28 +38,47 @@ export default function ProfilePage() {
     const [userId, setUserId] = useState<string | null>(null);
 
     const fetchProfile = useCallback(async () => {
+        setLoading(true);
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (!session || sessionError) {
             router.push('/login');
             return;
         }
         
-        setUserId(session.user.id);
-        setProfile(prev => ({ ...prev, email: session.user.email || '' }));
+        const user = session.user;
+        setUserId(user.id);
+        setProfile(prev => ({ ...prev, email: user.email || '' }));
 
-        const { data, error } = await supabase
+        let { data, error } = await supabase
             .from('profiles')
             .select('name, phone, avatar_url')
-            .eq('id', session.user.id)
+            .eq('id', user.id)
             .single();
+        
+        if (error && error.code === 'PGRST116') { // 'PGRST116' significa que no se encontró el perfil
+            // El perfil no existe, así que lo creamos ("autoreparación")
+            const { data: newProfile, error: insertError } = await supabase
+                .from('profiles')
+                .insert({ id: user.id, email: user.email, name: 'Vendedor', role: 'vendedor' })
+                .select()
+                .single();
+            
+            if (insertError) {
+                toast({ variant: 'destructive', title: 'Error Crítico', description: 'No se pudo crear tu perfil. Contacta a soporte.'});
+                setLoading(false);
+                return;
+            }
+            data = newProfile; // Usamos el perfil recién creado
+            toast({ title: '¡Perfil Creado!', description: 'Hemos creado tu perfil. ¡Ya puedes editarlo!' });
+        } else if (error) {
+             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar el perfil.'});
+        }
         
         if (data) {
             setProfile(prev => ({ ...prev, name: data.name, phone: data.phone, avatar_url: data.avatar_url }));
             if (data.avatar_url) {
                 setAvatarPreview(data.avatar_url);
             }
-        } else if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar el perfil.'});
         }
         setLoading(false);
     }, [router]);
@@ -104,14 +123,12 @@ export default function ProfilePage() {
 
       const { error } = await supabase
           .from('profiles')
-          .upsert({ 
-              id: userId,
+          .update({ 
               name: profile.name, 
               phone: profile.phone,
               avatar_url: newAvatarUrl,
-              email: profile.email,
-              role: 'vendedor',
-          }, { onConflict: 'id' });
+          })
+          .eq('id', userId);
 
 
       if (error) {
@@ -178,7 +195,7 @@ export default function ProfilePage() {
                     <div className="flex-1">
                         <label htmlFor="avatar-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-muted relative">
                            {avatarPreview ? (
-                                <Image src={avatarPreview} alt="Vista previa" fill sizes="96px" style={{objectFit: 'contain'}} className="p-2 rounded-lg" />
+                                <Image src={avatarPreview} alt="Vista previa" fill sizes="96px" style={{objectFit: 'contain', padding: '0.5rem'}} className="rounded-lg" />
                             ) : (
                                 <div className="flex flex-col items-center justify-center">
                                     <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
