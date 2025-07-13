@@ -20,11 +20,10 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
     
-    setLoading(false);
-    
-    if (error) {
+    if (authError || !authData.user) {
+        setLoading(false);
         toast({
             variant: 'destructive',
             title: 'Error de inicio de sesión',
@@ -32,8 +31,33 @@ const LoginPage = () => {
         });
         return;
     }
+
+    // Fetch profile to check role
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .single();
     
-    // The middleware will handle the redirection after refresh
+    setLoading(false);
+
+    if (profileError || !profile) {
+        toast({
+            variant: 'destructive',
+            title: 'Error de perfil',
+            description: 'No se pudo encontrar el perfil de usuario. Por favor, contacta a soporte.',
+        });
+        // Log user out if profile is missing to avoid being in a broken state
+        await supabase.auth.signOut();
+        return;
+    }
+    
+    // Redirect based on role
+    if (profile.role === 'vendedor') {
+        router.push('/dashboard');
+    } else {
+        router.push('/'); // Redirect non-sellers to the public catalog page
+    }
     router.refresh();
   };
 

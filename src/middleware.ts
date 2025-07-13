@@ -71,6 +71,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // if user is logged in and is on the login/signup page, redirect to dashboard
+  // This is a safe fallback for sellers. Clients will be redirected from the login page itself.
   if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone();
      url.pathname = '/dashboard';
@@ -87,6 +88,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     *
+     * We want this to run on most paths to protect seller routes.
      */
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
