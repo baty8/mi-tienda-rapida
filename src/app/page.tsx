@@ -3,6 +3,8 @@
 
 import { useEffect, useState } from 'react';
 import supabase from '@/lib/supabaseClient';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 // Assuming you have a Product type defined elsewhere
 interface Product { 
   id: number; // Based on your table schema
@@ -65,12 +67,13 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center"> {/* Simplified layout for buyer view */}
-      <div className="flex flex-col flex-1 items-center justify-center p-4"> {/* Centering content for buyer view */}
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:justify-end">
-          {/* Removed SidebarTrigger, BulkUploadDialog, AddProductDialog as they are likely for seller */}
-           <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
-             {/* Add buyer-specific header elements if needed */}
-             <h1 className="text-xl font-semibold">Tu Tienda Online</h1> {/* Example buyer header */}
+      <div className="flex flex-col flex-1 items-center justify-center p-4 w-full"> {/* Centering content for buyer view */}
+        <header className="sticky top-0 z-10 flex h-16 w-full items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+           <div className="flex w-full items-center justify-between">
+             <h1 className="text-xl font-semibold">Tu Tienda Online</h1>
+             <Link href="/login">
+                <Button>Iniciar Sesión</Button>
+             </Link>
            </div>
         </header>
 
