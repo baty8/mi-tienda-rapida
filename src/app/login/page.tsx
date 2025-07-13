@@ -22,12 +22,22 @@ const LoginPage = () => {
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
     
-    if (authError || !authData.user) {
+    if (authError) {
         setLoading(false);
         toast({
             variant: 'destructive',
             title: 'Error de inicio de sesión',
             description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
+        });
+        return;
+    }
+
+    if (!authData.user) {
+        setLoading(false);
+        toast({
+            variant: 'destructive',
+            title: 'Error de inicio de sesión',
+            description: 'No se pudo obtener la información del usuario.',
         });
         return;
     }
@@ -40,11 +50,23 @@ const LoginPage = () => {
     
     setLoading(false);
 
-    if (profile && profile.role === 'vendedro') {
-        router.push('/dashboard');
+    if (profileError || !profile) {
+      toast({
+        variant: 'destructive',
+        title: 'Perfil no encontrado',
+        description: 'Redirigiendo al dashboard por defecto. Contacta a soporte si no eres vendedor.',
+      });
+      router.push('/dashboard');
+      router.refresh();
+      return;
+    }
+    
+    if (profile.role === 'cliente') {
+        router.push('/');
         router.refresh();
     } else {
-        router.push('/');
+        // If role is 'vendedro', null, or anything else, go to dashboard
+        router.push('/dashboard');
         router.refresh();
     }
   };
