@@ -1,3 +1,4 @@
+
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -84,7 +85,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - / (the public home page)
+     * - / (the public home page, which is now handled differently)
      */
     '/((?!_next/static|_next/image|favicon.ico|api/auth).*)',
   ],

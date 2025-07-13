@@ -36,7 +36,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       category: 'General'
   });
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -60,11 +60,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     const formattedProducts: Product[] = (data || []).map(formatProduct);
     setProducts(formattedProducts);
     setLoading(false);
-  }, []);
+  };
   
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]);
+  }, []);
 
   const uploadImage = async (file: File, userId: string): Promise<string | null> => {
     const fileName = `${userId}/${Date.now()}-${file.name}`;

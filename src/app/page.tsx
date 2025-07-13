@@ -36,8 +36,8 @@ export default function Home() {
           visible: p.visible,
           image: p.image_url || 'https://placehold.co/300x200',
           createdAt: p.created_at,
-          tags: [], // Tags can be derived or added if needed
-          category: 'General' // Category can be added if needed
+          tags: [], 
+          category: 'General' 
         }))
         setProducts(formattedProducts);
       }
@@ -45,7 +45,7 @@ export default function Home() {
     }
 
     fetchProducts();
-  }, []); // Only run on mount
+  }, []); 
 
   const openModal = (product: Product) => {
     setSelectedProduct(product);
@@ -58,7 +58,6 @@ export default function Home() {
   };
 
   const getWhatsAppLink = (product: Product) => {
-    // This needs to be dynamic based on the seller's info, fetched via tenant_id or product_id
     const sellerPhoneNumber = '1234567890'; // Placeholder
     const message = `Hola, estoy interesado en el producto "${product.name}". ¿Está disponible?`;
     return `https://wa.me/${sellerPhoneNumber}?text=${encodeURIComponent(message)}`;
@@ -88,9 +87,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {products.map((product) => (
+          {products.map((product, index) => (
             <div
               key={product.id}
               className="group border rounded-lg overflow-hidden shadow-md cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white"
@@ -103,6 +101,7 @@ export default function Home() {
                   width={300}
                   height={200}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  priority={index === 0}
                 />
               </div>
               <div className="p-4">
@@ -124,7 +123,7 @@ export default function Home() {
               </button>
               <h3 className="text-2xl font-bold mb-4 font-headline">{selectedProduct.name}</h3>
               <div className="w-full h-56 rounded-lg overflow-hidden mb-4">
-                 <Image src={selectedProduct.image || 'https://placehold.co/300x200'} alt={selectedProduct.name} width={400} height={224} className="w-full h-full object-cover" />
+                 <Image src={selectedProduct.image || 'https://placehold.co/400x224'} alt={selectedProduct.name} width={400} height={224} className="w-full h-full object-cover" />
               </div> 
               <p className="text-gray-700 mb-4">{selectedProduct.description}</p>
               <p className="text-primary font-bold text-2xl mb-6">${selectedProduct.price.toFixed(2)}</p>
