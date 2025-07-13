@@ -102,8 +102,6 @@ export default function ProfilePage() {
           newAvatarUrl = publicUrl;
       }
 
-      // "Upsert" operation: update the profile or insert it if it doesn't exist.
-      // This is key to fixing profiles for users who signed up before the trigger was made.
       const { error } = await supabase
           .from('profiles')
           .upsert({ 
@@ -121,8 +119,10 @@ export default function ProfilePage() {
       } else {
           toast({ title: '¡Éxito!', description: 'Tu perfil ha sido actualizado.' });
           setProfile(prev => ({...prev, avatar_url: newAvatarUrl}));
-          // Force a reload of the window to update sidebar info
-          window.location.reload();
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000); 
       }
       setSaving(false);
     };
