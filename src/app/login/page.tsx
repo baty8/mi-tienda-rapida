@@ -20,7 +20,6 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    // 1. Authenticate user
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
     
     if (authError || !authData.user) {
@@ -33,7 +32,6 @@ const LoginPage = () => {
         return;
     }
 
-    // 2. Fetch profile to check role
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -42,31 +40,13 @@ const LoginPage = () => {
     
     setLoading(false);
 
-    if (profileError || !profile) {
-        toast({
-            variant: 'destructive',
-            title: 'Error de perfil',
-            description: 'No se pudo encontrar el perfil de usuario. Por favor, contacta a soporte.',
-        });
-        // Log user out if profile is missing to avoid being in a broken state
-        await supabase.auth.signOut();
-        return;
-    }
-    
-    // 3. Redirect based on role
-    if (profile.role === 'vendedor') {
+    if (profile && profile.role === 'vendedor') {
         router.push('/dashboard');
-    } else if (profile.role === 'cliente') {
-        router.push('/');
+        router.refresh();
     } else {
-        toast({
-            variant: 'destructive',
-            title: 'Acceso denegado',
-            description: 'Tu cuenta no tiene un rol asignado. Redirigiendo a la página principal.',
-        });
         router.push('/');
+        router.refresh();
     }
-    router.refresh(); // Important to notify middleware and update layout
   };
 
   return (
