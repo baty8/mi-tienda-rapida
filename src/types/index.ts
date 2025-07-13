@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -10,4 +11,7 @@ export interface Product {
   createdAt: string;
   tags: string[];
   category: string;
+  in_catalog: boolean;
 }
+
+    

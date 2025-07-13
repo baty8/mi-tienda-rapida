@@ -42,12 +42,13 @@ export default function PublicCatalogPage({ params }: { params: { userId: string
         }
         setVendor(profileData as VendorProfile);
 
-        // Fetch products
+        // Fetch products that are visible and selected for the catalog
         const { data: productData, error: productError } = await supabase
           .from('products')
           .select('*')
           .eq('user_id', userId)
           .eq('visible', true)
+          .eq('in_catalog', true) // Only fetch products marked for the catalog
           .order('created_at', { ascending: false });
 
         if (productError) {
@@ -66,6 +67,7 @@ export default function PublicCatalogPage({ params }: { params: { userId: string
           createdAt: '',
           tags: [],
           category: 'General',
+          in_catalog: p.in_catalog,
         }));
         setProducts(formattedProducts);
       } catch (err: any) {
@@ -156,7 +158,7 @@ export default function PublicCatalogPage({ params }: { params: { userId: string
             <div className="py-16 text-center">
                 <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-4 text-xl font-semibold">Este catálogo está vacío</h3>
-                <p className="mt-2 text-muted-foreground">El vendedor aún no ha añadido productos.</p>
+                <p className="mt-2 text-muted-foreground">El vendedor aún no ha añadido productos o no ha seleccionado ninguno para mostrar.</p>
             </div>
         )}
 
@@ -167,3 +169,5 @@ export default function PublicCatalogPage({ params }: { params: { userId: string
     </div>
   );
 }
+
+    

@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 interface ProductContextType {
   products: Product[];
   loading: boolean;
-  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image'>, imageFile: File | null) => Promise<void>;
+  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog'>, imageFile: File | null) => Promise<void>;
   updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category'>>, imageFile?: File | null) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   fetchProducts: () => Promise<void>;
@@ -33,7 +33,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       image: p.image_url || 'https://placehold.co/300x200.png',
       createdAt: format(new Date(p.created_at), 'yyyy-MM-dd'),
       tags: p.stock > 0 ? [] : ['Out of Stock'],
-      category: 'General'
+      category: 'General',
+      in_catalog: p.in_catalog || false
   });
 
   const fetchProducts = useCallback(async () => {
@@ -78,7 +79,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     return publicUrl;
   };
 
-  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image'>, imageFile: File | null) => {
+  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog'>, imageFile: File | null) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para añadir productos.' });
@@ -100,6 +101,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       ...productData,
       user_id: user.id,
       image_url: imageUrl,
+      in_catalog: false, // Default value
     });
 
     if (error) {
@@ -126,13 +128,17 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         }
       }
       
-      const { error } = await supabase.from('products').update(updateData).eq('id', productId);
+      const { data, error } = await supabase.from('products').update(updateData).eq('id', productId).select().single();
 
       if (error) {
         toast({ variant: 'destructive', title: 'Error', description: `No se pudo actualizar el producto: ${error.message}` });
       } else {
-        toast({ title: 'Éxito', description: 'Producto actualizado.' });
-        await fetchProducts();
+        // Only show toast if not just toggling catalog status, to avoid spam
+        if (Object.keys(updatedFields).length > 1 || !('in_catalog' in updatedFields)) {
+          toast({ title: 'Éxito', description: 'Producto actualizado.' });
+        }
+        // Update local state immediately for better UX
+        setProducts(prevProducts => prevProducts.map(p => p.id === productId ? formatProduct(data) : p));
       }
   };
 
@@ -161,3 +167,5 @@ export const useProduct = () => {
   }
   return context;
 };
+
+    

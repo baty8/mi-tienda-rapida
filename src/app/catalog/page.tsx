@@ -56,8 +56,7 @@ const templates = [
 ];
 
 export default function CatalogPage() {
-  const { products, fetchProducts } = useProduct();
-  const [selectedProducts, setSelectedProducts] = React.useState<string[]>([]);
+  const { products, fetchProducts, updateProduct } = useProduct();
   const [selectedTemplate, setSelectedTemplate] = React.useState(templates[0]);
   const [catalogLink, setCatalogLink] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
@@ -78,11 +77,11 @@ export default function CatalogPage() {
     checkSession();
   }, [router, fetchProducts]);
 
-  const handleSelectProduct = (productId: string, checked: boolean) => {
-    setSelectedProducts(prev => 
-        checked ? [...prev, productId] : prev.filter(id => id !== productId)
-    );
+  const handleToggleProductInCatalog = async (productId: string, inCatalog: boolean) => {
+    await updateProduct(productId, { in_catalog: inCatalog });
   };
+  
+  const productsInCatalog = products.filter(p => p.in_catalog);
 
   return (
     <VendorLayout>
@@ -173,9 +172,9 @@ export default function CatalogPage() {
                     >
                       <Checkbox
                         id={`product-${product.id}`}
-                        checked={selectedProducts.includes(product.id)}
+                        checked={product.in_catalog}
                         onCheckedChange={(checked) =>
-                          handleSelectProduct(
+                          handleToggleProductInCatalog(
                             product.id,
                             checked as boolean
                           )
@@ -206,7 +205,7 @@ export default function CatalogPage() {
               </CardContent>
                <CardFooter>
                   <div className="text-xs text-muted-foreground">
-                      Seleccionados {selectedProducts.length} de {products.filter(p => p.visible).length} productos.
+                      Seleccionados {productsInCatalog.length} de {products.filter(p => p.visible).length} productos.
                   </div>
               </CardFooter>
             </Card>
@@ -273,7 +272,7 @@ export default function CatalogPage() {
                                       <p className="text-sm opacity-80">Nuestros Productos</p>
                                   </div>
                                   <div className="space-y-4">
-                                      {products.filter(p => selectedProducts.includes(p.id)).map(product => (
+                                      {productsInCatalog.map(product => (
                                            <div key={product.id} className="bg-background/10 dark:bg-white/10 p-3 rounded-lg space-y-3">
                                               <div className="flex items-center gap-4">
                                                   <Image src={product.image} alt={product.name} width={64} height={64} className="w-16 h-16 rounded-md object-cover" data-ai-hint="product image" />
@@ -288,7 +287,7 @@ export default function CatalogPage() {
                                               </Button>
                                            </div>
                                       ))}
-                                      {selectedProducts.length === 0 && (
+                                      {productsInCatalog.length === 0 && (
                                           <p className="text-center opacity-70 py-10">Selecciona productos para verlos aquí.</p>
                                       )}
                                   </div>
@@ -306,3 +305,5 @@ export default function CatalogPage() {
     </VendorLayout>
   );
 }
+
+    
