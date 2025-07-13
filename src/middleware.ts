@@ -39,9 +39,7 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
 
   const { pathname } = request.nextUrl;
 
@@ -53,8 +51,9 @@ export async function middleware(request: NextRequest) {
   }
 
   if (session && authRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/products', request.url));
   }
+
 
   return response;
 }
