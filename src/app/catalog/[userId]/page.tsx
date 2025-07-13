@@ -39,7 +39,7 @@ export default function PublicCatalogPage() {
           .eq('id', userId)
           .single();
 
-        if (profileError) {
+        if (profileError || !profileData) {
           console.error('Profile fetch error:', profileError);
           throw new Error('No se pudo encontrar la información del vendedor.');
         }
