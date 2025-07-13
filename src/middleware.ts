@@ -1,10 +1,11 @@
+
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
-  let res = NextResponse.next({
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
     request: {
-      headers: req.headers,
+      headers: request.headers,
     },
   })
 
@@ -14,37 +15,37 @@ export async function middleware(req: NextRequest) {
     {
       cookies: {
         get(name: string) {
-          return req.cookies.get(name)?.value
+          return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          req.cookies.set({
+          request.cookies.set({
             name,
             value,
             ...options,
           })
-          res = NextResponse.next({
+          response = NextResponse.next({
             request: {
-              headers: req.headers,
+              headers: request.headers,
             },
           })
-          res.cookies.set({
+          response.cookies.set({
             name,
             value,
             ...options,
           })
         },
         remove(name: string, options: CookieOptions) {
-          req.cookies.set({
+          request.cookies.set({
             name,
             value: '',
             ...options,
           })
-          res = NextResponse.next({
+          response = NextResponse.next({
             request: {
-              headers: req.headers,
+              headers: request.headers,
             },
           })
-          res.cookies.set({
+          response.cookies.set({
             name,
             value: '',
             ...options,
@@ -56,25 +57,27 @@ export async function middleware(req: NextRequest) {
 
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getSession()
 
-  const { pathname } = req.nextUrl;
+  const { pathname } = request.nextUrl
+
+  const protectedRoutes = ['/dashboard', '/catalog', '/profile', '/finance', '/products'];
 
   // if user is not logged in and is trying to access protected routes
-  if (!session && (pathname.startsWith('/dashboard') || pathname.startsWith('/catalog') || pathname.startsWith('/profile') || pathname.startsWith('/finance') || pathname.startsWith('/products'))) {
-    const url = req.nextUrl.clone()
+  if (!session && protectedRoutes.some(path => pathname.startsWith(path))) {
+    const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // if user is logged in and is on the login/signup page, redirect to home page
+  // if user is logged in and is on the login/signup page, redirect to products page
   if (session && (pathname === '/login' || pathname === '/signup')) {
-     const url = req.nextUrl.clone()
+     const url = request.nextUrl.clone()
      url.pathname = '/products'
      return NextResponse.redirect(url)
   }
 
-  return res;
+  return response
 }
 
 export const config = {
@@ -84,8 +87,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - / (the public home page, which is now handled differently)
+     * - /api/auth (Supabase auth routes)
+     * - / (the public home page)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/auth|/$).*)',
   ],
-};
+}

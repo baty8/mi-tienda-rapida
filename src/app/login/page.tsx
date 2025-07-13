@@ -26,28 +26,8 @@ const LoginPage = () => {
       return;
     }
     
-    // Check user role from profiles table
-    const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-
-    if (profileError || !profile) {
-        setError('No se pudo verificar el perfil del usuario.');
-        await supabase.auth.signOut(); // Log out if profile is not found
-        setLoading(false);
-        return;
-    }
-
-    if (profile.role === 'vendedor') {
-        router.refresh(); // This re-fetches server components and runs middleware with the new session
-        router.push('/products');
-    } else {
-        setError('No tienes permisos de vendedor para acceder.');
-        await supabase.auth.signOut();
-        setLoading(false);
-    }
+    // The middleware will handle redirection after refresh.
+    router.refresh();
   };
 
   return (

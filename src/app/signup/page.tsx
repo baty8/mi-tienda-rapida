@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -31,7 +32,6 @@ const SignUpPage = () => {
     }
 
     if (user) {
-      // User is created, now insert into profiles table
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({ user_id: user.id, role: 'vendedor' });
@@ -39,12 +39,10 @@ const SignUpPage = () => {
       if (profileError) {
         setError(`Usuario creado, pero hubo un error al crear el perfil: ${profileError.message}`);
       } else {
-        setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta.');
-        // Optionally redirect or just show the message
+        setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.');
       }
     } else {
-       // This case might happen if email confirmation is required and user object is not returned immediately
-       setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta.');
+       setMessage('¡Registro exitoso! Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.');
     }
 
     setLoading(false);
