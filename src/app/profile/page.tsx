@@ -170,7 +170,7 @@ export default function ProfilePage() {
                     <div className="flex-1">
                         <label htmlFor="avatar-upload" className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-muted relative">
                            {avatarPreview ? (
-                                <Image src={avatarPreview} alt="Vista previa" layout="fill" className="rounded-lg object-contain p-2" />
+                                <Image src={avatarPreview} alt="Vista previa" fill sizes="96px" className="rounded-lg object-contain p-2" />
                             ) : (
                                 <div className="flex flex-col items-center justify-center">
                                     <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
