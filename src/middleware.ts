@@ -63,15 +63,17 @@ export async function middleware(req: NextRequest) {
 
   const protectedRoutes = ['/dashboard', '/catalog', '/profile', '/finance', '/products'];
 
+  // if user is not logged in and is trying to access protected seller routes
   if (!session && protectedRoutes.some(path => pathname.startsWith(path))) {
     const url = req.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
+  // if user is logged in and is on the login/signup page, redirect to home page
   if (session && (pathname === '/login' || pathname === '/signup')) {
      const url = req.nextUrl.clone()
-     url.pathname = '/products'
+     url.pathname = '/'
      return NextResponse.redirect(url)
   }
 
@@ -86,7 +88,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - / (the public home page)
+     * Match all paths except for the root page `/` and API routes.
      */
-    '/((?!_next/static|_next/image|favicon.ico|/$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|$).*)',
   ],
 };

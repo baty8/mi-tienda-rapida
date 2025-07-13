@@ -49,18 +49,15 @@ const LoginPage = () => {
             setLoading(false);
             return;
         }
-
+        
+        // Role-based redirection
         if (profile.role === 'vendedor') {
-            router.refresh();
+            router.push('/products');
         } else {
-             toast({
-                variant: 'destructive',
-                title: 'Acceso Denegado',
-                description: 'No tienes permisos de vendedor para acceder.',
-            });
-            await supabase.auth.signOut();
-            setLoading(false);
+            router.push('/');
         }
+        router.refresh();
+
     } else {
         setLoading(false);
     }
