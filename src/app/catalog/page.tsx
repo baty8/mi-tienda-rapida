@@ -350,7 +350,7 @@ export default function CatalogPage() {
                                         {products.filter(p => selectedProducts.includes(p.id)).map(product => (
                                              <div key={product.id} className="bg-white/10 p-3 rounded-lg space-y-3">
                                                 <div className="flex items-center gap-4">
-                                                    <Image src={product.image} alt={product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint="product image" />
+                                                    <Image src={product.image} alt={product.name} width={64} height={64} className="w-16 h-16 rounded-md object-cover" data-ai-hint="product image" />
                                                     <div className="flex-1">
                                                         <h3 className="font-semibold">{product.name}</h3>
                                                         <p className="text-lg font-bold">${product.price.toFixed(2)}</p>

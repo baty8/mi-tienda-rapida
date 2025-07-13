@@ -11,20 +11,43 @@ const LoginPage = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (signInError) {
-      console.error('Login error:', signInError.message);
+    if (signInError || !user) {
       setError('Credenciales inválidas. Por favor, inténtalo de nuevo.');
+      setLoading(false);
       return;
     }
     
-    router.refresh();
+    // Check user role from profiles table
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+    if (profileError || !profile) {
+        setError('No se pudo verificar el perfil del usuario.');
+        await supabase.auth.signOut(); // Log out if profile is not found
+        setLoading(false);
+        return;
+    }
+
+    if (profile.role === 'vendedor') {
+        router.refresh(); // This re-fetches server components and runs middleware with the new session
+        router.push('/products');
+    } else {
+        setError('No tienes permisos de vendedor para acceder.');
+        await supabase.auth.signOut();
+        setLoading(false);
+    }
   };
 
   return (
@@ -55,7 +78,9 @@ const LoginPage = () => {
             />
           </div>
           {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-          <button type="submit" className="w-full bg-primary text-white py-2.5 px-4 rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 font-semibold transition-colors">Login</button>
+          <button type="submit" className="w-full bg-primary text-white py-2.5 px-4 rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 font-semibold transition-colors" disabled={loading}>
+            {loading ? 'Iniciando...' : 'Login'}
+          </button>
         </form>
         <div className="text-center mt-4">
           <Link href="/signup" className="text-sm text-primary hover:underline">
