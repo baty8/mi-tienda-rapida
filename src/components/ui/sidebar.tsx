@@ -15,6 +15,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import type { Profile } from '@/types';
 
 const menuItems = [
   { href: '/products', label: 'Productos', icon: Package },
@@ -23,12 +24,6 @@ const menuItems = [
   { href: '/finance', label: 'Finanzas', icon: TrendingUp },
   { href: '/profile', label: 'Perfil', icon: User },
 ];
-
-type Profile = {
-  name: string | null;
-  avatar_url: string | null;
-  email: string | null;
-};
 
 interface SidebarProps {
   profile: Profile | null;
@@ -48,7 +43,7 @@ export function Sidebar({ profile }: SidebarProps) {
   const getInitials = (name?: string | null) => {
     if (!name) return 'VR';
     const names = name.split(' ');
-    if (names.length > 1) {
+    if (names.length > 1 && names[1]) {
         return `${names[0][0]}${names[1][0]}`.toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();

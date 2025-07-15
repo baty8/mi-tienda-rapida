@@ -41,7 +41,7 @@ export default function AuthPage() {
       email: loginEmail,
       password: loginPassword,
     });
-
+    
     if (error) {
       toast({
         variant: 'destructive',
@@ -52,9 +52,7 @@ export default function AuthPage() {
       return;
     }
     
-    // On success, navigate and then refresh to ensure the layout re-evaluates the session.
     router.push('/products');
-    router.refresh();
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
