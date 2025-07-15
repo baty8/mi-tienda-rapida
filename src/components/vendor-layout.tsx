@@ -4,8 +4,9 @@
 import { ThemeProvider } from "./theme-provider";
 import { Sidebar } from "./ui/sidebar";
 import { useEffect, useState } from "react";
-import supabase from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
 type Profile = {
   name: string | null;
@@ -19,31 +20,45 @@ export function VendorLayout({
     children: React.ReactNode;
   }>) {
     const [profile, setProfile] = useState<Profile | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const router = useRouter();
+    const supabase = createClient();
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            if (!session || sessionError) {
-                router.push('/login');
-                return;
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session?.user) {
+                setUser(session.user);
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('name, avatar_url')
+                    .eq('id', session.user.id)
+                    .single();
+                
+                setProfile({
+                    name: profileData?.name || session.user.user_metadata.name || null,
+                    avatar_url: profileData?.avatar_url || null,
+                    email: session.user.email || null,
+                });
+            } else {
+                router.push('/');
+                setUser(null);
+                setProfile(null);
             }
+        });
 
-            const { data: profileData } = await supabase
-                .from('profiles')
-                .select('name, avatar_url')
-                .eq('id', session.user.id)
-                .single();
-            
-            setProfile({
-                name: profileData?.name || null,
-                avatar_url: profileData?.avatar_url || null,
-                email: session.user.email || null,
-            });
+        // Initial check
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                router.push('/');
+            }
         };
+        checkUser();
 
-        fetchProfile();
-    }, [router]);
+        return () => {
+            subscription?.unsubscribe();
+        };
+    }, [router, supabase]);
 
     return (
         <ThemeProvider

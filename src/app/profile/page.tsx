@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import supabase from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VendorLayout } from '@/components/vendor-layout';
 import { toast } from '@/hooks/use-toast';
@@ -46,6 +46,7 @@ const templates = [
 
 export default function ProfilePage() {
     const router = useRouter();
+    const supabase = createClient();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [profile, setProfile] = useState<Partial<Profile>>({ 
@@ -62,13 +63,13 @@ export default function ProfilePage() {
     const [userId, setUserId] = useState<string | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-    const storeLink = userId ? `${window.location.origin}/store/${userId}` : '';
+    const storeLink = userId && typeof window !== 'undefined' ? `${window.location.origin}/store/${userId}` : '';
 
     const fetchProfile = useCallback(async () => {
         setLoading(true);
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (!session || sessionError) {
-            router.push('/login');
+            router.push('/');
             return;
         }
         
@@ -122,7 +123,7 @@ export default function ProfilePage() {
             }
         }
         setLoading(false);
-    }, [router]);
+    }, [router, supabase]);
 
     useEffect(() => {
         fetchProfile();

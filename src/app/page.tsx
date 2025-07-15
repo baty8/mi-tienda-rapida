@@ -4,17 +4,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import supabase from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { ShoppingBag } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
   
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -26,12 +25,13 @@ export default function AuthPage() {
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      // Redirect only if there is a session and the user is fully authenticated
+      if (session && session.user.aud === 'authenticated') {
         router.replace('/products');
       }
     };
     checkSession();
-  }, [router]);
+  }, [router, supabase.auth]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +46,7 @@ export default function AuthPage() {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
-        description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
+        description: authError?.message || 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
       });
       setLoading(false);
       return;
@@ -67,6 +67,11 @@ export default function AuthPage() {
     const { data, error } = await supabase.auth.signUp({
       email: signupEmail,
       password: signupPassword,
+      options: {
+          data: {
+              name: signupName || 'Vendedor'
+          }
+      }
     });
 
     if (error) {
@@ -78,40 +83,13 @@ export default function AuthPage() {
       });
       return;
     }
-
-    if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        email: data.user.email,
-        role: 'vendedor',
-        name: signupName || 'Vendedor'
-      });
-
-      if (profileError) {
-        setLoading(false);
-        console.error('Failed to create profile:', profileError);
-        toast({
-          variant: 'destructive',
-          title: 'Error de perfil',
-          description: 'No se pudo crear el perfil. Contacta a soporte.',
-        });
-        return;
-      }
-      
-      toast({
-        title: '¡Registro casi completo!',
-        description: 'Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.',
-      });
-      setIsSignUp(false); // Switch back to sign-in panel
-
-    } else {
-       toast({
-        title: '¡Revisa tu correo!',
-        description: 'Te hemos enviado un enlace de confirmación para activar tu cuenta.',
-      });
-      setIsSignUp(false); // Switch back to sign-in panel
-    }
-
+    
+    // The profile is now created via a trigger in Supabase, so no need to insert it here.
+    toast({
+      title: '¡Registro casi completo!',
+      description: 'Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.',
+    });
+    setIsSignUp(false); // Switch back to sign-in panel
     setLoading(false);
   };
 
@@ -191,5 +169,3 @@ export default function AuthPage() {
     </div>
   );
 }
-
-    

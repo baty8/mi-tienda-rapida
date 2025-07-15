@@ -52,7 +52,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProduct } from '@/context/ProductContext';
 import { useRouter } from 'next/navigation';
-import supabase from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VendorLayout } from '@/components/vendor-layout';
@@ -72,6 +72,7 @@ export default function CatalogPage() {
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const [vendorId, setVendorId] = useState<string | null>(null);
   const router = useRouter();
+  const supabase = createClient();
 
   const [storeLink, setStoreLink] = useState('');
 
@@ -79,7 +80,7 @@ export default function CatalogPage() {
     const checkSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-            router.push('/login');
+            router.push('/');
         } else {
             setVendorId(session.user.id);
             fetchProducts();
@@ -89,7 +90,7 @@ export default function CatalogPage() {
         }
     };
     checkSession();
-  }, [router, fetchProducts]);
+  }, [router, fetchProducts, supabase.auth]);
   
   const handleToggleProductInCatalog = (productId: string) => {
     if (!activeCatalog) return;

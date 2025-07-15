@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import type { Product, Catalog } from '@/types';
-import supabase from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -25,6 +25,7 @@ interface ProductContextType {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
+  const supabase = createClient();
   const [products, setProducts] = useState<Product[]>([]);
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [activeCatalog, setActiveCatalog] = useState<Catalog | null>(null);
@@ -92,22 +93,28 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
     setLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
-    const checkUserAndFetch = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        if(user.id !== currentUserId){
-            setCurrentUserId(user.id);
-            await fetchCatalogsAndProducts(user.id);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session && session.user) {
+        if (session.user.id !== currentUserId) {
+            setCurrentUserId(session.user.id);
+            await fetchCatalogsAndProducts(session.user.id);
         }
       } else {
+        setCurrentUserId(null);
+        setProducts([]);
+        setCatalogs([]);
+        setActiveCatalog(null);
         setLoading(false);
       }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
     };
-    checkUserAndFetch();
-  }, [currentUserId, fetchCatalogsAndProducts]);
+  }, [currentUserId, fetchCatalogsAndProducts, supabase.auth]);
   
   const fetchProducts = useCallback(async () => {
       if (currentUserId) {

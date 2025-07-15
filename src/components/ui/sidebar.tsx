@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import supabase from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 
 const menuItems = [
   { href: '/products', label: 'Productos', icon: Package },
@@ -37,10 +37,12 @@ interface SidebarProps {
 export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const supabase = createClient();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push('/');
+    router.refresh();
   };
 
   const getInitials = (name?: string | null) => {

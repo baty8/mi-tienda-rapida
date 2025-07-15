@@ -4,7 +4,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import supabase from '@/lib/supabaseClient';
 import type { Product, Catalog, Profile } from '@/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { createClient } from '@/lib/supabase/client';
 
 
 type VendorFullProfile = Profile & {
@@ -29,6 +29,7 @@ type VendorFullProfile = Profile & {
 export default function StorePage() {
   const params = useParams();
   const vendorId = params.vendorId as string;
+  const supabase = createClient();
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,7 +121,7 @@ export default function StorePage() {
     };
 
     fetchStoreData();
-  }, [vendorId]);
+  }, [vendorId, supabase]);
 
   const openModal = (product: Product) => {
     setSelectedProduct(product);

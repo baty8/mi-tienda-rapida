@@ -5,22 +5,23 @@ import { ProductTable } from '@/components/product-table';
 import { AddProductDialog } from '@/components/add-product-dialog';
 import { BulkUploadDialog } from '@/components/bulk-upload-dialog';
 import { useRouter } from 'next/navigation';
-import supabase from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VendorLayout } from '@/components/vendor-layout';
 
 export default function ProductsPage() {
     const router = useRouter();
+    const supabase = createClient();
 
     useEffect(() => {
         const checkSession = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
-                router.push('/login');
+                router.push('/');
             }
         };
         checkSession();
-    }, [router]);
+    }, [router, supabase.auth]);
 
   return (
     <VendorLayout>
