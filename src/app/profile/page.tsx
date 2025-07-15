@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { User, Save, UploadCloud, Palette } from 'lucide-react';
+import { User, Save, UploadCloud, Palette, Eye } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -10,6 +10,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,6 +60,9 @@ export default function ProfilePage() {
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+    const storeLink = userId ? `${window.location.origin}/store/${userId}` : '';
 
     const fetchProfile = useCallback(async () => {
         setLoading(true);
@@ -203,6 +213,34 @@ export default function ProfilePage() {
         </h2>
         <div className="flex items-center gap-4">
           <ThemeToggle />
+           <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline">
+                        <Eye className="mr-2 h-4 w-4" />
+                        Visualizar Tienda
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[360px] p-2 sm:max-w-[380px] h-[750px] flex items-center justify-center">
+                   <DialogHeader>
+                        <DialogTitle className="sr-only">Previsualización de la Tienda</DialogTitle>
+                    </DialogHeader>
+                    <div className="relative mx-auto h-[640px] w-[320px] rounded-[2.5rem] border-8 border-gray-800 bg-gray-800 dark:border-gray-600">
+                        <div className="h-full w-full overflow-hidden rounded-[2rem] bg-white">
+                            {storeLink ? (
+                                <iframe
+                                    src={storeLink}
+                                    className="h-full w-full border-0"
+                                    title="Previsualización de la tienda móvil"
+                                />
+                            ) : (
+                                <div className="flex h-full items-center justify-center">
+                                    <p className="text-sm text-gray-500">Cargando...</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
           <Button onClick={handleSave} disabled={saving || loading}>
             <Save className="mr-2 h-4 w-4"/>
             {saving ? 'Guardando...' : 'Guardar Cambios'}
@@ -308,15 +346,15 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="store_bg_color">Color de Fondo</Label>
-                            <Input id="store_bg_color" type="color" value={profile.store_bg_color} onChange={e => handleColorChange('store_bg_color', e.target.value)} className="h-10 p-1" />
+                            <Input id="store_bg_color" type="color" value={profile.store_bg_color || '#FFFFFF'} onChange={e => handleColorChange('store_bg_color', e.target.value)} className="h-10 p-1" />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="store_primary_color">Color Primario (Títulos)</Label>
-                            <Input id="store_primary_color" type="color" value={profile.store_primary_color} onChange={e => handleColorChange('store_primary_color', e.target.value)} className="h-10 p-1"/>
+                            <Input id="store_primary_color" type="color" value={profile.store_primary_color || '#111827'} onChange={e => handleColorChange('store_primary_color', e.target.value)} className="h-10 p-1"/>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="store_accent_color">Color de Acento (Tarjetas)</Label>
-                            <Input id="store_accent_color" type="color" value={profile.store_accent_color} onChange={e => handleColorChange('store_accent_color', e.target.value)} className="h-10 p-1"/>
+                            <Input id="store_accent_color" type="color" value={profile.store_accent_color || '#F3F4F6'} onChange={e => handleColorChange('store_accent_color', e.target.value)} className="h-10 p-1"/>
                         </div>
                     </div>
                 </CardContent>
@@ -326,5 +364,3 @@ export default function ProfilePage() {
     </VendorLayout>
   );
 }
-
-    
