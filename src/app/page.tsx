@@ -52,7 +52,7 @@ export default function AuthPage() {
       return;
     }
     
-    // Simplemente redirigimos. El layout de las rutas protegidas se encargará del resto.
+    // On success, simply navigate. The protected layout will handle the rest.
     router.push('/products');
   };
 
