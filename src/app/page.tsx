@@ -52,10 +52,9 @@ export default function AuthPage() {
       return;
     }
     
-    // On successful login, redirect to the products page.
-    // A full refresh is more robust to ensure the session is picked up.
+    // Al iniciar sesión con éxito, simplemente redirigimos.
+    // El layout de las rutas protegidas se encargará del resto.
     router.push('/products');
-    router.refresh();
   };
 
   const handleSignUp = async (e: React.FormEvent) => {

@@ -4,11 +4,10 @@ import { ProductTable } from '@/components/product-table';
 import { AddProductDialog } from '@/components/add-product-dialog';
 import { BulkUploadDialog } from '@/components/bulk-upload-dialog';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { VendorLayout } from '@/components/vendor-layout';
 
 function ProductsPage() {
   return (
-    <VendorLayout>
+    <>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <h2 className="text-2xl font-bold font-headline md:hidden">
           Productos
@@ -32,7 +31,7 @@ function ProductsPage() {
         
         <ProductTable />
       </main>
-    </VendorLayout>
+    </>
   );
 }
 

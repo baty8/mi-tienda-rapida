@@ -22,7 +22,6 @@ import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { VendorLayout } from '@/components/vendor-layout';
 import { toast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
@@ -186,7 +185,7 @@ function ProfilePage() {
 
 
   return (
-    <VendorLayout>
+    <>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <h2 className="text-2xl font-bold font-headline md:hidden">
           Perfil y Tienda
@@ -341,7 +340,7 @@ function ProfilePage() {
             </Card>
         </div>
       </main>
-    </VendorLayout>
+    </>
   );
 }
 

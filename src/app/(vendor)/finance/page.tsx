@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { VendorLayout } from '@/components/vendor-layout';
 
 function FinancePage() {
   const [cost, setCost] = useState(0);
@@ -34,7 +33,7 @@ function FinancePage() {
   };
 
   return (
-    <VendorLayout>
+    <>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <h2 className="text-2xl font-bold font-headline md:hidden">
           Análisis Financiero
@@ -104,7 +103,7 @@ function FinancePage() {
           </Card>
         </div>
       </main>
-    </VendorLayout>
+    </>
   );
 }
 

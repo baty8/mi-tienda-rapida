@@ -55,7 +55,6 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { VendorLayout } from '@/components/vendor-layout';
 import {
   Select,
   SelectContent,
@@ -126,7 +125,7 @@ function CatalogPage() {
   const availableProducts = products.filter(p => p.visible);
 
   return (
-    <VendorLayout>
+    <>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:justify-end">
         <h2 className="text-2xl font-bold font-headline md:hidden">
           Catálogos
@@ -328,7 +327,7 @@ function CatalogPage() {
             </div>
         )}
       </main>
-    </VendorLayout>
+    </>
   );
 }
 
