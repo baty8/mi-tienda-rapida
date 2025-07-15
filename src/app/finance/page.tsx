@@ -14,7 +14,6 @@ import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VendorLayout } from '@/components/vendor-layout';
-import withAuth from '@/components/withAuth';
 
 function FinancePage() {
   const [cost, setCost] = useState(0);
@@ -109,4 +108,4 @@ function FinancePage() {
   );
 }
 
-export default withAuth(FinancePage);
+export default FinancePage;

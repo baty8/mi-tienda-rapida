@@ -8,7 +8,6 @@ import { useProduct } from '@/context/ProductContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VendorLayout } from '@/components/vendor-layout';
-import withAuth from '@/components/withAuth';
 
 function DashboardPage() {
     const { products } = useProduct();
@@ -61,4 +60,4 @@ function DashboardPage() {
   );
 }
 
-export default withAuth(DashboardPage);
+export default DashboardPage;

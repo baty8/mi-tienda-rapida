@@ -5,7 +5,6 @@ import { AddProductDialog } from '@/components/add-product-dialog';
 import { BulkUploadDialog } from '@/components/bulk-upload-dialog';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VendorLayout } from '@/components/vendor-layout';
-import withAuth from '@/components/withAuth';
 
 function ProductsPage() {
   return (
@@ -37,4 +36,4 @@ function ProductsPage() {
   );
 }
 
-export default withAuth(ProductsPage);
+export default ProductsPage;

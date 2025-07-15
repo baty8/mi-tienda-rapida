@@ -65,7 +65,6 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import withAuth from '@/components/withAuth';
 
 function CatalogPage() {
   const { products, fetchProducts, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, deleteCatalog } = useProduct();
@@ -333,4 +332,4 @@ function CatalogPage() {
   );
 }
 
-export default withAuth(CatalogPage);
+export default CatalogPage;

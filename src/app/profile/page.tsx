@@ -34,7 +34,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import withAuth from '@/components/withAuth';
 
 const templates = [
   { id: 'blanco-moderno', name: 'Blanco Moderno', colors: { bg: '#FFFFFF', primary: '#111827', accent: '#F3F4F6' } },
@@ -69,7 +68,7 @@ function ProfilePage() {
         setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-            router.push('/'); // Should be handled by withAuth, but as a fallback
+            router.push('/');
             return;
         }
         
@@ -346,4 +345,4 @@ function ProfilePage() {
   );
 }
 
-export default withAuth(ProfilePage);
+export default ProfilePage;
