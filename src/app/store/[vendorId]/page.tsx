@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -215,7 +216,7 @@ export default function StorePage() {
 
 
             {!showEmptyState ? (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
                 {filteredProducts.map((product) => (
                     <div key={product.id} className="group flex transform flex-col overflow-hidden rounded-xl border border-gray-200 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
                         <div className="aspect-square w-full overflow-hidden">
@@ -230,11 +231,11 @@ export default function StorePage() {
                         </div>
                         <div className="flex flex-1 flex-col p-4">
                             <div className="flex-1">
-                                <h2 className="text-lg font-bold store-text">{product.name}</h2>
+                                <h2 className="text-lg font-bold store-text truncate">{product.name}</h2>
                                 {product.description && <p className="mt-1 text-sm text-gray-600 line-clamp-2">{product.description}</p>}
                             </div>
-                            <div className="mt-4 flex items-end justify-between gap-4">
-                                <p className="text-2xl font-extrabold store-primary-text">${product.price.toFixed(2)}</p>
+                            <div className="mt-4 flex w-full items-end justify-between gap-2">
+                                <p className="text-2xl font-extrabold store-primary-text whitespace-nowrap">${product.price.toFixed(2)}</p>
                                 <Button asChild size="sm" className="shrink-0 store-primary-bg hover:opacity-90" disabled={!vendor?.phone}>
                                     <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
                                         <MessageCircle className="mr-2 h-4 w-4" />
