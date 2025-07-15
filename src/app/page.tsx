@@ -156,15 +156,17 @@ export default function AuthPage() {
         'relative w-full max-w-4xl min-h-[550px] overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-700'
       )}>
 
-        {/* Form Container for Sign-In */}
+        {/* Form Container */}
         <div className={cn(
-            'absolute top-0 h-full transition-all duration-700 ease-in-out z-20',
-            'left-0 w-1/2',
+            'absolute top-0 h-full transition-all duration-700 ease-in-out',
+            'left-0 w-1/2 z-20',
             isSignUp && 'translate-x-full'
         )}>
-           <form onSubmit={handleLogin} className={cn(
-               'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center'
-           )}>
+          {/* Sign In Form */}
+          <form onSubmit={handleLogin} className={cn(
+            'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center transition-opacity duration-300',
+            isSignUp && 'opacity-0'
+          )}>
             <h1 className="text-3xl font-bold font-headline text-gray-800">Iniciar Sesión</h1>
             <div className="my-2 flex justify-center gap-4">
                 <Button variant="outline" size="icon" type="button" onClick={() => handleOAuthLogin('google')}>
@@ -204,22 +206,16 @@ export default function AuthPage() {
                 </AlertDialogContent>
             </AlertDialog>
             
-            <Button type="submit" disabled={loading} className="mt-2 rounded-full bg-rose-500 px-12 py-2 font-bold uppercase tracking-wider text-white hover:bg-rose-600">
+            <Button type="submit" disabled={loading} className="mt-2 rounded-full bg-blue-500 px-12 py-2 font-bold uppercase tracking-wider text-white hover:bg-blue-600">
               {loading ? 'Entrando...' : 'Iniciar Sesión'}
             </Button>
           </form>
-        </div>
 
-        {/* Form Container for Sign-Up */}
-        <div className={cn(
-            'absolute top-0 h-full transition-all duration-700 ease-in-out z-20',
-            'left-0 w-1/2',
-            isSignUp ? 'translate-x-full' : 'translate-x-0 pointer-events-none'
-        )}>
-           <form onSubmit={handleSignUp} className={cn(
-               'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center transition-opacity duration-300',
-               isSignUp ? 'opacity-100' : 'opacity-0'
-           )}>
+          {/* Sign Up Form */}
+          <form onSubmit={handleSignUp} className={cn(
+            'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center transition-opacity duration-300',
+            !isSignUp && 'opacity-0'
+          )}>
             <h1 className="text-3xl font-bold font-headline text-gray-800">Crear Cuenta</h1>
             <div className="my-2 flex justify-center gap-4">
                 <Button variant="outline" size="icon" type="button" onClick={() => handleOAuthLogin('google')}>
@@ -235,7 +231,7 @@ export default function AuthPage() {
             <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-gray-100 border-none text-gray-900" />
             <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="email"/>
             <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="new-password"/>
-            <Button type="submit" disabled={loading} className="mt-2 rounded-full bg-rose-500 px-12 py-2 font-bold uppercase tracking-wider text-white hover:bg-rose-600">
+            <Button type="submit" disabled={loading} className="mt-2 rounded-full bg-blue-500 px-12 py-2 font-bold uppercase tracking-wider text-white hover:bg-blue-600">
               {loading ? 'Creando...' : 'Registrarse'}
             </Button>
           </form>
@@ -248,14 +244,14 @@ export default function AuthPage() {
              isSignUp ? '-translate-x-full' : 'translate-x-0'
         )}>
             <div className={cn(
-                'relative h-full w-[200%] bg-gradient-to-r from-rose-500 to-red-600 text-white transition-transform duration-700 ease-in-out',
+                'relative h-full w-[200%] bg-gradient-to-r from-blue-500 to-cyan-400 text-white transition-transform duration-700 ease-in-out',
                  isSignUp ? 'translate-x-1/2' : 'translate-x-0'
             )}>
-                {/* Overlay Sign Up */}
+                {/* Overlay Sign In */}
                 <div className={cn(
                     'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out',
                     'left-0 transform',
-                    isSignUp ? '' : '-translate-x-[20%]'
+                    isSignUp ? 'translate-x-0' : '-translate-x-[20%] opacity-0'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Bienvenido de vuelta!</h1>
                     <p className="mt-4 text-sm">Para mantenerte conectado con nosotros, por favor inicia sesión con tu información personal</p>
@@ -264,11 +260,11 @@ export default function AuthPage() {
                     </Button>
                 </div>
 
-                {/* Overlay Sign In */}
+                {/* Overlay Sign Up */}
                 <div className={cn(
                     'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out',
                     'right-0 transform',
-                     isSignUp ? 'translate-x-[20%]' : ''
+                     isSignUp ? 'translate-x-[20%] opacity-0' : 'translate-x-0'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Hola, Vendedor!</h1>
                     <p className="mt-4 text-sm">Crea tu catálogo, administra tus productos y publícalo en la red para obtener ventas.</p>
@@ -282,5 +278,3 @@ export default function AuthPage() {
     </div>
   );
 }
-
-    
