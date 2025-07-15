@@ -12,6 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+
 
 export default function PublicStorePage() {
   const params = useParams();
@@ -194,51 +196,68 @@ export default function PublicStorePage() {
             </div>
         ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style={{backgroundColor: 'var(--store-accent)'}}>
-                    <TabsTrigger value="all" style={{color: 'var(--store-fg) / 0.8)'}}>Todos los Productos</TabsTrigger>
-                    {catalogs.map(catalog => (
-                        <TabsTrigger key={catalog.id} value={catalog.id} style={{color: 'var(--store-fg) / 0.8)'}}>{catalog.name}</TabsTrigger>
-                    ))}
-                </TabsList>
-                <TabsContent value={activeTab} className="mt-6">
-                    {filteredProducts.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            {filteredProducts.map((product) => (
-                                <div key={product.id} className="group overflow-hidden rounded-lg border shadow-md transition-shadow hover:shadow-xl" style={{
-                                    backgroundColor: 'var(--store-accent)',
-                                    borderColor: 'var(--store-fg) / 0.1)',
-                                }}>
-                                    <div className="relative h-56 w-full">
-                                        <Image
-                                            src={product.image}
-                                            alt={product.name}
-                                            fill
-                                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                            data-ai-hint="product image"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col p-4">
-                                        <h3 className="flex-grow font-semibold">{product.name}</h3>
-                                        <p className="mt-2 text-2xl font-bold" style={{color: 'var(--store-primary)'}}>${product.price.toFixed(2)}</p>
-                                        <Button asChild size="sm" className="mt-4 w-full text-white" style={{backgroundColor: '#25D366', '--tw-ring-color': '#128C7E'}} disabled={!vendor?.phone}>
-                                            <a href={getWhatsAppLink(product.name)} target="_blank" rel="noopener noreferrer">
-                                                <MessageCircle className="mr-2 h-4 w-4" />
-                                                Consultar
-                                            </a>
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="py-16 text-center">
-                            <Search className="mx-auto h-12 w-12" style={{color: 'var(--store-fg) / 0.4)'}} />
-                            <h3 className="mt-4 text-xl font-semibold">No se encontraron productos</h3>
-                            <p className="mt-2" style={{color: 'var(--store-fg) / 0.7)'}}>Intenta con otra búsqueda o selecciona otra categoría.</p>
-                        </div>
-                    )}
-                </TabsContent>
+              <ScrollArea className="w-full whitespace-nowrap">
+                  <TabsList className="inline-flex h-auto p-0 bg-transparent border-b border-gray-200/50">
+                      <TabsTrigger 
+                          value="all" 
+                          className="data-[state=active]:border-b-2 data-[state=active]:border-[--store-primary] rounded-none data-[state=active]:shadow-none px-4 py-2"
+                          style={{color: 'hsl(var(--store-fg) / 0.8)'}}
+                      >
+                          Todos los Productos
+                      </TabsTrigger>
+                      {catalogs.map(catalog => (
+                          <TabsTrigger 
+                              key={catalog.id} 
+                              value={catalog.id} 
+                              className="data-[state=active]:border-b-2 data-[state=active]:border-[--store-primary] rounded-none data-[state=active]:shadow-none px-4 py-2"
+                              style={{color: 'hsl(var(--store-fg) / 0.8)'}}
+                          >
+                              {catalog.name}
+                          </TabsTrigger>
+                      ))}
+                  </TabsList>
+                  <ScrollBar orientation="horizontal" className="invisible" />
+              </ScrollArea>
+              
+              <TabsContent value={activeTab} className="mt-6">
+                  {filteredProducts.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                          {filteredProducts.map((product) => (
+                              <div key={product.id} className="group overflow-hidden rounded-lg border shadow-md transition-shadow hover:shadow-xl" style={{
+                                  backgroundColor: 'var(--store-accent)',
+                                  borderColor: 'var(--store-fg) / 0.1)',
+                              }}>
+                                  <div className="relative h-56 w-full">
+                                      <Image
+                                          src={product.image}
+                                          alt={product.name}
+                                          fill
+                                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                          data-ai-hint="product image"
+                                      />
+                                  </div>
+                                  <div className="flex flex-col p-4">
+                                      <h3 className="flex-grow font-semibold">{product.name}</h3>
+                                      <p className="mt-2 text-2xl font-bold" style={{color: 'var(--store-primary)'}}>${product.price.toFixed(2)}</p>
+                                      <Button asChild size="sm" className="mt-4 w-full text-white" style={{backgroundColor: '#25D366', '--tw-ring-color': '#128C7E'}} disabled={!vendor?.phone}>
+                                          <a href={getWhatsAppLink(product.name)} target="_blank" rel="noopener noreferrer">
+                                              <MessageCircle className="mr-2 h-4 w-4" />
+                                              Consultar
+                                          </a>
+                                      </Button>
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                  ) : (
+                      <div className="py-16 text-center">
+                          <Search className="mx-auto h-12 w-12" style={{color: 'var(--store-fg) / 0.4)'}} />
+                          <h3 className="mt-4 text-xl font-semibold">No se encontraron productos</h3>
+                          <p className="mt-2" style={{color: 'var(--store-fg) / 0.7)'}}>Intenta con otra búsqueda o selecciona otra categoría.</p>
+                      </div>
+                  )}
+              </TabsContent>
             </Tabs>
         )}
         
@@ -249,3 +268,5 @@ export default function PublicStorePage() {
     </div>
   );
 }
+
+    
