@@ -241,17 +241,17 @@ export default function AuthPage() {
         {/* Overlay Container */}
         <div className={cn(
             'absolute top-0 left-1/2 h-full w-1/2 overflow-hidden transition-transform duration-700 ease-in-out z-40',
-             isSignUp ? '-translate-x-full' : 'translate-x-0'
+             isSignUp && '-translate-x-full'
         )}>
             <div className={cn(
                 'relative h-full w-[200%] bg-gradient-to-r from-blue-500 to-cyan-400 text-white transition-transform duration-700 ease-in-out',
-                 isSignUp ? 'translate-x-1/2' : 'translate-x-0'
+                 isSignUp && 'translate-x-1/2'
             )}>
                 {/* Overlay Sign In */}
                 <div className={cn(
                     'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out',
                     'left-0 transform',
-                    isSignUp ? 'translate-x-0' : '-translate-x-[20%] opacity-0'
+                    isSignUp && 'translate-x-0'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Bienvenido de vuelta!</h1>
                     <p className="mt-4 text-sm">Para mantenerte conectado con nosotros, por favor inicia sesión con tu información personal</p>
@@ -264,7 +264,7 @@ export default function AuthPage() {
                 <div className={cn(
                     'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out',
                     'right-0 transform',
-                     isSignUp ? 'translate-x-[20%] opacity-0' : 'translate-x-0'
+                     isSignUp ? 'translate-x-0 opacity-0' : 'translate-x-0'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Hola, Vendedor!</h1>
                     <p className="mt-4 text-sm">Crea tu catálogo, administra tus productos y publícalo en la red para obtener ventas.</p>
