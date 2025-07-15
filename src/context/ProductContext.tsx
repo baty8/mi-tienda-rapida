@@ -14,10 +14,10 @@ interface ProductContextType {
   loading: boolean;
   fetchProducts: () => Promise<void>;
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog' | 'user_id'>, imageFile: File | null) => Promise<void>;
-  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id'>>, imageFile?: File | null) => Promise<void>;
+  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFile?: File | null) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   setActiveCatalog: (catalog: Catalog | null) => void;
-  saveCatalog: (catalogId: string, catalogData: { name: string, template_id: string, product_ids: string[] }) => Promise<void>;
+  saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => Promise<void>;
   createCatalog: (name: string) => Promise<void>;
 }
 
@@ -28,6 +28,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [activeCatalog, setActiveCatalog] = useState<Catalog | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const formatProduct = (p: any): Product => ({
       id: p.id,
@@ -44,31 +45,27 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       in_catalog: p.in_catalog || false,
       user_id: p.user_id,
   });
-
-  const fetchCatalogsAndProducts = useCallback(async () => {
+  
+  const fetchCatalogsAndProducts = useCallback(async (userId: string) => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        setProducts([]);
-        setCatalogs([]);
-        setLoading(false);
-        return;
-    }
 
     // Fetch catalogs
     const { data: catalogData, error: catalogError } = await supabase
         .from('catalogs')
         .select(`*, catalog_products(product_id)`)
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
     
     if (catalogError) {
         toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los catálogos.' });
     } else {
         const formattedCatalogs = catalogData.map(c => ({
             ...c,
+            template_id: c.template_id || 'modern',
             product_ids: c.catalog_products.map((cp: any) => cp.product_id),
         }));
         setCatalogs(formattedCatalogs);
+
+        // Si hay catálogos, establece el primero como activo si no hay ninguno seleccionado aún
         if (formattedCatalogs.length > 0 && !activeCatalog) {
             setActiveCatalog(formattedCatalogs[0]);
         } else if (formattedCatalogs.length === 0) {
@@ -80,7 +77,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .eq('user_id', user.id) 
+      .eq('user_id', userId) 
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -94,10 +91,23 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   }, [activeCatalog]);
 
   useEffect(() => {
-    fetchCatalogsAndProducts();
+    const checkUserAndFetch = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+        fetchCatalogsAndProducts(user.id);
+      } else {
+        setLoading(false);
+      }
+    };
+    checkUserAndFetch();
   }, [fetchCatalogsAndProducts]);
   
-  const fetchProducts = fetchCatalogsAndProducts;
+  const fetchProducts = useCallback(async () => {
+      if (currentUserId) {
+          await fetchCatalogsAndProducts(currentUserId);
+      }
+  }, [currentUserId, fetchCatalogsAndProducts]);
 
   const uploadImage = async (file: File, userId: string): Promise<string | null> => {
     const fileName = `${userId}/${Date.now()}-${file.name}`;
@@ -133,7 +143,6 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       ...productData,
       user_id: user.id,
       image_url: imageUrl,
-      in_catalog: false, 
     });
 
     if (error) {
@@ -182,26 +191,25 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const createCatalog = async (name: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data, error } = await supabase.from('catalogs').insert({ name, user_id: user.id }).select().single();
+    const { data, error } = await supabase.from('catalogs').insert({ name, user_id: user.id, is_public: true }).select().single();
     if (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'No se pudo crear el catálogo.' });
     } else {
-        const newCatalog = { ...data, product_ids: [] };
+        const newCatalog = { ...data, product_ids: [], template_id: 'modern' };
         setCatalogs(prev => [...prev, newCatalog]);
         setActiveCatalog(newCatalog);
         toast({ title: 'Éxito', description: 'Catálogo creado.' });
     }
   };
 
-  const saveCatalog = async (catalogId: string, catalogData: { name: string, template_id: string, product_ids: string[] }) => {
-    const { name, template_id, product_ids } = catalogData;
-    const { error: updateError } = await supabase.from('catalogs').update({ name, template_id }).eq('id', catalogId);
+  const saveCatalog = async (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => {
+    const { name, product_ids, is_public } = catalogData;
+    const { error: updateError } = await supabase.from('catalogs').update({ name, is_public }).eq('id', catalogId);
     if (updateError) {
         toast({ variant: 'destructive', title: 'Error', description: 'No se pudo guardar el catálogo.' });
         return;
     }
 
-    // Sync products
     await supabase.from('catalog_products').delete().eq('catalog_id', catalogId);
     if (product_ids.length > 0) {
         const { error: insertError } = await supabase.from('catalog_products').insert(
@@ -212,7 +220,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
     }
-    await fetchCatalogsAndProducts();
+    await fetchProducts();
   };
 
 

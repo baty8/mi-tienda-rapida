@@ -23,4 +23,5 @@ export interface Catalog {
     template_id: string;
     created_at: string;
     product_ids: string[]; // Array of product UUIDs
+    is_public: boolean;
 }
