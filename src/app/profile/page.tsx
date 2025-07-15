@@ -63,7 +63,7 @@ export default function ProfilePage() {
             .eq('id', user.id)
             .single();
         
-        if (error && error.code === 'PGRST116') {
+        if (error && error.code === 'PGRST116') { // "PGRST116" means no rows found
             const { error: insertError } = await supabase
                 .from('profiles')
                 .insert({ id: user.id, email: user.email, name: 'Vendedor', role: 'vendedor', store_template_id: 'modern' });
@@ -251,16 +251,17 @@ export default function ProfilePage() {
                  <div className="space-y-2">
                     <Label htmlFor="store-template">Plantilla de Estilo</Label>
                     <Select
-                        value={profile.store_template_id || 'modern'}
+                        value={profile.store_template_id || 'white'}
                         onValueChange={(templateId) => setProfile({ ...profile, store_template_id: templateId })}
                     >
                         <SelectTrigger id="store-template">
                             <SelectValue placeholder="Elige un estilo" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="modern">Moderno (Azul)</SelectItem>
-                            <SelectItem value="elegant">Elegante (Gris)</SelectItem>
-                            <SelectItem value="sunset">Ocaso Tropical (Naranja)</SelectItem>
+                            <SelectItem value="white">Blanco Puro</SelectItem>
+                            <SelectItem value="black">Negro Carbón</SelectItem>
+                            <SelectItem value="gray">Gris Sofisticado</SelectItem>
+                            <SelectItem value="vintage">Crema Vintage</SelectItem>
                         </SelectContent>
                     </Select>
                   </div>
