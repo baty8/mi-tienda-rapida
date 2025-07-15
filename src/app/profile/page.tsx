@@ -88,8 +88,7 @@ export default function ProfilePage() {
                 .insert({ 
                     id: user.id, 
                     email: user.email, 
-                    name: 'Vendedor', 
-                    role: 'vendedor',
+                    name: user.user_metadata.name || 'Vendedor',
                     store_bg_color: '#FFFFFF',
                     store_primary_color: '#1E40AF',
                     store_accent_color: '#F3F4F6',

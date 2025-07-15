@@ -118,7 +118,7 @@ export default function AuthPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/`,
       },
     });
 
@@ -160,12 +160,11 @@ export default function AuthPage() {
         <div className={cn(
             'absolute top-0 h-full transition-all duration-700 ease-in-out',
             'left-0 w-1/2',
-            isSignUp ? 'translate-x-full' : 'translate-x-0'
+            isSignUp ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
         )}>
            {/* Sign-In Form */}
            <form onSubmit={handleLogin} className={cn(
-               'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center transition-all duration-700 ease-in-out',
-               isSignUp ? 'opacity-0' : 'opacity-100 z-10'
+               'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center'
            )}>
             <h1 className="text-3xl font-bold font-headline text-gray-800">Iniciar Sesión</h1>
             <div className="my-2 flex justify-center gap-4">
@@ -210,11 +209,16 @@ export default function AuthPage() {
               {loading ? 'Entrando...' : 'Iniciar Sesión'}
             </Button>
           </form>
+        </div>
 
-           {/* Sign-Up Form */}
+        {/* Form Container for Sign-Up */}
+        <div className={cn(
+            'absolute top-0 h-full transition-all duration-700 ease-in-out',
+            'left-0 w-1/2',
+            isSignUp ? 'translate-x-full opacity-100' : 'translate-x-0 opacity-0'
+        )}>
            <form onSubmit={handleSignUp} className={cn(
-               'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center transition-all duration-700 ease-in-out',
-                isSignUp ? 'opacity-100 z-10' : 'opacity-0'
+               'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center'
            )}>
             <h1 className="text-3xl font-bold font-headline text-gray-800">Crear Cuenta</h1>
             <div className="my-2 flex justify-center gap-4">
@@ -237,6 +241,7 @@ export default function AuthPage() {
           </form>
         </div>
 
+
         {/* Overlay Container */}
         <div className={cn(
             'absolute top-0 left-1/2 h-full w-1/2 overflow-hidden transition-transform duration-700 ease-in-out z-40',
@@ -246,11 +251,11 @@ export default function AuthPage() {
                 'relative h-full w-[200%] bg-gradient-to-r from-rose-500 to-red-600 text-white transition-transform duration-700 ease-in-out',
                  isSignUp ? 'translate-x-1/2' : 'translate-x-0'
             )}>
-                {/* Overlay Sign In */}
+                {/* Overlay Sign Up */}
                 <div className={cn(
                     'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-opacity duration-700 ease-in-out',
                     'left-0 transform',
-                    isSignUp ? 'opacity-100' : 'opacity-0'
+                    isSignUp ? 'opacity-100' : 'opacity-0 -z-10'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Bienvenido de vuelta!</h1>
                     <p className="mt-4 text-sm">Para mantenerte conectado con nosotros, por favor inicia sesión con tu información personal</p>
@@ -259,11 +264,11 @@ export default function AuthPage() {
                     </Button>
                 </div>
 
-                {/* Overlay Sign Up */}
+                {/* Overlay Sign In */}
                 <div className={cn(
                     'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-opacity duration-700 ease-in-out',
                     'right-0 transform',
-                    isSignUp ? 'opacity-0' : 'opacity-100'
+                    isSignUp ? 'opacity-0 -z-10' : 'opacity-100'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Hola, Vendedor!</h1>
                     <p className="mt-4 text-sm">Crea tu catálogo, administra tus productos y publícalo en la red para obtener ventas.</p>
@@ -277,5 +282,3 @@ export default function AuthPage() {
     </div>
   );
 }
-
-    
