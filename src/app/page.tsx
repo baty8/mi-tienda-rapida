@@ -77,7 +77,7 @@ export default function AuthPage() {
         title: '¡Bienvenido de nuevo!',
         description: 'Redirigiendo a tu panel de productos.',
     });
-    router.push('/products');
+    router.replace('/products');
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
