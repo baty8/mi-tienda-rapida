@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
-import { Product } from '@/types';
+import { Product, Catalog } from '@/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, MessageCircle, AlertCircle } from 'lucide-react';
@@ -16,18 +16,20 @@ type VendorProfile = {
   phone: string | null;
 };
 
+// Renombrar el archivo a [catalogId]/page.tsx
 export default function PublicCatalogPage() {
   const params = useParams();
-  const userId = params.userId as string;
+  const catalogId = params.userId as string; // Esto ahora es catalogId
   const [products, setProducts] = useState<Product[]>([]);
+  const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [vendor, setVendor] = useState<VendorProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) {
+    if (!catalogId) {
         setLoading(false);
-        setError("No se proporcionó un ID de vendedor.");
+        setError("No se proporcionó un ID de catálogo.");
         return;
     };
 
@@ -36,48 +38,70 @@ export default function PublicCatalogPage() {
       setError(null);
 
       try {
-        // Fetch vendor info
+        // 1. Fetch catalog info
+        const { data: catalogData, error: catalogError } = await supabase
+          .from('catalogs')
+          .select('*')
+          .eq('id', catalogId)
+          .single();
+
+        if (catalogError || !catalogData) {
+          throw new Error('No se pudo encontrar el catálogo.');
+        }
+        setCatalog(catalogData as Catalog);
+
+        // 2. Fetch vendor info using user_id from catalog
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('name, avatar_url, phone')
-          .eq('id', userId)
+          .eq('id', catalogData.user_id)
           .single();
 
         if (profileError || !profileData) {
-          console.error('Profile fetch error:', profileError || 'No profile data found for this user ID.');
-          setVendor(null);
+           console.error('Profile fetch error:', profileError || 'No profile data found for this user ID.');
+           setVendor(null);
         } else {
             setVendor(profileData as VendorProfile);
         }
+        
+        // 3. Fetch products linked to this catalog
+        const { data: catalogProductsData, error: catalogProductsError } = await supabase
+          .from('catalog_products')
+          .select('product_id')
+          .eq('catalog_id', catalogId);
 
-        // Fetch products that are visible and selected for the catalog
-        const { data: productData, error: productError } = await supabase
-          .from('products')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('visible', true)
-          .eq('in_catalog', true)
-          .order('created_at', { ascending: false });
+        if (catalogProductsError) throw new Error('Error al cargar productos del catálogo.');
+        
+        const productIds = catalogProductsData.map(p => p.product_id);
 
-        if (productError) {
-          throw new Error('No se pudieron cargar los productos.');
+        if (productIds.length > 0) {
+            const { data: productData, error: productError } = await supabase
+                .from('products')
+                .select('*')
+                .in('id', productIds)
+                .eq('visible', true);
+
+            if (productError) throw new Error('No se pudieron cargar los productos.');
+
+             const formattedProducts = productData.map((p: any) => ({
+              id: p.id,
+              name: p.name,
+              description: p.description || '',
+              price: p.price,
+              cost: 0,
+              stock: p.stock || 0,
+              visible: p.visible,
+              image: p.image_url || 'https://placehold.co/300x200.png',
+              createdAt: '',
+              tags: [],
+              category: 'General',
+              in_catalog: true, // Asumimos que si está aquí, está en el catálogo
+            }));
+            setProducts(formattedProducts);
+        } else {
+            setProducts([]);
         }
 
-        const formattedProducts = productData.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          description: p.description || '',
-          price: p.price,
-          cost: 0,
-          stock: p.stock || 0,
-          visible: p.visible,
-          image: p.image_url || 'https://placehold.co/300x200.png',
-          createdAt: '',
-          tags: [],
-          category: 'General',
-          in_catalog: p.in_catalog,
-        }));
-        setProducts(formattedProducts);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -86,14 +110,14 @@ export default function PublicCatalogPage() {
     };
 
     fetchCatalogData();
-  }, [userId]);
+  }, [catalogId]);
 
   const getWhatsAppLink = (product: Product) => {
     const sellerPhoneNumber = vendor?.phone || '';
     if (!sellerPhoneNumber) {
         return '#';
     }
-    const message = `Hola, estoy interesado en el producto "${product.name}". ¿Está disponible?`;
+    const message = `Hola, estoy interesado en el producto "${product.name}" del catálogo "${catalog?.name}". ¿Está disponible?`;
     return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
 
@@ -127,7 +151,7 @@ export default function PublicCatalogPage() {
             <AvatarImage src={vendor?.avatar_url || 'https://placehold.co/100x100.png'} alt={vendor?.name || 'Vendedor'} data-ai-hint="logo business" />
             <AvatarFallback>{vendor?.name?.charAt(0) || 'V'}</AvatarFallback>
           </Avatar>
-          <h1 className="mt-4 text-4xl font-bold font-headline text-primary">{vendor?.name || 'Nuestro Catálogo'}</h1>
+          <h1 className="mt-4 text-4xl font-bold font-headline text-primary">{catalog?.name || 'Nuestro Catálogo'}</h1>
           <p className="text-muted-foreground">Explora nuestros productos seleccionados</p>
         </header>
 
@@ -183,3 +207,5 @@ export default function PublicCatalogPage() {
     </div>
   );
 }
+
+    

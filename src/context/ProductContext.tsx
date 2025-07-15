@@ -2,28 +2,35 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import type { Product } from '@/types';
+import type { Product, Catalog } from '@/types';
 import supabase from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
 interface ProductContextType {
   products: Product[];
+  catalogs: Catalog[];
+  activeCatalog: Catalog | null;
   loading: boolean;
-  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog'>, imageFile: File | null) => Promise<void>;
-  updateProduct: (productId: number, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category'>>, imageFile?: File | null) => Promise<void>;
-  deleteProduct: (productId: number) => Promise<void>;
   fetchProducts: () => Promise<void>;
+  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog' | 'user_id'>, imageFile: File | null) => Promise<void>;
+  updateProduct: (productId: number, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id'>>, imageFile?: File | null) => Promise<void>;
+  deleteProduct: (productId: number) => Promise<void>;
+  setActiveCatalog: (catalog: Catalog | null) => void;
+  saveCatalog: (catalogId: string, catalogData: { name: string, template_id: string, product_ids: number[] }) => Promise<void>;
+  createCatalog: (name: string) => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [catalogs, setCatalogs] = useState<Catalog[]>([]);
+  const [activeCatalog, setActiveCatalog] = useState<Catalog | null>(null);
   const [loading, setLoading] = useState(true);
 
   const formatProduct = (p: any): Product => ({
-      id: p.id, // id es ahora un número (bigint)
+      id: p.id,
       name: p.name,
       description: p.description || '',
       price: p.price,
@@ -34,18 +41,40 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       createdAt: format(new Date(p.created_at), 'yyyy-MM-dd'),
       tags: p.stock > 0 ? [] : ['Out of Stock'],
       category: 'General',
-      in_catalog: p.in_catalog || false
+      in_catalog: p.in_catalog || false,
+      user_id: p.user_id,
   });
 
-  const fetchProducts = useCallback(async () => {
+  const fetchCatalogsAndProducts = useCallback(async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         setProducts([]);
+        setCatalogs([]);
         setLoading(false);
         return;
     }
 
+    // Fetch catalogs
+    const { data: catalogData, error: catalogError } = await supabase
+        .from('catalogs')
+        .select(`*, catalog_products(product_id)`)
+        .eq('user_id', user.id);
+    
+    if (catalogError) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los catálogos.' });
+    } else {
+        const formattedCatalogs = catalogData.map(c => ({
+            ...c,
+            product_ids: c.catalog_products.map((cp: any) => cp.product_id),
+        }));
+        setCatalogs(formattedCatalogs);
+        if (formattedCatalogs.length > 0 && !activeCatalog) {
+            setActiveCatalog(formattedCatalogs[0]);
+        }
+    }
+
+    // Fetch products (remains the same)
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -60,11 +89,13 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       setProducts(formattedProducts);
     }
     setLoading(false);
-  }, []);
-  
+  }, [activeCatalog]);
+
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    fetchCatalogsAndProducts();
+  }, [fetchCatalogsAndProducts]);
+  
+  const fetchProducts = fetchCatalogsAndProducts;
 
   const uploadImage = async (file: File, userId: string): Promise<string | null> => {
     const fileName = `${userId}/${Date.now()}-${file.name}`;
@@ -79,7 +110,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     return publicUrl;
   };
 
-  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog'>, imageFile: File | null) => {
+  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog' | 'user_id'>, imageFile: File | null) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para añadir productos.' });
@@ -89,9 +120,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     let imageUrl = 'https://placehold.co/600x400.png';
     if (imageFile) {
         const uploadedUrl = await uploadImage(imageFile, user.id);
-        if (uploadedUrl) {
-            imageUrl = uploadedUrl;
-        } else {
+        if (uploadedUrl) imageUrl = uploadedUrl;
+        else {
             toast({ variant: 'destructive', title: 'Error de Carga', description: 'No se pudo subir la imagen.' });
             return;
         }
@@ -99,7 +129,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const { error } = await supabase.from('products').insert({
       ...productData,
-      user_id: user.id, // Esta es la columna UUID
+      user_id: user.id,
       image_url: imageUrl,
       in_catalog: false, 
     });
@@ -112,7 +142,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateProduct = async (productId: number, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category'>>, imageFile?: File | null) => {
+  const updateProduct = async (productId: number, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id'>>, imageFile?: File | null) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -120,22 +150,19 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
       if (imageFile) {
         const imageUrl = await uploadImage(imageFile, user.id);
-        if (imageUrl) {
-          updateData.image_url = imageUrl;
-        } else {
+        if (imageUrl) updateData.image_url = imageUrl;
+        else {
           toast({ variant: 'destructive', title: 'Error de Carga', description: 'No se pudo subir la nueva imagen.' });
           return;
         }
       }
       
-      const { data, error } = await supabase.from('products').update(updateData).eq('id', productId).select().single();
+      const { data, error } = await supabase.from('products').update(updateData).eq('id', productId).eq('user_id', user.id).select().single();
 
       if (error) {
         toast({ variant: 'destructive', title: 'Error', description: `No se pudo actualizar el producto: ${error.message}` });
       } else {
-        if (Object.keys(updatedFields).length > 1 || !('in_catalog' in updatedFields)) {
-          toast({ title: 'Éxito', description: 'Producto actualizado.' });
-        }
+        toast({ title: 'Éxito', description: 'Producto actualizado.' });
         setProducts(prevProducts => prevProducts.map(p => p.id === productId ? formatProduct(data) : p));
       }
   };
@@ -150,9 +177,45 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const createCatalog = async (name: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data, error } = await supabase.from('catalogs').insert({ name, user_id: user.id }).select().single();
+    if (error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo crear el catálogo.' });
+    } else {
+        const newCatalog = { ...data, product_ids: [] };
+        setCatalogs(prev => [...prev, newCatalog]);
+        setActiveCatalog(newCatalog);
+        toast({ title: 'Éxito', description: 'Catálogo creado.' });
+    }
+  };
+
+  const saveCatalog = async (catalogId: string, catalogData: { name: string, template_id: string, product_ids: number[] }) => {
+    const { name, template_id, product_ids } = catalogData;
+    const { error: updateError } = await supabase.from('catalogs').update({ name, template_id }).eq('id', catalogId);
+    if (updateError) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo guardar el catálogo.' });
+        return;
+    }
+
+    // Sync products
+    await supabase.from('catalog_products').delete().eq('catalog_id', catalogId);
+    if (product_ids.length > 0) {
+        const { error: insertError } = await supabase.from('catalog_products').insert(
+            product_ids.map(pid => ({ catalog_id: catalogId, product_id: pid }))
+        );
+        if (insertError) {
+            toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron guardar los productos del catálogo.' });
+            return;
+        }
+    }
+    await fetchCatalogsAndProducts();
+  };
+
 
   return (
-    <ProductContext.Provider value={{ products, loading, addProduct, updateProduct, deleteProduct, fetchProducts }}>
+    <ProductContext.Provider value={{ products, loading, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, addProduct, updateProduct, deleteProduct, fetchProducts }}>
       {children}
     </ProductContext.Provider>
   );
@@ -165,3 +228,5 @@ export const useProduct = () => {
   }
   return context;
 };
+
+    

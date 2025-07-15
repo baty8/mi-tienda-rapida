@@ -1,4 +1,5 @@
 
+
 export interface Product {
   id: number; // This is a bigint in the DB, so number is appropriate here.
   name: string;
@@ -11,6 +12,17 @@ export interface Product {
   createdAt: string;
   tags: string[];
   category: string;
-  in_catalog: boolean;
-  // user_id is a uuid string, but we don't need to expose it to most components.
+  in_catalog: boolean; // This might be deprecated with the new system
+  user_id: string; // uuid
 }
+
+export interface Catalog {
+    id: string; // uuid
+    user_id: string; // uuid
+    name: string;
+    template_id: string;
+    created_at: string;
+    product_ids: number[]; // Not in DB, but we'll populate it in the context
+}
+
+    
