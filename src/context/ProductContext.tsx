@@ -53,25 +53,34 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const { data: catalogData, error: catalogError } = await supabase
         .from('catalogs')
-        .select(`*, catalog_products(product_id)`)
+        .select(`id, name, created_at, is_public, user_id`)
         .eq('user_id', userId)
         .order('name', { ascending: true });
     
     if (catalogError) {
         toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los catálogos.' });
     } else {
-        const formattedCatalogs = catalogData.map(c => ({
-            ...c,
-            product_ids: c.catalog_products.map((cp: any) => cp.product_id),
-        }));
-        setCatalogs(formattedCatalogs);
+        const catalogIds = catalogData.map(c => c.id);
+        const { data: catalogProductsData, error: catalogProductsError } = await supabase
+            .from('catalog_products')
+            .select('catalog_id, product_id')
+            .in('catalog_id', catalogIds);
+        
+        const formattedCatalogs = catalogData.map(c => {
+            const product_ids = catalogProductsData
+                ?.filter(cp => cp.catalog_id === c.id)
+                .map(cp => cp.product_id) || [];
+            return { ...c, product_ids };
+        });
+
+        setCatalogs(formattedCatalogs as Catalog[]);
 
         if (formattedCatalogs.length > 0) {
             const currentActive = activeCatalog ? formattedCatalogs.find(c => c.id === activeCatalog.id) : undefined;
             if(currentActive){
-              setActiveCatalog(currentActive);
+              setActiveCatalog(currentActive as Catalog);
             } else {
-              setActiveCatalog(formattedCatalogs[0]);
+              setActiveCatalog(formattedCatalogs[0] as Catalog);
             }
         } else {
             setActiveCatalog(null);
@@ -209,8 +218,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         toast({ variant: 'destructive', title: 'Error', description: 'No se pudo crear el catálogo.' });
     } else {
         const newCatalog = { ...data, product_ids: [] };
-        setCatalogs(prev => [...prev, newCatalog]);
-        setActiveCatalog(newCatalog);
+        setCatalogs(prev => [...prev, newCatalog] as Catalog[]);
+        setActiveCatalog(newCatalog as Catalog);
         toast({ title: 'Éxito', description: 'Catálogo creado.' });
     }
   };
@@ -247,6 +256,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
     }
+    toast({ title: 'Éxito', description: 'Catálogo guardado.' });
     await fetchProducts();
   };
 

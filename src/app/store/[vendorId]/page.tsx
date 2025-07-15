@@ -67,13 +67,27 @@ export default function StorePage() {
         // 2. Fetch all public catalogs for this vendor
         const { data: catalogData, error: catalogError } = await supabase
           .from('catalogs')
-          .select('id, name, catalog_products(product_id)')
+          .select('id, name')
           .eq('user_id', vendorId)
           .eq('is_public', true);
         
         if (catalogError) throw new Error('Error al cargar los catálogos.');
         
-        const publicCatalogs = (catalogData as any[]).map(c => ({...c, product_ids: c.catalog_products.map((cp: any) => cp.product_id)}));
+        const catalogIds = catalogData.map(c => c.id);
+        const { data: catalogProductsData, error: catalogProductsError } = await supabase
+            .from('catalog_products')
+            .select('catalog_id, product_id')
+            .in('catalog_id', catalogIds);
+        
+        if(catalogProductsError) throw new Error('Error al cargar los productos de los catálogos.');
+        
+        const publicCatalogs = catalogData.map(c => {
+            const product_ids = catalogProductsData
+                ?.filter(cp => cp.catalog_id === c.id)
+                .map(cp => cp.product_id) || [];
+            return { ...c, product_ids, is_public: true, user_id: vendorId, created_at: '' }; // Add dummy fields to satisfy Catalog type
+        });
+
         setCatalogs(publicCatalogs);
 
         const allProductIdsInPublicCatalogs = [...new Set(publicCatalogs.flatMap(c => c.product_ids))];
