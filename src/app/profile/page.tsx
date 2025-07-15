@@ -82,29 +82,10 @@ export default function ProfilePage() {
             .eq('id', user.id)
             .single();
         
-        if (error && error.code === 'PGRST116') {
-             const { error: insertError, data: newData } = await supabase
-                .from('profiles')
-                .insert({ 
-                    id: user.id, 
-                    email: user.email, 
-                    name: user.user_metadata.name || 'Vendedor',
-                    store_bg_color: '#FFFFFF',
-                    store_primary_color: '#1E40AF',
-                    store_accent_color: '#F3F4F6',
-                })
-                .select()
-                .single();
-            
-            if (insertError) {
-                toast({ variant: 'destructive', title: 'Error Crítico', description: 'No se pudo crear tu perfil. Contacta a soporte.'});
-                setLoading(false);
-                return;
-            }
-            data = newData;
-            toast({ title: '¡Perfil Creado!', description: 'Hemos creado tu perfil. ¡Ya puedes editarlo!' });
-        } else if (error) {
-             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar el perfil.'});
+        if (error) {
+             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar el perfil. Por favor, recarga la página.'});
+             setLoading(false);
+             return;
         }
         
         if (data) {
