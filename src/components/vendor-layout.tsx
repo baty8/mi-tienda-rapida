@@ -21,7 +21,6 @@ export function VendorLayout({
     children: React.ReactNode;
   }>) {
     const [profile, setProfile] = useState<Profile | null>(null);
-    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const supabase = createClient();
@@ -30,7 +29,6 @@ export function VendorLayout({
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (session?.user) {
                 const currentUser = session.user;
-                setUser(currentUser);
                 const { data: profileData } = await supabase
                     .from('profiles')
                     .select('name, avatar_url')
@@ -44,10 +42,9 @@ export function VendorLayout({
                 });
                 setLoading(false);
             } else {
-                router.replace('/');
-                setUser(null);
                 setProfile(null);
                 setLoading(false);
+                router.replace('/');
             }
         });
 
