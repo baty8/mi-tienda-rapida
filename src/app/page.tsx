@@ -94,7 +94,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 p-4 font-body">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body">
       <div className={cn(
         'relative w-full max-w-4xl min-h-[480px] overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-700 ease-in-out',
       )}>
@@ -106,9 +106,9 @@ export default function AuthPage() {
            <form onSubmit={handleSignUp} className="flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center">
             <h1 className="text-3xl font-bold font-headline text-gray-800">Crear Cuenta</h1>
              <span className="text-sm text-gray-500">Usa tu email para registrarte</span>
-            <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-gray-100 border-none" />
-            <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-100 border-none" autoComplete="email"/>
-            <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-100 border-none" autoComplete="new-password"/>
+            <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-gray-100 border-none text-gray-900" />
+            <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="email"/>
+            <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="new-password"/>
             <Button type="submit" disabled={loading} className="mt-2 rounded-full bg-rose-500 px-12 py-2 font-bold uppercase tracking-wider text-white hover:bg-rose-600">
               {loading ? 'Creando...' : 'Registrarse'}
             </Button>
@@ -123,8 +123,8 @@ export default function AuthPage() {
            <form onSubmit={handleLogin} className="flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center">
             <h1 className="text-3xl font-bold font-headline text-gray-800">Iniciar Sesión</h1>
             <span className="text-sm text-gray-500">Usa tu cuenta para acceder</span>
-            <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-100 border-none" autoComplete="email"/>
-            <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-100 border-none" autoComplete="current-password"/>
+            <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="email"/>
+            <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="current-password"/>
              <Link href="#" className="text-sm text-gray-500 hover:underline">¿Olvidaste tu contraseña?</Link>
             <Button type="submit" disabled={loading} className="mt-2 rounded-full bg-rose-500 px-12 py-2 font-bold uppercase tracking-wider text-white hover:bg-rose-600">
               {loading ? 'Entrando...' : 'Iniciar Sesión'}
