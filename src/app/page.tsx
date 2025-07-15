@@ -139,7 +139,7 @@ export default function AuthPage() {
       }
       setLoading(true);
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-          redirectTo: `${window.location.origin}/` // You might want a dedicated password reset page
+          redirectTo: `${window.location.origin}/`
       });
       setLoading(false);
       if (error) {
@@ -156,13 +156,12 @@ export default function AuthPage() {
         'relative w-full max-w-4xl min-h-[550px] overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-700'
       )}>
 
-        {/* Form Container */}
+        {/* Form Container for Sign-In */}
         <div className={cn(
-            'absolute top-0 h-full transition-all duration-700 ease-in-out',
+            'absolute top-0 h-full transition-all duration-700 ease-in-out z-20',
             'left-0 w-1/2',
-            isSignUp ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
+            isSignUp && 'translate-x-full'
         )}>
-           {/* Sign-In Form */}
            <form onSubmit={handleLogin} className={cn(
                'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center'
            )}>
@@ -213,12 +212,13 @@ export default function AuthPage() {
 
         {/* Form Container for Sign-Up */}
         <div className={cn(
-            'absolute top-0 h-full transition-all duration-700 ease-in-out',
+            'absolute top-0 h-full transition-all duration-700 ease-in-out z-20',
             'left-0 w-1/2',
-            isSignUp ? 'translate-x-full opacity-100' : 'translate-x-0 opacity-0'
+            isSignUp ? 'translate-x-full' : 'translate-x-0 pointer-events-none'
         )}>
            <form onSubmit={handleSignUp} className={cn(
-               'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center'
+               'flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center transition-opacity duration-300',
+               isSignUp ? 'opacity-100' : 'opacity-0'
            )}>
             <h1 className="text-3xl font-bold font-headline text-gray-800">Crear Cuenta</h1>
             <div className="my-2 flex justify-center gap-4">
@@ -253,9 +253,9 @@ export default function AuthPage() {
             )}>
                 {/* Overlay Sign Up */}
                 <div className={cn(
-                    'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-opacity duration-700 ease-in-out',
+                    'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out',
                     'left-0 transform',
-                    isSignUp ? 'opacity-100' : 'opacity-0 -z-10'
+                    isSignUp ? '' : '-translate-x-[20%]'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Bienvenido de vuelta!</h1>
                     <p className="mt-4 text-sm">Para mantenerte conectado con nosotros, por favor inicia sesión con tu información personal</p>
@@ -266,9 +266,9 @@ export default function AuthPage() {
 
                 {/* Overlay Sign In */}
                 <div className={cn(
-                    'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-opacity duration-700 ease-in-out',
+                    'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out',
                     'right-0 transform',
-                    isSignUp ? 'opacity-0 -z-10' : 'opacity-100'
+                     isSignUp ? 'translate-x-[20%]' : ''
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Hola, Vendedor!</h1>
                     <p className="mt-4 text-sm">Crea tu catálogo, administra tus productos y publícalo en la red para obtener ventas.</p>
@@ -282,3 +282,5 @@ export default function AuthPage() {
     </div>
   );
 }
+
+    
