@@ -8,7 +8,7 @@ import supabase from '@/lib/supabaseClient';
 import type { Product, Catalog, Profile } from '@/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, MessageCircle, AlertCircle, Search } from 'lucide-react';
+import { ShoppingBag, MessageCircle, AlertCircle, Search, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
@@ -37,6 +37,7 @@ export default function StorePage() {
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCatalogId, setActiveCatalogId] = useState('all');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     if (!vendorId) {
@@ -128,6 +129,15 @@ export default function StorePage() {
     fetchStoreData();
   }, [vendorId]);
 
+  const openModal = (product: Product) => {
+    setSelectedProduct(product);
+  };
+
+  const closeModal = () => {
+    setSelectedProduct(null);
+  };
+
+
   const getWhatsAppLink = (product: Product) => {
     const sellerPhoneNumber = vendor?.phone || '';
     if (!sellerPhoneNumber) return '#';
@@ -218,7 +228,7 @@ export default function StorePage() {
             {!showEmptyState ? (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
                 {filteredProducts.map((product) => (
-                    <div key={product.id} className="group flex transform flex-col overflow-hidden rounded-xl border border-gray-200 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
+                    <div key={product.id} onClick={() => openModal(product)} className="group flex cursor-pointer transform flex-col overflow-hidden rounded-xl border border-gray-200 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
                         <div className="aspect-square w-full overflow-hidden">
                             <Image
                             src={product.image}
@@ -237,7 +247,7 @@ export default function StorePage() {
                             <div className="mt-4 flex w-full items-end justify-between gap-2">
                                 <p className="text-2xl font-extrabold store-primary-text whitespace-nowrap">${product.price.toFixed(2)}</p>
                                 <Button asChild size="sm" className="shrink-0 store-primary-bg hover:opacity-90" disabled={!vendor?.phone}>
-                                    <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
+                                    <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                                         <MessageCircle className="mr-2 h-4 w-4" />
                                         Consultar
                                     </a>
@@ -254,6 +264,43 @@ export default function StorePage() {
                     <p className="mt-2 text-gray-500">Intenta cambiar los filtros o el término de búsqueda.</p>
                 </div>
             )}
+            
+            {selectedProduct && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-in fade-in-0" onClick={closeModal}>
+                <div className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl animate-in zoom-in-95" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={closeModal} className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+                    <X className="h-5 w-5" />
+                    <span className="sr-only">Cerrar</span>
+                  </button>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div className="w-full aspect-square overflow-hidden rounded-lg">
+                      <Image
+                        src={selectedProduct.image}
+                        alt={selectedProduct.name}
+                        width={400}
+                        height={400}
+                        className="h-full w-full object-cover"
+                        data-ai-hint="product image"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <h2 className="text-2xl font-bold store-text">{selectedProduct.name}</h2>
+                      <p className="mt-2 text-gray-600 flex-grow">{selectedProduct.description}</p>
+                      <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                         <p className="text-3xl font-extrabold store-primary-text">${selectedProduct.price.toFixed(2)}</p>
+                         <Button asChild size="lg" className="w-full sm:w-auto store-primary-bg hover:opacity-90" disabled={!vendor?.phone}>
+                           <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
+                                <MessageCircle className="mr-2 h-5 w-5" />
+                                Consultar
+                            </a>
+                         </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
 
             <footer className="mt-12 text-center text-sm text-gray-500">
                 <p>Potenciado por VentaRapida</p>
