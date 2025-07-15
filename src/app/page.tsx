@@ -134,9 +134,9 @@ export default function AuthPage() {
             {isSignUp ? (
               <form onSubmit={handleSignUp} className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
                   <h1 className="text-3xl font-bold font-headline text-gray-800">Crear Cuenta</h1>
-                  <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-gray-50 border-gray-300" autoComplete="name"/>
-                  <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-50 border-gray-300" autoComplete="email"/>
-                  <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-50 border-gray-300" autoComplete="new-password"/>
+                  <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="name"/>
+                  <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="email"/>
+                  <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="new-password"/>
                   <Button type="submit" disabled={loading} className="mt-2 rounded-full px-12 py-2 font-bold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white">
                     {loading ? 'Creando...' : 'Registrarse'}
                   </Button>
@@ -150,8 +150,8 @@ export default function AuthPage() {
             ) : (
               <form onSubmit={handleLogin} className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
                   <h1 className="text-3xl font-bold font-headline text-gray-800">Iniciar Sesión</h1>
-                  <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-50 border-gray-300" autoComplete="email"/>
-                  <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-50 border-gray-300" autoComplete="current-password"/>
+                  <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="email"/>
+                  <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="current-password"/>
                   
                   <AlertDialog>
                       <AlertDialogTrigger asChild>
