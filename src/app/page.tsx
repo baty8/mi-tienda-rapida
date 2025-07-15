@@ -33,19 +33,6 @@ export default function AuthPage() {
   const [signupPassword, setSignupPassword] = useState('');
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.replace('/products');
-      } else {
-        setPageLoading(false);
-      }
-    };
-    checkSession();
-  }, [router, supabase.auth]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,14 +136,6 @@ export default function AuthPage() {
       } else {
           toast({ title: 'Correo enviado', description: 'Si existe una cuenta, recibirás un enlace para restablecer tu contraseña.' });
       }
-  }
-
-  if (pageLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100">
-        <p>Cargando...</p>
-      </div>
-    );
   }
 
   return (
