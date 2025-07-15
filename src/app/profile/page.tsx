@@ -315,8 +315,8 @@ export default function ProfilePage() {
                         Visualizar Tienda
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md sm:max-w-sm p-0">
-                      <div className="mx-auto w-[375px] h-[750px] bg-gray-800 rounded-[40px] border-[14px] border-gray-800 shadow-xl overflow-hidden">
+                    <DialogContent className="max-w-[340px] sm:max-w-[340px] p-0 border-0">
+                       <div className="mx-auto w-[320px] h-[640px] bg-gray-800 rounded-[32px] border-[12px] border-gray-900 shadow-xl overflow-hidden">
                         <div className="w-full h-full">
                           <iframe 
                             src={`${storeLink}?preview=${Date.now()}`}
@@ -338,5 +338,3 @@ export default function ProfilePage() {
     </VendorLayout>
   );
 }
-
-    
