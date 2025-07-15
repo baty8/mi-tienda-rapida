@@ -33,12 +33,15 @@ export default function AuthPage() {
   const [signupPassword, setSignupPassword] = useState('');
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         router.replace('/products');
+      } else {
+        setPageLoading(false);
       }
     };
     checkSession();
@@ -72,7 +75,6 @@ export default function AuthPage() {
         return;
     }
     
-    setLoading(false);
     toast({
         title: '¡Bienvenido de nuevo!',
         description: 'Redirigiendo a tu panel de productos.',
@@ -149,10 +151,17 @@ export default function AuthPage() {
       }
   }
 
+  if (pageLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-100">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body">
-      <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl grid md:grid-cols-2 overflow-hidden min-h-[550px]">
+      <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl grid md:grid-cols-2 overflow-hidden min-h-[600px]">
 
         {/* Form Panel */}
         <div className="flex flex-col items-center justify-center p-6 md:p-10">
