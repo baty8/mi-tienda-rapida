@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { User, Save, UploadCloud, Palette } from 'lucide-react';
+import { User, Save, UploadCloud, Palette, Smartphone as SmartphoneIcon } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -27,6 +27,11 @@ import { VendorLayout } from '@/components/vendor-layout';
 import { toast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 type Profile = {
   name: string | null;
@@ -40,10 +45,13 @@ export default function ProfilePage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [profile, setProfile] = useState<Profile>({ name: '', phone: '', avatar_url: '', email: '', store_template_id: 'modern' });
+    const [profile, setProfile] = useState<Profile>({ name: '', phone: '', avatar_url: '', email: '', store_template_id: 'white' });
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
+    const [isPreviewDialogOpen, setPreviewDialogOpen] = useState(false);
+
+    const storeLink = userId ? `${window.location.origin}/store/${userId}` : '';
 
     const fetchProfile = useCallback(async () => {
         setLoading(true);
@@ -66,7 +74,7 @@ export default function ProfilePage() {
         if (error && error.code === 'PGRST116') { // "PGRST116" means no rows found
             const { error: insertError } = await supabase
                 .from('profiles')
-                .insert({ id: user.id, email: user.email, name: 'Vendedor', role: 'vendedor', store_template_id: 'modern' });
+                .insert({ id: user.id, email: user.email, name: 'Vendedor', role: 'vendedor', store_template_id: 'white' });
             
             if (insertError) {
                 toast({ variant: 'destructive', title: 'Error Crítico', description: 'No se pudo crear tu perfil. Contacta a soporte.'});
@@ -82,7 +90,7 @@ export default function ProfilePage() {
         }
         
         if (data) {
-            setProfile(prev => ({ ...prev, name: data.name, phone: data.phone, avatar_url: data.avatar_url, store_template_id: data.store_template_id || 'modern' }));
+            setProfile(prev => ({ ...prev, name: data.name, phone: data.phone, avatar_url: data.avatar_url, store_template_id: data.store_template_id || 'white' }));
             if (data.avatar_url) {
                 setAvatarPreview(data.avatar_url);
             }
@@ -258,8 +266,8 @@ export default function ProfilePage() {
                             <SelectValue placeholder="Elige un estilo" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="white">Blanco Puro</SelectItem>
-                            <SelectItem value="black">Negro Carbón</SelectItem>
+                            <SelectItem value="white">Blanco Moderno</SelectItem>
+                            <SelectItem value="black">Negro Moderno</SelectItem>
                             <SelectItem value="gray">Gris Sofisticado</SelectItem>
                             <SelectItem value="vintage">Crema Vintage</SelectItem>
                         </SelectContent>
@@ -268,7 +276,27 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            <CardFooter className="flex justify-end">
+            <CardFooter className="flex justify-end gap-2">
+                  <Dialog open={isPreviewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" disabled={!storeLink}>
+                        <SmartphoneIcon className="mr-2 h-4 w-4" />
+                        Visualizar Tienda
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md sm:max-w-sm p-0">
+                      <div className="mx-auto w-[375px] h-[750px] bg-gray-800 rounded-[40px] border-[14px] border-gray-800 shadow-xl overflow-hidden">
+                        <div className="w-full h-full">
+                          <iframe 
+                            src={storeLink}
+                            className="w-full h-full border-0"
+                            title="Previsualización de la tienda móvil"
+                          />
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
                   <Button onClick={handleSave} disabled={saving || loading}>
                       <Save className="mr-2 h-4 w-4"/>
                       {saving ? 'Guardando...' : 'Guardar Todos los Cambios'}

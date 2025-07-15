@@ -68,7 +68,6 @@ export default function CatalogPage() {
   const { products, fetchProducts, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog } = useProduct();
   const [newCatalogName, setNewCatalogName] = useState('');
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
-  const [isPreviewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
 
@@ -129,26 +128,6 @@ export default function CatalogPage() {
             <Save className="mr-2 h-4 w-4" />
             Guardar Catálogo
           </Button>
-
-          <Dialog open={isPreviewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" disabled={!storeLink}>
-                <SmartphoneIcon className="mr-2 h-4 w-4" />
-                Visualizar Tienda
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md sm:max-w-sm p-0">
-               <div className="mx-auto w-[375px] h-[750px] bg-gray-800 rounded-[40px] border-[14px] border-gray-800 shadow-xl overflow-hidden">
-                <div className="w-full h-full">
-                  <iframe 
-                    src={storeLink}
-                    className="w-full h-full border-0"
-                    title="Previsualización de la tienda móvil"
-                  />
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
 
           <Dialog>
             <DialogTrigger asChild>
