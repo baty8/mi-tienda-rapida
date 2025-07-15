@@ -1,6 +1,5 @@
-
 'use client';
-import { Calculator } from 'lucide-react';
+import { Calculator, Wand2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -13,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { AiPricingAssistant } from '@/components/ai-pricing-assistant';
 
 function FinancePage() {
   const [cost, setCost] = useState(0);
@@ -50,26 +50,26 @@ function FinancePage() {
               Análisis Financiero
             </h2>
             <p className="text-muted-foreground">
-              Herramientas para mejorar tu negocio.
+              Herramientas para mejorar la rentabilidad de tu negocio.
             </p>
           </div>
         </div>
 
-        <div className="grid gap-6 max-w-md mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Calculator className="h-5 w-5" />
-                <CardTitle>Calculadora de Margen</CardTitle>
+                <Calculator className="h-5 w-5 text-primary" />
+                <CardTitle>Calculadora de Margen de Ganancia</CardTitle>
               </div>
               <CardDescription>
-                Calcula tu margen de ganancia para cualquier producto.
+                Calcula rápidamente tu margen y ganancia para cualquier producto.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="cost">Costo ($)</Label>
+                  <Label htmlFor="cost">Costo del Producto ($)</Label>
                   <Input id="cost" type="number" placeholder="15.00" value={cost || ''} onChange={(e) => setCost(parseFloat(e.target.value) || 0)}/>
                 </div>
                  <div className="space-y-2">
@@ -77,19 +77,22 @@ function FinancePage() {
                   <Input id="price" type="number" placeholder="25.00" value={price || ''} onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}/>
                 </div>
               </div>
-              <Button className="w-full" onClick={calculateMargin}>Calcular Margen</Button>
+              <Button className="w-full" onClick={calculateMargin}>Calcular</Button>
               <div className="mt-4 rounded-lg border bg-muted p-4 space-y-2">
                   <div className="flex justify-between font-medium">
-                      <span>Ganancia:</span>
-                      <span>${profit.toFixed(2)}</span>
+                      <span>Ganancia por unidad:</span>
+                      <span className="text-green-600">${profit.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg text-primary">
-                      <span>Margen:</span>
+                      <span>Margen de Ganancia:</span>
                       <span>{margin.toFixed(2)}%</span>
                   </div>
               </div>
             </CardContent>
           </Card>
+          
+          <AiPricingAssistant />
+          
         </div>
       </main>
     </>

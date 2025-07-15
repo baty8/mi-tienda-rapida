@@ -1,17 +1,18 @@
-
 'use client';
-import { SalesStats } from '@/components/sales-stats';
-import { SalesChart } from '@/components/sales-chart';
-import { ConversionRate } from '@/components/conversion-rate';
 import { useProduct } from '@/context/ProductContext';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { AiSalesAnalysis } from '@/components/ai-sales-analysis';
-import { LineChart } from 'lucide-react';
+import { AlertCircle, LineChart, ShoppingBag, TrendingUp, Sparkles } from 'lucide-react';
 import { StockAlert } from '@/components/stock-alert';
+import { TopProductsChart } from '@/components/top-products-chart';
+import { AiSalesAnalysis } from '@/components/ai-sales-analysis';
 
 function DashboardPage() {
-    const { products } = useProduct();
+    const { products, loading } = useProduct();
+
+    const totalProducts = products.length;
+    const totalStock = products.reduce((acc, p) => acc + p.stock, 0);
+    const inventoryValue = products.reduce((acc, p) => acc + (p.stock * p.cost), 0);
 
   return (
     <>
@@ -27,31 +28,68 @@ function DashboardPage() {
               <div className="flex flex-col gap-1">
                   <h2 className="text-3xl font-bold font-headline">Dashboard</h2>
                   <p className="text-muted-foreground">
-                      Un resumen del rendimiento de tu tienda.
+                      Un resumen del rendimiento y estado de tu inventario.
                   </p>
               </div>
           </div>
           
           {products.length > 0 ? (
               <div className="grid gap-6">
-                  <SalesStats />
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                      <div className="lg:col-span-2 space-y-6">
-                          <SalesChart />
-                      </div>
-                      <div className="space-y-6">
-                          <ConversionRate />
-                          <StockAlert />
-                      </div>
-                  </div>
+                 {/* Fila de Estadísticas Principales */}
+                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total de Productos</CardTitle>
+                            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{totalProducts}</div>
+                            <p className="text-xs text-muted-foreground">Productos únicos en tu inventario.</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Unidades Totales en Stock</CardTitle>
+                            <LineChart className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{totalStock.toLocaleString()}</div>
+                            <p className="text-xs text-muted-foreground">Suma del stock de todos los productos.</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Valor del Inventario (Costo)</CardTitle>
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">${inventoryValue.toLocaleString('es-AR', {minimumFractionDigits: 2})}</div>
+                            <p className="text-xs text-muted-foreground">Costo total de tu stock actual.</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Fila de Alertas y Gráficos */}
+                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div className="lg:col-span-2 space-y-6">
+                         <TopProductsChart />
+                    </div>
+                    <div className="space-y-6">
+                        <StockAlert />
+                    </div>
+                </div>
+
+                {/* Fila de Análisis con IA */}
+                <AiSalesAnalysis />
+
               </div>
           ) : (
               <Card>
                   <CardContent className="flex flex-col items-center justify-center p-12 text-center">
-                      <LineChart className="h-16 w-16 mb-4 text-muted-foreground" />
+                      <AlertCircle className="h-16 w-16 mb-4 text-muted-foreground" />
                       <h3 className="text-xl font-semibold mb-2">No hay datos para mostrar</h3>
                       <p className="text-muted-foreground">
-                          Añade algunos productos para empezar a ver tus estadísticas de ventas.
+                          Añade algunos productos para empezar a ver las estadísticas de tu tienda.
                       </p>
                   </CardContent>
               </Card>
