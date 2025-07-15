@@ -52,8 +52,9 @@ export default function AuthPage() {
       return;
     }
     
-    // On success, simply navigate. The protected layout will handle the rest.
+    // On success, navigate and then refresh to ensure the layout re-evaluates the session.
     router.push('/products');
+    router.refresh();
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
