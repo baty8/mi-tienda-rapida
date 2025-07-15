@@ -8,6 +8,7 @@ const LoginPage = () => {
   const router = useRouter();
 
   useEffect(() => {
+    // This page is deprecated and now redirects to the main auth page.
     router.replace('/');
   }, [router]);
 
@@ -19,3 +20,5 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
+    
