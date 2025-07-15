@@ -38,27 +38,25 @@ export default function AuthPage() {
     e.preventDefault();
     setLoading(true);
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
       password: loginPassword,
     });
 
-    if (authError || !authData.user) {
+    if (error) {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
-        description: authError?.message || 'Credenciales inválidas. Por favor, revisa tu correo para confirmar tu cuenta o inténtalo de nuevo.',
+        description: error.message || 'Credenciales inválidas o correo no verificado.',
       });
       setLoading(false);
       return;
     }
     
-    // Simplificado: si no hay error, es un éxito.
-    toast({
-        title: '¡Bienvenido de nuevo!',
-        description: 'Redirigiendo a tu panel de productos.',
-    });
-    router.replace('/products');
+    // On successful login, redirect to the products page.
+    // A full refresh is more robust to ensure the session is picked up.
+    router.push('/products');
+    router.refresh();
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -88,9 +86,10 @@ export default function AuthPage() {
     
     toast({
       title: '¡Registro casi completo!',
-      description: 'Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.',
+      description: 'Revisa tu correo para verificar tu cuenta y luego inicia sesión aquí.',
+      duration: 5000,
     });
-    setIsSignUp(false);
+    setIsSignUp(false); // Switch back to login form
     setLoading(false);
   };
   

@@ -39,7 +39,8 @@ export function VendorLayout({
             }
         };
         fetchProfile();
-    }, [supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <ThemeProvider
