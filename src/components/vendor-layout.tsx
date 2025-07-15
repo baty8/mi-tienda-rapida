@@ -40,20 +40,11 @@ export function VendorLayout({
                     email: session.user.email || null,
                 });
             } else {
-                router.push('/');
+                router.replace('/');
                 setUser(null);
                 setProfile(null);
             }
         });
-
-        // Initial check
-        const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                router.push('/');
-            }
-        };
-        checkUser();
 
         return () => {
             subscription?.unsubscribe();
