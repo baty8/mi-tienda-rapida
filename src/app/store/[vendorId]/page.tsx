@@ -66,37 +66,32 @@ export default function StorePage() {
         // 2. Fetch all public catalogs for this vendor
         const { data: catalogData, error: catalogError } = await supabase
           .from('catalogs')
-          .select('id, name')
+          .select('id, name, catalog_products(product_id)')
           .eq('user_id', vendorId)
           .eq('is_public', true);
         
         if (catalogError) throw new Error('Error al cargar los catálogos.');
-        const publicCatalogs = catalogData as Catalog[];
+        
+        const publicCatalogs = (catalogData as any[]).map(c => ({...c, product_ids: c.catalog_products.map((cp: any) => cp.product_id)}));
         setCatalogs(publicCatalogs);
 
-        const publicCatalogIds = publicCatalogs.map(c => c.id);
+        const allProductIdsInPublicCatalogs = [...new Set(publicCatalogs.flatMap(c => c.product_ids))];
 
-        if (publicCatalogIds.length > 0) {
-            // 3. Fetch all products linked to these public catalogs
-            const { data: catalogProductsData, error: catalogProductsError } = await supabase
-                .from('catalog_products')
-                .select('product_id, catalog_id')
-                .in('catalog_id', publicCatalogIds);
+        if (allProductIdsInPublicCatalogs.length > 0) {
+            const { data: productData, error: productError } = await supabase
+                .from('products')
+                .select('*')
+                .in('id', allProductIdsInPublicCatalogs)
+                .eq('visible', true);
 
-            if (catalogProductsError) throw new Error('Error al cargar productos del catálogo.');
-            
-            const productIdsInPublicCatalogs = [...new Set(catalogProductsData.map(p => p.product_id))];
+            if (productError) throw new Error('No se pudieron cargar los productos.');
 
-            if (productIdsInPublicCatalogs.length > 0) {
-                const { data: productData, error: productError } = await supabase
-                    .from('products')
-                    .select('*')
-                    .in('id', productIdsInPublicCatalogs)
-                    .eq('visible', true);
-
-                if (productError) throw new Error('No se pudieron cargar los productos.');
-
-                const formattedProducts = productData.map((p: any) => ({
+            const formattedProducts = productData.map((p: any) => {
+                const containingCatalogs = publicCatalogs
+                    .filter(c => c.product_ids.includes(p.id))
+                    .map(c => c.id);
+                
+                return {
                   id: p.id,
                   name: p.name,
                   description: p.description || '',
@@ -109,12 +104,10 @@ export default function StorePage() {
                   tags: [],
                   category: 'General',
                   user_id: p.user_id,
-                  catalog_ids: catalogProductsData.filter(cp => cp.product_id === p.id).map(cp => cp.catalog_id)
-                }));
-                setProducts(formattedProducts);
-            } else {
-                setProducts([]);
-            }
+                  catalog_ids: containingCatalogs
+                }
+            });
+            setProducts(formattedProducts);
         } else {
             setProducts([]);
         }
@@ -226,7 +219,7 @@ export default function StorePage() {
 
 
             {!showEmptyState ? (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {filteredProducts.map((product) => (
                     <div key={product.id} onClick={() => openModal(product)} className="group flex cursor-pointer transform flex-col overflow-hidden rounded-xl border border-gray-200 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
                         <div className="aspect-square w-full overflow-hidden">
@@ -272,13 +265,13 @@ export default function StorePage() {
                         <X className="h-5 w-5" />
                         <span className="sr-only">Cerrar</span>
                     </button>
-                    <div className="w-full aspect-video overflow-hidden rounded-lg mb-4">
+                    <div className="w-full max-h-80 overflow-hidden rounded-lg mb-4">
                         <Image
                         src={selectedProduct.image}
                         alt={selectedProduct.name}
                         width={500}
-                        height={281}
-                        className="h-full w-full object-cover"
+                        height={500}
+                        className="h-full w-full object-contain"
                         data-ai-hint="product image"
                         />
                     </div>
