@@ -159,6 +159,7 @@ export default function AuthPage() {
           {isSignUp ? (
              <form onSubmit={handleSignUp} className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
                 <h1 className="text-3xl font-bold font-headline text-gray-800">Crear Cuenta</h1>
+                {/*
                 <div className="my-2 flex justify-center gap-4">
                     <Button variant="outline" size="icon" type="button" onClick={() => handleOAuthLogin('google')}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M21.35 11.1H12.18V13.83H18.67C18.36 17.64 15.19 19.27 12.19 19.27C8.36 19.27 5.03 16.25 5.03 12.55C5.03 8.85 8.36 5.83 12.19 5.83C14.27 5.83 15.94 6.51 17.22 7.73L19.34 5.61C17.22 3.79 14.86 2.86 12.19 2.86C7.03 2.86 3 7.13 3 12.55C3 17.97 7.03 22.24 12.19 22.24C17.65 22.24 21.5 18.22 21.5 12.91C21.5 12.21 21.45 11.65 21.35 11.1Z"></path></svg>
@@ -170,6 +171,7 @@ export default function AuthPage() {
                     </Button>
                 </div>
                 <span className="text-sm text-gray-500">o usa tu email para registrarte</span>
+                */}
                 <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-gray-100 border-none text-gray-900" />
                 <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="email"/>
                 <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="new-password"/>
@@ -180,6 +182,7 @@ export default function AuthPage() {
           ) : (
             <form onSubmit={handleLogin} className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
                 <h1 className="text-3xl font-bold font-headline text-gray-800">Iniciar Sesión</h1>
+                {/*
                 <div className="my-2 flex justify-center gap-4">
                     <Button variant="outline" size="icon" type="button" onClick={() => handleOAuthLogin('google')}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M21.35 11.1H12.18V13.83H18.67C18.36 17.64 15.19 19.27 12.19 19.27C8.36 19.27 5.03 16.25 5.03 12.55C5.03 8.85 8.36 5.83 12.19 5.83C14.27 5.83 15.94 6.51 17.22 7.73L19.34 5.61C17.22 3.79 14.86 2.86 12.19 2.86C7.03 2.86 3 7.13 3 12.55C3 17.97 7.03 22.24 12.19 22.24C17.65 22.24 21.5 18.22 21.5 12.91C21.5 12.21 21.45 11.65 21.35 11.1Z"></path></svg>
@@ -191,6 +194,7 @@ export default function AuthPage() {
                     </Button>
                 </div>
                 <span className="text-sm text-gray-500">o usa tu cuenta para acceder</span>
+                */}
                 <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="email"/>
                 <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="current-password"/>
                 
