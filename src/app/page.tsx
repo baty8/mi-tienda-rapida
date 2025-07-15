@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -49,6 +48,15 @@ export default function AuthPage() {
       });
       setLoading(false);
       return;
+    }
+
+    if (authData.user.aud !== 'authenticated') {
+        toast({
+            title: 'Confirmación pendiente',
+            description: 'Por favor, revisa tu correo para confirmar tu cuenta antes de iniciar sesión.',
+        });
+        setLoading(false);
+        return;
     }
     
     setLoading(false);
@@ -113,7 +121,7 @@ export default function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body">
       <div className={cn(
-        'relative w-full max-w-4xl min-h-[520px] overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-700 ease-in-out',
+        'relative w-full max-w-4xl min-h-[550px] overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-700 ease-in-out',
       )}>
         {/* Sign-Up Form Container */}
         <div className={cn(
@@ -162,7 +170,7 @@ export default function AuthPage() {
             <span className="text-sm text-gray-500">o usa tu cuenta para acceder</span>
             <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="email"/>
             <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="current-password"/>
-             <Link href="#" className="text-sm text-gray-500 hover:underline">¿Olvidaste tu contraseña?</Link>
+            <button type="button" className="text-sm text-gray-500 hover:underline">¿Olvidaste tu contraseña?</button>
             <Button type="submit" disabled={loading} className="mt-2 rounded-full bg-rose-500 px-12 py-2 font-bold uppercase tracking-wider text-white hover:bg-rose-600">
               {loading ? 'Entrando...' : 'Iniciar Sesión'}
             </Button>
@@ -180,7 +188,7 @@ export default function AuthPage() {
             )}>
                  {/* Overlay Left */}
                 <div className={cn(
-                    'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out',
+                    'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out transform',
                     isSignUp ? 'translate-x-0' : '-translate-x-1/4 opacity-0'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Bienvenido de vuelta!</h1>
@@ -191,11 +199,11 @@ export default function AuthPage() {
                 </div>
                  {/* Overlay Right */}
                 <div className={cn(
-                    'absolute top-0 right-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out',
+                    'absolute top-0 right-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out transform',
                     isSignUp ? 'translate-x-1/4 opacity-0' : 'translate-x-0'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Hola, Vendedor!</h1>
-                    <p className="mt-4 text-sm">Ingresa tus datos y comienza a vender en minutos</p>
+                    <p className="mt-4 text-sm">Crea tu catálogo, administra tus productos y publícalo en la red para obtener ventas.</p>
                     <Button variant="outline" onClick={() => setIsSignUp(true)} className="mt-4 rounded-full border-white bg-transparent px-10 py-2 font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:text-white">
                         Regístrate
                     </Button>
