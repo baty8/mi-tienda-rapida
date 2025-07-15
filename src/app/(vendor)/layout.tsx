@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -16,29 +16,34 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
 
+  const fetchProfile = useCallback(async (userId: string) => {
+    const { data: profileData, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (profileData && !error) {
+      setProfile(profileData as Profile);
+    } else {
+      console.error('Could not fetch profile:', error?.message);
+      // Fallback profile if fetch fails but session exists
+      const { data: { user } } = await supabase.auth.getUser();
+      setProfile({
+        id: userId,
+        email: user?.email || null,
+        name: 'Vendedor',
+        phone: null,
+        avatar_url: null,
+      });
+    }
+  }, [supabase]);
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
-          const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileData && !error) {
-            setProfile(profileData as Profile);
-          } else {
-            console.error('Could not fetch profile:', error?.message);
-            // Fallback profile if fetch fails but session exists
-            setProfile({
-                id: session.user.id,
-                email: session.user.email || null,
-                name: 'Vendedor',
-                phone: null,
-                avatar_url: null,
-            });
-          }
+          await fetchProfile(session.user.id);
           setLoading(false);
         } else {
           setLoading(false);
@@ -50,7 +55,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [router, supabase, fetchProfile]);
 
   if (loading) {
     return (

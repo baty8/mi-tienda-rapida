@@ -158,6 +158,7 @@ function ProfilePage() {
       } else {
           toast({ title: '¡Éxito!', description: 'Tu perfil ha sido actualizado.' });
           setProfile(prev => ({...prev, avatar_url: newAvatarUrl}));
+          router.refresh(); // This is the key change to refresh the UI state
       }
       setSaving(false);
     };
