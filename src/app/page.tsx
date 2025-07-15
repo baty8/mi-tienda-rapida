@@ -52,8 +52,7 @@ export default function AuthPage() {
       return;
     }
     
-    // Al iniciar sesión con éxito, simplemente redirigimos.
-    // El layout de las rutas protegidas se encargará del resto.
+    // Simplemente redirigimos. El layout de las rutas protegidas se encargará del resto.
     router.push('/products');
   };
 
