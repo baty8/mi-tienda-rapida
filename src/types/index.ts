@@ -24,3 +24,15 @@ export interface Catalog {
     product_ids: string[]; // Array of product UUIDs
     is_public: boolean;
 }
+
+export type Profile = {
+  id: string;
+  name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  email: string | null;
+  store_template_id: string | null;
+  store_bg_color?: string | null;
+  store_primary_color?: string | null;
+  store_accent_color?: string | null;
+};

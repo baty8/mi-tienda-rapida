@@ -19,6 +19,7 @@ interface ProductContextType {
   setActiveCatalog: (catalog: Catalog | null) => void;
   saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => Promise<void>;
   createCatalog: (name: string) => Promise<void>;
+  deleteCatalog: (catalogId: string) => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -52,7 +53,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     const { data: catalogData, error: catalogError } = await supabase
         .from('catalogs')
         .select(`*, catalog_products(product_id)`)
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .order('name', { ascending: true });
     
     if (catalogError) {
         toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los catálogos.' });
@@ -157,7 +159,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id'>>, imageFile?: File | null) => {
+  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFile?: File) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -206,6 +208,20 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteCatalog = async (catalogId: string) => {
+      const { error } = await supabase.from('catalogs').delete().eq('id', catalogId);
+      if (error) {
+          toast({ variant: 'destructive', title: 'Error', description: 'No se pudo eliminar el catálogo.' });
+      } else {
+          toast({ title: 'Éxito', description: 'Catálogo eliminado.' });
+          if(activeCatalog?.id === catalogId) {
+              const remainingCatalogs = catalogs.filter(c => c.id !== catalogId);
+              setActiveCatalog(remainingCatalogs.length > 0 ? remainingCatalogs[0] : null);
+          }
+          await fetchProducts(); // Refresca la lista de catálogos
+      }
+  };
+
   const saveCatalog = async (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean; }) => {
     const { name, product_ids, is_public } = catalogData;
     const { error: updateError } = await supabase.from('catalogs').update({ name, is_public }).eq('id', catalogId);
@@ -228,7 +244,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <ProductContext.Provider value={{ products, loading, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, addProduct, updateProduct, deleteProduct, fetchProducts }}>
+    <ProductContext.Provider value={{ products, loading, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, addProduct, updateProduct, deleteProduct, fetchProducts, deleteCatalog }}>
       {children}
     </ProductContext.Provider>
   );

@@ -72,59 +72,6 @@
     --sidebar-ring: 207 90% 54%;
   }
 
-  /* Catalog Themes */
-  .theme-white {
-    --store-bg: 0 0% 100%;
-    --store-fg: 240 10% 3.9%;
-    --store-primary: 222.2 84% 4.9%;
-    --store-accent: 240 4.8% 95.9%;
-  }
-  .dark .theme-white {
-    --store-bg: 0 0% 100%;
-    --store-fg: 240 10% 3.9%;
-    --store-primary: 222.2 84% 4.9%;
-    --store-accent: 240 4.8% 95.9%;
-  }
-
-  .theme-black {
-    --store-bg: 240 10% 3.9%;
-    --store-fg: 0 0% 98%;
-    --store-primary: 0 0% 98%;
-    --store-accent: 240 3.7% 15.9%;
-  }
-  .dark .theme-black {
-    --store-bg: 240 10% 3.9%;
-    --store-fg: 0 0% 98%;
-    --store-primary: 0 0% 98%;
-    --store-accent: 240 3.7% 15.9%;
-  }
-
-  .theme-gray {
-    --store-bg: 240 4.8% 95.9%;
-    --store-fg: 240 5.9% 10%;
-    --store-primary: 240 5.9% 10%;
-    --store-accent: 0 0% 100%;
-  }
-  .dark .theme-gray {
-    --store-bg: 240 5.9% 10%;
-    --store-fg: 240 4.8% 95.9%;
-    --store-primary: 240 4.8% 95.9%;
-    --store-accent: 240 3.7% 15.9%;
-  }
-
-  .theme-vintage {
-    --store-bg: 38 60% 94%; /* Crema */
-    --store-fg: 30 43% 25%; /* Marrón oscuro */
-    --store-primary: 13 77% 49%; /* Naranja quemado */
-    --store-accent: 38 40% 88%; /* Crema más claro */
-  }
-  .dark .theme-vintage {
-    --store-bg: 30 20% 12%; /* Marrón oscuro para fondo */
-    --store-fg: 38 60% 94%; /* Crema para texto */
-    --store-primary: 38 90% 70%; /* Crema más brillante para primario */
-    --store-accent: 30 20% 18%; /* Marrón ligeramente más claro */
-  }
-
 }
 
 @layer base {

@@ -19,7 +19,8 @@ import {
   Eye,
   EyeOff,
   Palette,
-  Smartphone as SmartphoneIcon
+  Smartphone as SmartphoneIcon,
+  Trash2,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -30,6 +31,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 import { Button } from '@/components/ui/button';
 import { Product } from '@/types';
 import * as React from 'react';
@@ -65,7 +78,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function CatalogPage() {
-  const { products, fetchProducts, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog } = useProduct();
+  const { products, fetchProducts, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, deleteCatalog } = useProduct();
   const [newCatalogName, setNewCatalogName] = useState('');
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -112,6 +125,11 @@ export default function CatalogPage() {
     setNewCatalogName('');
     setCreateDialogOpen(false);
   };
+
+  const handleDeleteCatalog = async () => {
+      if (!activeCatalog) return;
+      await deleteCatalog(activeCatalog.id);
+  }
   
   const productsInCatalog = activeCatalog ? products.filter(p => activeCatalog.product_ids.includes(p.id)) : [];
   const availableProducts = products.filter(p => p.visible);
@@ -213,6 +231,30 @@ export default function CatalogPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="icon" disabled={!activeCatalog}>
+                          <Trash2 className="h-4 w-4" />
+                      </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                      <AlertDialogHeader>
+                          <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Esto eliminará permanentemente el catálogo
+                              "{activeCatalog?.name}".
+                          </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDeleteCatalog}>
+                              Continuar
+                          </AlertDialogAction>
+                      </AlertDialogFooter>
+                  </AlertDialogContent>
+              </AlertDialog>
+
             </CardContent>
              {catalogs.length === 0 && (
                 <CardFooter>
