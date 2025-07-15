@@ -30,6 +30,8 @@ import Image from 'next/image';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import type { Profile } from '@/types';
@@ -315,9 +317,12 @@ export default function ProfilePage() {
                         Visualizar Tienda
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-[340px] sm:max-w-[340px] p-0 border-0">
+                    <DialogContent className="max-w-[340px] sm:max-w-[340px] p-0 border-0 bg-transparent shadow-none">
+                       <DialogHeader>
+                          <DialogTitle className="sr-only">Previsualización de la Tienda Móvil</DialogTitle>
+                       </DialogHeader>
                        <div className="mx-auto w-[320px] h-[640px] bg-gray-800 rounded-[32px] border-[12px] border-gray-900 shadow-xl overflow-hidden">
-                        <div className="w-full h-full">
+                        <div className="w-full h-full bg-white">
                           <iframe 
                             src={`${storeLink}?preview=${Date.now()}`}
                             className="w-full h-full border-0"
