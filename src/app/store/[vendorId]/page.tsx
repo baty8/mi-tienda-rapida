@@ -103,7 +103,7 @@ export default function StorePage() {
                   cost: 0,
                   stock: p.stock || 0,
                   visible: p.visible,
-                  image: p.image_url || 'https://placehold.co/300x200.png',
+                  image: p.image_url || 'https://placehold.co/300x300.png',
                   createdAt: '',
                   tags: [],
                   category: 'General',
@@ -182,16 +182,16 @@ export default function StorePage() {
             .store-accent-bg { background-color: var(--store-accent); }
             .store-border-primary { border-color: var(--store-primary); }
         `}</style>
-        <main className="mx-auto max-w-3xl p-4 sm:p-6 lg:p-8 store-bg">
+        <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
             <header className="mb-8 text-center">
                 <Avatar className="mx-auto h-24 w-24 border-4 border-white shadow-lg">
                     <AvatarImage src={vendor?.avatar_url || 'https://placehold.co/100x100.png'} alt={vendor?.name || 'Vendedor'} data-ai-hint="logo business" />
                     <AvatarFallback>{vendor?.name?.charAt(0) || 'V'}</AvatarFallback>
                 </Avatar>
-                <h1 className="mt-4 text-4xl font-bold store-primary-text">{vendor?.name || 'Nuestra Tienda'}</h1>
+                <h1 className="mt-4 text-3xl sm:text-4xl font-bold store-primary-text">{vendor?.name || 'Nuestra Tienda'}</h1>
             </header>
 
-            <div className="sticky top-0 z-10 py-4 store-bg flex flex-col sm:flex-row gap-4">
+            <div className="sticky top-0 z-10 py-4 store-bg flex flex-col sm:flex-row gap-4 mb-8">
                  <div className="relative flex-grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input 
@@ -215,44 +215,37 @@ export default function StorePage() {
             </div>
 
 
-            {!showEmptyState && (
-                <div className="space-y-6 mt-6">
+            {!showEmptyState ? (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {filteredProducts.map((product) => (
-                    <div key={product.id} className="transform transition-transform duration-300 hover:scale-[1.02]">
-                    <div className="overflow-hidden rounded-xl border border-gray-200 shadow-lg store-accent-bg">
-                        <div className="grid grid-cols-1 md:grid-cols-3">
-                        <div className="md:col-span-1">
+                    <div key={product.id} className="group flex transform flex-col overflow-hidden rounded-xl border border-gray-200 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
+                        <div className="aspect-square w-full overflow-hidden">
                             <Image
                             src={product.image}
                             alt={product.name}
                             width={300}
                             height={300}
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             data-ai-hint="product image"
                             />
                         </div>
-                        <div className="flex flex-col p-6 md:col-span-2">
-                            <h2 className="text-2xl font-bold store-text">{product.name}</h2>
-                            {product.description && <p className="mt-2 text-gray-600">{product.description}</p>}
-                            <div className="mt-4 flex-grow"></div>
-                            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                            <p className="text-3xl font-extrabold store-primary-text">${product.price.toFixed(2)}</p>
-                            <Button asChild size="lg" className="w-full sm:w-auto store-primary-bg hover:opacity-90" disabled={!vendor?.phone}>
-                                <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
-                                <MessageCircle className="mr-2 h-5 w-5" />
-                                Consultar
-                                </a>
-                            </Button>
+                        <div className="flex flex-1 flex-col p-4">
+                            <h2 className="text-lg font-bold store-text flex-1">{product.name}</h2>
+                            {product.description && <p className="mt-1 text-sm text-gray-600 line-clamp-2">{product.description}</p>}
+                            <div className="mt-4 flex items-end justify-between gap-4">
+                                <p className="text-2xl font-extrabold store-primary-text">${product.price.toFixed(2)}</p>
+                                <Button asChild size="sm" className="shrink-0 store-primary-bg hover:opacity-90" disabled={!vendor?.phone}>
+                                    <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
+                                        <MessageCircle className="mr-2 h-4 w-4" />
+                                        Consultar
+                                    </a>
+                                </Button>
                             </div>
                         </div>
-                        </div>
-                    </div>
                     </div>
                 ))}
                 </div>
-            )}
-            
-            {showEmptyState && (
+            ) : (
                 <div className="py-16 text-center">
                     <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-4 text-xl font-semibold store-text">No se encontraron productos</h3>
@@ -261,7 +254,7 @@ export default function StorePage() {
             )}
 
             <footer className="mt-12 text-center text-sm text-gray-500">
-            <p>Potenciado por VentaRapida</p>
+                <p>Potenciado por VentaRapida</p>
             </footer>
         </main>
     </div>
