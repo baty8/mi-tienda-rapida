@@ -267,36 +267,36 @@ export default function StorePage() {
             
             {selectedProduct && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-in fade-in-0" onClick={closeModal}>
-                <div className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl animate-in zoom-in-95" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={closeModal} className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
-                    <X className="h-5 w-5" />
-                    <span className="sr-only">Cerrar</span>
-                  </button>
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div className="w-full aspect-square overflow-hidden rounded-lg">
-                      <Image
+                <div className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl animate-in zoom-in-95 flex flex-col" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={closeModal} className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+                        <X className="h-5 w-5" />
+                        <span className="sr-only">Cerrar</span>
+                    </button>
+                    <div className="w-full aspect-video overflow-hidden rounded-lg mb-4">
+                        <Image
                         src={selectedProduct.image}
                         alt={selectedProduct.name}
-                        width={400}
-                        height={400}
+                        width={500}
+                        height={281}
                         className="h-full w-full object-cover"
                         data-ai-hint="product image"
-                      />
+                        />
                     </div>
-                    <div className="flex flex-col">
-                      <h2 className="text-2xl font-bold store-text">{selectedProduct.name}</h2>
-                      <p className="mt-2 text-gray-600 flex-grow">{selectedProduct.description}</p>
-                      <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-                         <p className="text-3xl font-extrabold store-primary-text">${selectedProduct.price.toFixed(2)}</p>
-                         <Button asChild size="lg" className="w-full sm:w-auto store-primary-bg hover:opacity-90" disabled={!vendor?.phone}>
-                           <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
+                    <div className="flex flex-col flex-grow">
+                        <h2 className="text-2xl font-bold store-text">{selectedProduct.name}</h2>
+                        <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">
+                          <p>{selectedProduct.description}</p>
+                        </div>
+                        <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-3xl font-extrabold store-primary-text">${selectedProduct.price.toFixed(2)}</p>
+                            <Button asChild size="lg" className="w-full sm:w-auto store-primary-bg hover:opacity-90" disabled={!vendor?.phone}>
+                            <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
                                 <MessageCircle className="mr-2 h-5 w-5" />
                                 Consultar
                             </a>
-                         </Button>
-                      </div>
+                            </Button>
+                        </div>
                     </div>
-                  </div>
                 </div>
               </div>
             )}
