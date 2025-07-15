@@ -73,8 +73,8 @@ export default function CatalogPage() {
   const [vendorId, setVendorId] = useState<string | null>(null);
   const router = useRouter();
 
-  const storeLink = vendorId ? `${window.location.origin}/store/${vendorId}` : '';
-  
+  const [storeLink, setStoreLink] = useState('');
+
   useEffect(() => {
     const checkSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -83,6 +83,9 @@ export default function CatalogPage() {
         } else {
             setVendorId(session.user.id);
             fetchProducts();
+            if (typeof window !== 'undefined') {
+              setStoreLink(`${window.location.origin}/store/${session.user.id}`);
+            }
         }
     };
     checkSession();
@@ -147,7 +150,7 @@ export default function CatalogPage() {
               <DialogHeader>
                 <DialogTitle>Comparte tu Tienda</DialogTitle>
                 <DialogDescription>
-                  Este es el enlace público a tu tienda. Cualquiera con este enlace puede ver tus catálogos públicos.
+                  Copia y comparte este enlace público. Cualquiera puede usarlo para ver tu tienda.
                 </DialogDescription>
               </DialogHeader>
               <div className="flex items-center space-x-2">
@@ -329,5 +332,3 @@ export default function CatalogPage() {
     </VendorLayout>
   );
 }
-
-    
