@@ -1,139 +1,121 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import supabase from '@/lib/supabaseClient';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import supabase from '@/lib/supabaseClient';
+import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Product } from '@/types';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 
-export default function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function HomePage() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    async function fetchProducts() {
-      const { data, error } = await supabase
-        .from('products') 
-        .select('*')
-        .eq('visible', true); 
-
-      if (error) {
-        console.error('Error fetching products:', error);
-        setError(`Error al cargar productos: ${error.message}`);
-      } else {
-        const formattedProducts: Product[] = (data || []).map((p: any) => ({
-          id: p.id.toString(),
-          name: p.name,
-          description: p.description || '',
-          price: p.price,
-          cost: p.cost || 0,
-          stock: p.stock || 0,
-          visible: p.visible,
-          image: p.image_url || 'https://placehold.co/300x200',
-          createdAt: p.created_at,
-          tags: [], 
-          category: 'General' 
-        }))
-        setProducts(formattedProducts);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.replace('/products');
       }
+    };
+    checkSession();
+  }, [router]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError || !authData.user) {
+      toast({
+        variant: 'destructive',
+        title: 'Error de inicio de sesión',
+        description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
+      });
       setLoading(false);
+      return;
     }
-
-    fetchProducts();
-  }, []); 
-
-  const openModal = (product: Product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedProduct(null);
-  };
-
-  const getWhatsAppLink = (product: Product) => {
-    const sellerPhoneNumber = '1234567890'; // Placeholder
-    const message = `Hola, estoy interesado en el producto "${product.name}". ¿Está disponible?`;
-    return `https://wa.me/${sellerPhoneNumber}?text=${encodeURIComponent(message)}`;
+    
+    setLoading(false);
+    toast({
+        title: '¡Bienvenido de nuevo!',
+        description: 'Redirigiendo a tu panel de productos.',
+    });
+    router.push('/products');
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center bg-gray-50"> 
-      <header className="sticky top-0 z-10 flex h-16 w-full items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-           <div className="flex w-full items-center justify-between">
-             <h1 className="text-xl font-bold font-headline text-primary">Tu Tienda Online</h1>
-             <Link href="/login">
-                <Button>Iniciar Sesión</Button>
-             </Link>
-           </div>
-      </header>
-      
-      <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <h2 className="text-3xl font-bold font-headline mb-8 text-center text-gray-800">Catálogo de Productos</h2>
-
-        {loading && <p className="text-center text-gray-500">Cargando productos...</p>}
-        {error && <p className="text-center text-red-500">{error}</p>}
-
-        {!loading && !error && products.length === 0 && (
-          <div className="text-center text-gray-500 py-16">
-            <h3 className="text-2xl font-semibold">No hay productos disponibles</h3>
-            <p className="mt-2">Vuelve a intentarlo más tarde.</p>
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+            <h1 className="text-3xl font-bold font-headline">Iniciar Sesión</h1>
+            <p className="text-balance text-muted-foreground">
+              Ingresa tu correo para acceder a tu panel de vendedor
+            </p>
           </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {products.map((product, index) => (
-            <div
-              key={product.id}
-              className="group border rounded-lg overflow-hidden shadow-md cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white"
-              onClick={() => openModal(product)} 
-            >
-              <div className="w-full h-48 overflow-hidden">
-                <Image
-                  src={product.image || 'https://placehold.co/300x200'}
-                  alt={product.name}
-                  width={300}
-                  height={200}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  priority={index < 4}
-                />
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold mb-2 overflow-hidden text-ellipsis whitespace-nowrap text-gray-800">{product.name}</h3> 
-                <p className="text-primary font-bold text-xl">${product.price.toFixed(2)}</p>
-              </div>
+          <form onSubmit={handleLogin} className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@ejemplo.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
-          ))}
+            <div className="grid gap-2">
+                <Label htmlFor="password">Contraseña</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+               />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Iniciando...' : 'Iniciar Sesión'}
+            </Button>
+          </form>
+          <div className="mt-4 text-center text-sm">
+            ¿No tienes una cuenta?{' '}
+            <Link href="/signup" className="underline">
+              Regístrate
+            </Link>
+          </div>
         </div>
-
-        {isModalOpen && selectedProduct && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 transition-opacity duration-300 animate-in fade-in-0">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full relative transform transition-all duration-300 animate-in zoom-in-95">
-              <button
-                className="absolute top-3 right-3 text-gray-400 hover:text-gray-800 text-2xl"
-                onClick={closeModal}
-              >
-                &times;
-              </button>
-              <h3 className="text-2xl font-bold mb-4 font-headline">{selectedProduct.name}</h3>
-              <div className="w-full h-56 rounded-lg overflow-hidden mb-4">
-                 <Image src={selectedProduct.image || 'https://placehold.co/400x224'} alt={selectedProduct.name} width={400} height={224} className="w-full h-full object-cover" />
-              </div> 
-              <p className="text-gray-700 mb-4">{selectedProduct.description}</p>
-              <p className="text-primary font-bold text-2xl mb-6">${selectedProduct.price.toFixed(2)}</p>
-              <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer" className="block"> 
-                <button className="bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 w-full font-semibold transition-colors duration-300">Consultar por WhatsApp</button>
-              </a>
-            </div>
-          </div>
-        )}
-      </main>
+      </div>
+      <div className="hidden bg-muted lg:flex lg:items-center lg:justify-center p-8">
+         <div className="text-center">
+            <ShoppingBag className="mx-auto h-16 w-16 text-primary mb-6" />
+            <h2 className="text-4xl font-bold font-headline text-gray-800">Bienvenido a VentaRapida</h2>
+            <p className="mt-4 text-lg text-gray-600 max-w-md mx-auto">
+                Crea tu catálogo, administra tus productos y publícalo en la red para obtener ventas al instante.
+            </p>
+            <Image
+                src="https://placehold.co/600x400.png"
+                alt="Image"
+                width="1920"
+                height="1080"
+                className="h-auto w-full max-w-md mx-auto rounded-lg object-cover mt-8 shadow-2xl"
+                data-ai-hint="online store analytics"
+            />
+         </div>
+      </div>
     </div>
-  );
+  )
 }
