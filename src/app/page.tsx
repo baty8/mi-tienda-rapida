@@ -47,22 +47,13 @@ export default function AuthPage() {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
-        description: authError?.message || 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
+        description: authError?.message || 'Credenciales inválidas. Por favor, revisa tu correo para confirmar tu cuenta o inténtalo de nuevo.',
       });
       setLoading(false);
       return;
     }
     
-    // This check is crucial for email confirmation
-    if (authData.user.aud !== 'authenticated') {
-        toast({
-            title: 'Confirmación pendiente',
-            description: 'Por favor, revisa tu correo para confirmar tu cuenta antes de iniciar sesión.',
-        });
-        setLoading(false);
-        return;
-    }
-    
+    // Simplificado: si no hay error, es un éxito.
     toast({
         title: '¡Bienvenido de nuevo!',
         description: 'Redirigiendo a tu panel de productos.',
@@ -149,19 +140,6 @@ export default function AuthPage() {
             {isSignUp ? (
               <form onSubmit={handleSignUp} className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
                   <h1 className="text-3xl font-bold font-headline text-gray-800">Crear Cuenta</h1>
-                  {/*
-                  <div className="my-2 flex justify-center gap-4">
-                      <Button variant="outline" size="icon" type="button" onClick={() => handleOAuthLogin('google')}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M21.35 11.1H12.18V13.83H18.67C18.36 17.64 15.19 19.27 12.19 19.27C8.36 19.27 5.03 16.25 5.03 12.55C5.03 8.85 8.36 5.83 12.19 5.83C14.27 5.83 15.94 6.51 17.22 7.73L19.34 5.61C17.22 3.79 14.86 2.86 12.19 2.86C7.03 2.86 3 7.13 3 12.55C3 17.97 7.03 22.24 12.19 22.24C17.65 22.24 21.5 18.22 21.5 12.91C21.5 12.21 21.45 11.65 21.35 11.1Z"></path></svg>
-                          <span className="sr-only">Registrarse con Google</span>
-                      </Button>
-                      <Button variant="outline" size="icon" type="button" onClick={() => handleOAuthLogin('apple')}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M20.94 15.35c-.88 2.48-2.61 4.5-4.95 4.5c-1.3 0-2.2-.6-3.14-.6c-.94 0-1.63.57-2.94.57c-2.43 0-4.51-2.04-5.39-4.55C3.3 14.54 4.04 8.7 6.4 7.23C7.57 6.5 8.95 6.13 10.21 6.13c1.3 0 2.42.4 3.33.4c.91 0 2.22-.5 3.73-.42c.3.01 2.44.38 3.67 2.24c-.03.02-2.14 1.25-2.14 3.52c0 2.72 2.67 3.75 2.81 3.86M15.3 4.31c.6-.74 1.05-1.78 1-2.94c-.75.05-1.78.63-2.42 1.38c-.62.72-1.13 1.79-1.03 2.89c.8.12 1.81-.59 2.45-1.33"></path></svg>
-                          <span className="sr-only">Registrarse con Apple</span>
-                      </Button>
-                  </div>
-                  <span className="text-sm text-gray-500">o usa tu email para registrarte</span>
-                  */}
                   <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-gray-100 border-none text-gray-900" />
                   <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="email"/>
                   <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="new-password"/>
@@ -178,19 +156,6 @@ export default function AuthPage() {
             ) : (
               <form onSubmit={handleLogin} className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
                   <h1 className="text-3xl font-bold font-headline text-gray-800">Iniciar Sesión</h1>
-                  {/*
-                  <div className="my-2 flex justify-center gap-4">
-                      <Button variant="outline" size="icon" type="button" onClick={() => handleOAuthLogin('google')}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M21.35 11.1H12.18V13.83H18.67C18.36 17.64 15.19 19.27 12.19 19.27C8.36 19.27 5.03 16.25 5.03 12.55C5.03 8.85 8.36 5.83 12.19 5.83C14.27 5.83 15.94 6.51 17.22 7.73L19.34 5.61C17.22 3.79 14.86 2.86 12.19 2.86C7.03 2.86 3 7.13 3 12.55C3 17.97 7.03 22.24 12.19 22.24C17.65 22.24 21.5 18.22 21.5 12.91C21.5 12.21 21.45 11.65 21.35 11.1Z"></path></svg>
-                          <span className="sr-only">Iniciar sesión con Google</span>
-                      </Button>
-                      <Button variant="outline" size="icon" type="button" onClick={() => handleOAuthLogin('apple')}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="h-5 w-5"><path fill="currentColor" d="M20.94 15.35c-.88 2.48-2.61 4.5-4.95 4.5c-1.3 0-2.2-.6-3.14-.6c-.94 0-1.63.57-2.94.57c-2.43 0-4.51-2.04-5.39-4.55C3.3 14.54 4.04 8.7 6.4 7.23C7.57 6.5 8.95 6.13 10.21 6.13c1.3 0 2.42.4 3.33.4c.91 0 2.22-.5 3.73-.42c.3.01 2.44.38 3.67 2.24c-.03.02-2.14 1.25-2.14 3.52c0 2.72 2.67 3.75 2.81 3.86M15.3 4.31c.6-.74 1.05-1.78 1-2.94c-.75.05-1.78.63-2.42 1.38c-.62.72-1.13 1.79-1.03 2.89c.8.12 1.81-.59 2.45-1.33"></path></svg>
-                          <span className="sr-only">Iniciar sesión con Apple</span>
-                      </Button>
-                  </div>
-                  <span className="text-sm text-gray-500">o usa tu cuenta para acceder</span>
-                  */}
                   <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="email"/>
                   <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="current-password"/>
                   
