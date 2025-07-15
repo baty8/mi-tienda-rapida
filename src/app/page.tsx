@@ -37,7 +37,7 @@ export default function AuthPage() {
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session && session.user.aud === 'authenticated') {
+      if (session) {
         router.replace('/products');
       }
     };
@@ -62,7 +62,8 @@ export default function AuthPage() {
       setLoading(false);
       return;
     }
-
+    
+    // This check is now crucial
     if (authData.user.aud !== 'authenticated') {
         toast({
             title: 'Confirmación pendiente',
@@ -245,13 +246,13 @@ export default function AuthPage() {
         )}>
             <div className={cn(
                 'relative h-full w-[200%] bg-gradient-to-r from-blue-500 to-cyan-400 text-white transition-transform duration-700 ease-in-out',
-                 isSignUp && 'translate-x-1/2'
+                 isSignUp ? 'translate-x-1/2' : 'translate-x-0'
             )}>
                 {/* Overlay Sign In */}
                 <div className={cn(
-                    'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out',
+                    'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-opacity duration-700 ease-in-out',
                     'left-0 transform',
-                    isSignUp && 'translate-x-0'
+                    isSignUp ? 'opacity-100 z-10' : 'opacity-0 z-0'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Bienvenido de vuelta!</h1>
                     <p className="mt-4 text-sm">Para mantenerte conectado con nosotros, por favor inicia sesión con tu información personal</p>
@@ -262,14 +263,14 @@ export default function AuthPage() {
 
                 {/* Overlay Sign Up */}
                 <div className={cn(
-                    'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out',
+                    'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-opacity duration-700 ease-in-out',
                     'right-0 transform',
-                     isSignUp ? 'translate-x-0 opacity-0' : 'translate-x-0'
+                     isSignUp ? 'opacity-0 z-0' : 'opacity-100 z-10'
                 )}>
-                    <h1 className="text-3xl font-bold font-headline">¡Hola, Vendedor!</h1>
-                    <p className="mt-4 text-sm">Crea tu catálogo, administra tus productos y publícalo en la red para obtener ventas.</p>
+                    <h1 className="text-3xl font-bold font-headline">¡Bienvenido a Tu Tienda Rápida!</h1>
+                    <p className="mt-4 text-sm px-4">Administra tu tienda online creando catálogos y administrando tus productos de manera sencilla.</p>
                     <Button variant="outline" onClick={() => setIsSignUp(true)} className="mt-4 rounded-full border-white bg-transparent px-10 py-2 font-bold uppercase tracking-wider text-white hover:bg-white/10 hover:text-white">
-                        Regístrate
+                        Regístrate Gratis
                     </Button>
                 </div>
             </div>
@@ -278,3 +279,5 @@ export default function AuthPage() {
     </div>
   );
 }
+
+    
