@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProduct } from "@/context/ProductContext";
 import { useMemo } from "react";
@@ -55,7 +55,7 @@ export function TopProductsChart() {
                                 className="text-xs"
                              />
                              <XAxis dataKey="stock" type="number" hide />
-                             <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent indicator="dot" />} />
+                             <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent indicator="dot" />} />
                              <Bar dataKey="stock" fill="var(--color-stock)" radius={4} />
                         </BarChart>
                     </ChartContainer>
@@ -80,7 +80,7 @@ export function TopProductsChart() {
                                 className="text-xs"
                              />
                              <XAxis dataKey="price" type="number" hide />
-                              <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent indicator="dot" formatter={(value) => `$${value}`} />} />
+                              <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent indicator="dot" formatter={(value) => `$${value}`} />} />
                              <Bar dataKey="price" fill="var(--color-price)" radius={4} />
                         </BarChart>
                     </ChartContainer>
