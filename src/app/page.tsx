@@ -1,12 +1,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import {
   AlertDialog,
@@ -63,7 +62,7 @@ export default function AuthPage() {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: signupEmail,
       password: signupPassword,
       options: {
@@ -74,8 +73,8 @@ export default function AuthPage() {
       }
     });
 
+    setLoading(false);
     if (error) {
-      setLoading(false);
       toast({
         variant: 'destructive',
         title: 'Error al registrarse',
@@ -90,7 +89,6 @@ export default function AuthPage() {
       duration: 5000,
     });
     setIsSignUp(false); // Switch back to login form
-    setLoading(false);
   };
   
   const handleOAuthLogin = async (provider: 'google' | 'apple') => {
