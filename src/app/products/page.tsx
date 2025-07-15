@@ -5,10 +5,9 @@ import { AddProductDialog } from '@/components/add-product-dialog';
 import { BulkUploadDialog } from '@/components/bulk-upload-dialog';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VendorLayout } from '@/components/vendor-layout';
+import withAuth from '@/components/withAuth';
 
-
-export default function ProductsPage() {
-
+function ProductsPage() {
   return (
     <VendorLayout>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -37,3 +36,5 @@ export default function ProductsPage() {
     </VendorLayout>
   );
 }
+
+export default withAuth(ProductsPage);

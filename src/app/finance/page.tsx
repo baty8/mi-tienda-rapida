@@ -11,29 +11,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VendorLayout } from '@/components/vendor-layout';
+import withAuth from '@/components/withAuth';
 
-export default function FinancePage() {
+function FinancePage() {
   const [cost, setCost] = useState(0);
   const [price, setPrice] = useState(0);
   const [margin, setMargin] = useState(0);
   const [profit, setProfit] = useState(0);
-  const router = useRouter();
-  const supabase = createClient();
-
-  useEffect(() => {
-    const checkSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            router.push('/');
-        }
-    };
-    checkSession();
-  }, [router, supabase.auth]);
 
   const calculateMargin = () => {
     if(price > 0 && cost > 0) {
@@ -121,3 +108,5 @@ export default function FinancePage() {
     </VendorLayout>
   );
 }
+
+export default withAuth(FinancePage);

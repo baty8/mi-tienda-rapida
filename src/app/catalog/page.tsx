@@ -65,8 +65,9 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import withAuth from '@/components/withAuth';
 
-export default function CatalogPage() {
+function CatalogPage() {
   const { products, fetchProducts, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, deleteCatalog } = useProduct();
   const [newCatalogName, setNewCatalogName] = useState('');
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
@@ -79,9 +80,7 @@ export default function CatalogPage() {
   useEffect(() => {
     const checkSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            router.push('/');
-        } else {
+        if (session) {
             setVendorId(session.user.id);
             fetchProducts();
             if (typeof window !== 'undefined') {
@@ -333,3 +332,5 @@ export default function CatalogPage() {
     </VendorLayout>
   );
 }
+
+export default withAuth(CatalogPage);

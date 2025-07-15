@@ -5,9 +5,6 @@ import { ThemeProvider } from "./theme-provider";
 import { Sidebar } from "./ui/sidebar";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
-import { ShoppingBag } from "lucide-react";
 
 type Profile = {
   name: string | null;
@@ -21,12 +18,11 @@ export function VendorLayout({
     children: React.ReactNode;
   }>) {
     const [profile, setProfile] = useState<Profile | null>(null);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
     const supabase = createClient();
 
     useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        const fetchProfile = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
                 const currentUser = session.user;
                 const { data: profileData } = await supabase
@@ -40,26 +36,10 @@ export function VendorLayout({
                     avatar_url: profileData?.avatar_url || null,
                     email: currentUser.email || null,
                 });
-                setLoading(false);
-            } else {
-                setProfile(null);
-                setLoading(false);
-                router.replace('/');
             }
-        });
-
-        return () => {
-            subscription?.unsubscribe();
         };
-    }, [router, supabase]);
-
-    if (loading) {
-        return (
-            <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
-                <ShoppingBag className="h-12 w-12 animate-pulse text-primary" />
-            </div>
-        )
-    }
+        fetchProfile();
+    }, [supabase]);
 
     return (
         <ThemeProvider

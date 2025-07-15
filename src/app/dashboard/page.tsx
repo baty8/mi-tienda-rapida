@@ -1,31 +1,17 @@
 
 'use client';
-import { useEffect } from 'react';
 import { LineChart } from 'lucide-react';
 import { SalesStats } from '@/components/sales-stats';
 import { SalesChart } from '@/components/sales-chart';
 import { ConversionRate } from '@/components/conversion-rate';
 import { useProduct } from '@/context/ProductContext';
 import { Card, CardContent } from '@/components/ui/card';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { VendorLayout } from '@/components/vendor-layout';
+import withAuth from '@/components/withAuth';
 
-export default function DashboardPage() {
+function DashboardPage() {
     const { products } = useProduct();
-    const router = useRouter();
-    const supabase = createClient();
-
-    useEffect(() => {
-        const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                router.push('/');
-            }
-        };
-        checkSession();
-    }, [router, supabase.auth]);
 
   return (
     <VendorLayout>
@@ -74,3 +60,5 @@ export default function DashboardPage() {
     </VendorLayout>
   );
 }
+
+export default withAuth(DashboardPage);

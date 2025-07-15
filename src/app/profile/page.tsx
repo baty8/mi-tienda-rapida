@@ -6,7 +6,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -35,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import withAuth from '@/components/withAuth';
 
 const templates = [
   { id: 'blanco-moderno', name: 'Blanco Moderno', colors: { bg: '#FFFFFF', primary: '#111827', accent: '#F3F4F6' } },
@@ -44,7 +44,7 @@ const templates = [
 ];
 
 
-export default function ProfilePage() {
+function ProfilePage() {
     const router = useRouter();
     const supabase = createClient();
     const [loading, setLoading] = useState(true);
@@ -67,9 +67,9 @@ export default function ProfilePage() {
 
     const fetchProfile = useCallback(async () => {
         setLoading(true);
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (!session || sessionError) {
-            router.push('/');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            router.push('/'); // Should be handled by withAuth, but as a fallback
             return;
         }
         
@@ -345,3 +345,5 @@ export default function ProfilePage() {
     </VendorLayout>
   );
 }
+
+export default withAuth(ProfilePage);
