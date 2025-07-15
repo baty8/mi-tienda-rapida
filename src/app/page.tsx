@@ -99,22 +99,15 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-      <div className="hidden bg-muted lg:flex lg:items-center lg:justify-center p-8">
-         <div className="text-center">
-            <ShoppingBag className="mx-auto h-16 w-16 text-primary mb-6" />
-            <h2 className="text-4xl font-bold font-headline text-gray-800">Bienvenido a VentaRapida</h2>
-            <p className="mt-4 text-lg text-gray-600 max-w-md mx-auto">
-                Crea tu catálogo, administra tus productos y publícalo en la red para obtener ventas al instante.
-            </p>
-            <Image
-                src="https://placehold.co/600x400.png"
-                alt="Image"
-                width="1920"
-                height="1080"
-                className="h-auto w-full max-w-md mx-auto rounded-lg object-cover mt-8 shadow-2xl"
-                data-ai-hint="online store analytics"
-            />
-         </div>
+      <div className="hidden bg-muted lg:block">
+        <Image
+          src="https://placehold.co/1080x1920.png"
+          alt="Image"
+          width="1920"
+          height="1080"
+          className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+          data-ai-hint="abstract texture"
+        />
       </div>
     </div>
   )
