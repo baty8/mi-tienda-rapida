@@ -80,7 +80,7 @@ export function SalesStats() {
                 </CardHeader>
                 <CardContent>
                 <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                <p className="text-xs text-muted-foreground">{stats.revenueChange >= 0 ? `+${stats.revenueChange}`: stats.revenueChange}% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">{stats.revenueChange >= 0 ? `+${stats.revenueChange}`: stats.revenueChange}% desde la semana pasada</p>
                 </CardContent>
             </Card>
             <Card>
@@ -90,7 +90,7 @@ export function SalesStats() {
                 </CardHeader>
                 <CardContent>
                 <div className="text-2xl font-bold">${stats.totalCosts.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                <p className="text-xs text-muted-foreground">{stats.costsChange >= 0 ? `+${stats.costsChange}`: stats.costsChange}% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">{stats.costsChange >= 0 ? `+${stats.costsChange}`: stats.costsChange}% desde la semana pasada</p>
                 </CardContent>
             </Card>
             <Card>
@@ -100,7 +100,7 @@ export function SalesStats() {
                 </CardHeader>
                 <CardContent>
                 <div className="text-2xl font-bold">+{stats.orders.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">{stats.ordersChange >= 0 ? `+${stats.ordersChange}`: stats.ordersChange}% desde el mes pasado</p>
+                <p className="text-xs text-muted-foreground">{stats.ordersChange >= 0 ? `+${stats.ordersChange}`: stats.ordersChange}% desde la semana pasada</p>
                 </CardContent>
             </Card>
         </div>

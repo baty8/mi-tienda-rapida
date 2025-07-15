@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { AiSalesAnalysis } from '@/components/ai-sales-analysis';
 import { LineChart } from 'lucide-react';
+import { StockAlert } from '@/components/stock-alert';
 
 function DashboardPage() {
     const { products } = useProduct();
@@ -26,7 +27,7 @@ function DashboardPage() {
               <div className="flex flex-col gap-1">
                   <h2 className="text-3xl font-bold font-headline">Dashboard</h2>
                   <p className="text-muted-foreground">
-                      Un resumen del rendimiento de tu tienda, analizado por IA.
+                      Un resumen del rendimiento de tu tienda.
                   </p>
               </div>
           </div>
@@ -37,10 +38,10 @@ function DashboardPage() {
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                       <div className="lg:col-span-2 space-y-6">
                           <SalesChart />
-                           <AiSalesAnalysis />
                       </div>
                       <div className="space-y-6">
                           <ConversionRate />
+                          <StockAlert />
                       </div>
                   </div>
               </div>

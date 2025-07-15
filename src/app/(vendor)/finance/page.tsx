@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { AiPricingAssistant } from '@/components/ai-pricing-assistant';
 
 function FinancePage() {
   const [cost, setCost] = useState(0);
@@ -51,12 +50,12 @@ function FinancePage() {
               Análisis Financiero
             </h2>
             <p className="text-muted-foreground">
-              Herramientas inteligentes para mejorar tu negocio.
+              Herramientas para mejorar tu negocio.
             </p>
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 max-w-md mx-auto">
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -91,9 +90,6 @@ function FinancePage() {
               </div>
             </CardContent>
           </Card>
-
-          <AiPricingAssistant />
-          
         </div>
       </main>
     </>
