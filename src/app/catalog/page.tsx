@@ -70,7 +70,15 @@ export default function CatalogPage() {
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const router = useRouter();
 
-  const catalogLink = activeCatalog ? `${window.location.origin}/catalog/${activeCatalog.id}` : '';
+  const [catalogLink, setCatalogLink] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && activeCatalog) {
+      setCatalogLink(`${window.location.origin}/catalog/${activeCatalog.id}`);
+    } else {
+      setCatalogLink('');
+    }
+  }, [activeCatalog]);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -84,7 +92,7 @@ export default function CatalogPage() {
     checkSession();
   }, [router, fetchProducts]);
   
-  const handleToggleProductInCatalog = (productId: number) => {
+  const handleToggleProductInCatalog = (productId: string) => {
     if (!activeCatalog) return;
 
     const isProductInCatalog = activeCatalog.product_ids.includes(productId);
@@ -336,5 +344,3 @@ export default function CatalogPage() {
     </VendorLayout>
   );
 }
-
-    

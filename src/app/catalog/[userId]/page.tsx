@@ -96,6 +96,7 @@ export default function PublicCatalogPage() {
               tags: [],
               category: 'General',
               in_catalog: true, // Asumimos que si está aquí, está en el catálogo
+              user_id: p.user_id,
             }));
             setProducts(formattedProducts);
         } else {
@@ -207,5 +208,3 @@ export default function PublicCatalogPage() {
     </div>
   );
 }
-
-    

@@ -14,10 +14,10 @@ interface ProductContextType {
   loading: boolean;
   fetchProducts: () => Promise<void>;
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog' | 'user_id'>, imageFile: File | null) => Promise<void>;
-  updateProduct: (productId: number, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id'>>, imageFile?: File | null) => Promise<void>;
-  deleteProduct: (productId: number) => Promise<void>;
+  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id'>>, imageFile?: File | null) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
   setActiveCatalog: (catalog: Catalog | null) => void;
-  saveCatalog: (catalogId: string, catalogData: { name: string, template_id: string, product_ids: number[] }) => Promise<void>;
+  saveCatalog: (catalogId: string, catalogData: { name: string, template_id: string, product_ids: string[] }) => Promise<void>;
   createCatalog: (name: string) => Promise<void>;
 }
 
@@ -71,10 +71,12 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         setCatalogs(formattedCatalogs);
         if (formattedCatalogs.length > 0 && !activeCatalog) {
             setActiveCatalog(formattedCatalogs[0]);
+        } else if (formattedCatalogs.length === 0) {
+            setActiveCatalog(null);
         }
     }
 
-    // Fetch products (remains the same)
+    // Fetch products
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -142,7 +144,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateProduct = async (productId: number, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id'>>, imageFile?: File | null) => {
+  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id'>>, imageFile?: File | null) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -167,7 +169,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       }
   };
 
-  const deleteProduct = async (productId: number) => {
+  const deleteProduct = async (productId: string) => {
     const { error } = await supabase.from('products').delete().eq('id', productId);
     if (error) {
        toast({ variant: 'destructive', title: 'Error', description: `No se pudo eliminar el producto: ${error.message}` });
@@ -191,7 +193,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const saveCatalog = async (catalogId: string, catalogData: { name: string, template_id: string, product_ids: number[] }) => {
+  const saveCatalog = async (catalogId: string, catalogData: { name: string, template_id: string, product_ids: string[] }) => {
     const { name, template_id, product_ids } = catalogData;
     const { error: updateError } = await supabase.from('catalogs').update({ name, template_id }).eq('id', catalogId);
     if (updateError) {
@@ -228,5 +230,3 @@ export const useProduct = () => {
   }
   return context;
 };
-
-    
