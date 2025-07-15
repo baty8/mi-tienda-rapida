@@ -1,6 +1,6 @@
 
 'use client';
-import { Calculator, TrendingUp } from 'lucide-react';
+import { Calculator } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { AiPricingAssistant } from '@/components/ai-pricing-assistant';
 
 function FinancePage() {
   const [cost, setCost] = useState(0);
@@ -50,7 +51,7 @@ function FinancePage() {
               Análisis Financiero
             </h2>
             <p className="text-muted-foreground">
-              Herramientas para entender y mejorar tu negocio.
+              Herramientas inteligentes para mejorar tu negocio.
             </p>
           </div>
         </div>
@@ -91,16 +92,8 @@ function FinancePage() {
             </CardContent>
           </Card>
 
-          {/* Placeholder for future analysis tools */}
-          <Card className="flex flex-col items-center justify-center bg-muted/50 border-dashed">
-              <CardHeader className="text-center">
-                  <CardTitle>Próximamente</CardTitle>
-                  <CardDescription>Nuevas herramientas de análisis.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <TrendingUp className="h-12 w-12 text-muted-foreground"/>
-              </CardContent>
-          </Card>
+          <AiPricingAssistant />
+          
         </div>
       </main>
     </>

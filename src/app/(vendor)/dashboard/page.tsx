@@ -1,12 +1,13 @@
 
 'use client';
-import { LineChart } from 'lucide-react';
 import { SalesStats } from '@/components/sales-stats';
 import { SalesChart } from '@/components/sales-chart';
 import { ConversionRate } from '@/components/conversion-rate';
 import { useProduct } from '@/context/ProductContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { AiSalesAnalysis } from '@/components/ai-sales-analysis';
+import { LineChart } from 'lucide-react';
 
 function DashboardPage() {
     const { products } = useProduct();
@@ -25,7 +26,7 @@ function DashboardPage() {
               <div className="flex flex-col gap-1">
                   <h2 className="text-3xl font-bold font-headline">Dashboard</h2>
                   <p className="text-muted-foreground">
-                      Un resumen del rendimiento de tu tienda.
+                      Un resumen del rendimiento de tu tienda, analizado por IA.
                   </p>
               </div>
           </div>
@@ -34,8 +35,9 @@ function DashboardPage() {
               <div className="grid gap-6">
                   <SalesStats />
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                      <div className="lg:col-span-2">
+                      <div className="lg:col-span-2 space-y-6">
                           <SalesChart />
+                           <AiSalesAnalysis />
                       </div>
                       <div className="space-y-6">
                           <ConversionRate />
