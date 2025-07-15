@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { User, Save, UploadCloud, Palette, Smartphone as SmartphoneIcon, Trash2 } from 'lucide-react';
+import { User, Save, UploadCloud, Palette, Smartphone as SmartphoneIcon } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -71,7 +71,7 @@ export default function ProfilePage() {
             .single();
         
         if (error && error.code === 'PGRST116') {
-            const { error: insertError } = await supabase
+            const { error: insertError, data: newData } = await supabase
                 .from('profiles')
                 .insert({ id: user.id, email: user.email, name: 'Vendedor', role: 'vendedor' })
                 .select()
@@ -82,7 +82,7 @@ export default function ProfilePage() {
                 setLoading(false);
                 return;
             }
-            data = insertError;
+            data = newData;
             toast({ title: '¡Perfil Creado!', description: 'Hemos creado tu perfil. ¡Ya puedes editarlo!' });
         } else if (error) {
              toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar el perfil.'});
@@ -338,3 +338,5 @@ export default function ProfilePage() {
     </VendorLayout>
   );
 }
+
+    
