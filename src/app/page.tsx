@@ -9,8 +9,8 @@ import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
+import { ShoppingBag } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
@@ -60,9 +60,10 @@ export default function HomePage() {
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold font-headline">Iniciar Sesión</h1>
+             <ShoppingBag className="h-8 w-8 text-primary mx-auto" />
+            <h1 className="text-3xl font-bold font-headline">VentaRápida</h1>
             <p className="text-balance text-muted-foreground">
-              Ingresa tu correo para acceder a tu panel de vendedor
+              Inicia sesión en tu cuenta de vendedor
             </p>
           </div>
           <form onSubmit={handleLogin} className="grid gap-4">

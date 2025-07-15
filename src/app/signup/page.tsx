@@ -63,7 +63,7 @@ const SignUpPage = () => {
         title: '¡Registro casi completo!',
         description: 'Por favor, revisa tu correo para confirmar tu cuenta y luego inicia sesión.',
       });
-      router.push('/login');
+      router.push('/');
 
     } else {
        // This case might happen if user confirmation is required.
@@ -71,7 +71,7 @@ const SignUpPage = () => {
         title: '¡Revisa tu correo!',
         description: 'Te hemos enviado un enlace de confirmación para activar tu cuenta.',
       });
-      router.push('/login');
+      router.push('/');
     }
 
     setLoading(false);
@@ -116,7 +116,7 @@ const SignUpPage = () => {
         </form>
         <p className="mt-6 text-center text-sm text-gray-600">
           ¿Ya tienes una cuenta?{' '}
-          <Link href="/login" className="font-medium text-primary hover:text-primary/80">
+          <Link href="/" className="font-medium text-primary hover:text-primary/80">
             Iniciar Sesión
           </Link>
         </p>
