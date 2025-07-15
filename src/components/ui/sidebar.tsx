@@ -31,13 +31,13 @@ interface SidebarProps {
 
 export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const supabase = createClient();
 
   const handleLogout = async () => {
+    // La única responsabilidad del botón es cerrar la sesión.
+    // El layout se encargará de la redirección al detectar el cambio de estado.
+    // Esto evita conflictos y demoras.
     await supabase.auth.signOut();
-    router.push('/');
-    router.refresh();
   };
 
   const getInitials = (name?: string | null) => {
