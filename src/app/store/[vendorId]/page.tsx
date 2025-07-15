@@ -11,6 +11,7 @@ import { ShoppingBag, MessageCircle, AlertCircle, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 type VendorProfile = {
   name: string | null;
@@ -28,6 +29,7 @@ export default function PublicStorePage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [theme, setTheme] = useState('theme-modern');
 
   useEffect(() => {
     if (!vendorId) {
@@ -54,21 +56,30 @@ export default function PublicStorePage() {
 
         const { data: publicCatalogs, error: catalogError } = await supabase
           .from('catalogs')
-          .select('id, name, catalog_products!inner(product_id)')
+          .select('id, name, template_id, catalog_products!inner(product_id)')
           .eq('user_id', vendorId)
           .eq('is_public', true);
 
         if (catalogError) throw new Error('Error al cargar catálogos.');
         
-        const productIds = [...new Set(publicCatalogs.flatMap(c => c.catalog_products.map(p => p.product_id)))];
+        const allCatalogProductIds = [...new Set(publicCatalogs.flatMap(c => c.catalog_products.map(p => p.product_id)))];
         
-        setCatalogs(publicCatalogs.map(c => ({...c, product_ids: c.catalog_products.map(p => p.product_id)} as unknown as Catalog)));
-
-        if (productIds.length > 0) {
+        const formattedCatalogs = publicCatalogs.map(c => ({
+            id: c.id,
+            name: c.name,
+            template_id: c.template_id,
+            product_ids: c.catalog_products.map(p => p.product_id),
+            user_id: vendorId,
+            is_public: true,
+            created_at: '',
+        })) as Catalog[];
+        setCatalogs(formattedCatalogs);
+        
+        if (allCatalogProductIds.length > 0) {
           const { data: productData, error: productError } = await supabase
             .from('products')
             .select('*')
-            .in('id', productIds)
+            .in('id', allCatalogProductIds)
             .eq('visible', true);
 
           if (productError) throw new Error('No se pudieron cargar los productos.');
@@ -97,6 +108,15 @@ export default function PublicStorePage() {
     fetchStoreData();
   }, [vendorId]);
 
+  useEffect(() => {
+    if (activeTab === 'all') {
+      setTheme('theme-modern'); // Default theme
+    } else {
+      const activeCatalog = catalogs.find(c => c.id === activeTab);
+      setTheme(activeCatalog?.template_id ? `theme-${activeCatalog.template_id}` : 'theme-modern');
+    }
+  }, [activeTab, catalogs]);
+
   const filteredProducts = useMemo(() => {
     let productsToShow = allProducts;
     
@@ -124,8 +144,8 @@ export default function PublicStorePage() {
   if (loading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gray-50">
-        <ShoppingBag className="h-16 w-16 animate-bounce text-primary" />
-        <p className="mt-4 text-lg text-muted-foreground">Cargando tienda...</p>
+        <ShoppingBag className="h-16 w-16 animate-bounce text-blue-500" />
+        <p className="mt-4 text-lg text-gray-600">Cargando tienda...</p>
       </div>
     );
   }
@@ -133,9 +153,9 @@ export default function PublicStorePage() {
   if (error) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gray-50 p-4">
-        <AlertCircle className="h-16 w-16 text-destructive" />
+        <AlertCircle className="h-16 w-16 text-red-500" />
         <h2 className="mt-4 text-2xl font-bold">¡Ups! Algo salió mal</h2>
-        <p className="mt-2 text-center text-muted-foreground">{error}</p>
+        <p className="mt-2 text-center text-gray-500">{error}</p>
         <Button onClick={() => window.location.reload()} className="mt-6">Intentar de nuevo</Button>
       </div>
     );
@@ -144,28 +164,35 @@ export default function PublicStorePage() {
   const showEmptyState = !vendor || allProducts.length === 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 font-body text-slate-800">
+    <div className={cn("min-h-screen font-body transition-colors duration-500", theme)} style={{
+        backgroundColor: 'hsl(var(--store-bg))',
+        color: 'hsl(var(--store-fg))',
+    }}>
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         <header className="mb-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16 border-2 border-white shadow-lg">
+                    <Avatar className="h-16 w-16 border-2 shadow-lg" style={{ borderColor: 'hsl(var(--store-accent))'}}>
                         <AvatarImage src={vendor?.avatar_url || 'https://placehold.co/100x100.png'} alt={vendor?.name || 'Vendedor'} data-ai-hint="logo business" />
                         <AvatarFallback>{vendor?.name?.charAt(0) || 'V'}</AvatarFallback>
                     </Avatar>
                     <div>
-                        <h1 className="text-3xl font-bold font-headline text-primary">{vendor?.name || 'Nuestra Tienda'}</h1>
-                        <p className="text-muted-foreground">Explora todos nuestros productos seleccionados</p>
+                        <h1 className="text-3xl font-bold font-headline" style={{color: 'hsl(var(--store-primary))'}}>{vendor?.name || 'Nuestra Tienda'}</h1>
+                        <p style={{color: 'hsl(var(--store-fg) / 0.7)'}}>Explora todos nuestros productos seleccionados</p>
                     </div>
                 </div>
                 <div className="relative w-full sm:w-64">
-                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                   <Search className="absolute left-2.5 top-2.5 h-4 w-4" style={{color: 'hsl(var(--store-fg) / 0.5)'}} />
                    <Input 
                         type="search"
                         placeholder="Buscar producto..."
-                        className="pl-8"
+                        className="pl-8 border-gray-300/50"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                            backgroundColor: 'hsl(var(--store-bg))',
+                            borderColor: 'hsl(var(--store-fg) / 0.2)',
+                        }}
                    />
                 </div>
             </div>
@@ -175,21 +202,24 @@ export default function PublicStorePage() {
              <div className="py-16 text-center">
                 <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-4 text-xl font-semibold">Esta tienda está vacía</h3>
-                <p className="mt-2 text-muted-foreground">El vendedor aún no ha añadido productos a sus catálogos públicos.</p>
+                <p className="mt-2" style={{color: 'hsl(var(--store-fg) / 0.7)'}}>El vendedor aún no ha añadido productos a sus catálogos públicos.</p>
             </div>
         ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                    <TabsTrigger value="all">Todos los Productos</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style={{backgroundColor: 'hsl(var(--store-accent))'}}>
+                    <TabsTrigger value="all" style={{color: 'hsl(var(--store-fg) / 0.8)'}}>Todos los Productos</TabsTrigger>
                     {catalogs.map(catalog => (
-                        <TabsTrigger key={catalog.id} value={catalog.id}>{catalog.name}</TabsTrigger>
+                        <TabsTrigger key={catalog.id} value={catalog.id} style={{color: 'hsl(var(--store-fg) / 0.8)'}}>{catalog.name}</TabsTrigger>
                     ))}
                 </TabsList>
                 <TabsContent value={activeTab} className="mt-6">
                     {filteredProducts.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {filteredProducts.map((product) => (
-                                <div key={product.id} className="group overflow-hidden rounded-lg border bg-white shadow-md transition-shadow hover:shadow-xl">
+                                <div key={product.id} className="group overflow-hidden rounded-lg border shadow-md transition-shadow hover:shadow-xl" style={{
+                                    backgroundColor: 'hsl(var(--store-accent))',
+                                    borderColor: 'hsl(var(--store-fg) / 0.1)',
+                                }}>
                                     <div className="relative h-56 w-full">
                                         <Image
                                             src={product.image}
@@ -201,9 +231,9 @@ export default function PublicStorePage() {
                                         />
                                     </div>
                                     <div className="flex flex-col p-4">
-                                        <h3 className="flex-grow font-semibold text-gray-800">{product.name}</h3>
-                                        <p className="mt-2 text-2xl font-bold text-primary">${product.price.toFixed(2)}</p>
-                                        <Button asChild size="sm" className="mt-4 w-full bg-green-500 text-white hover:bg-green-600" disabled={!vendor?.phone}>
+                                        <h3 className="flex-grow font-semibold">{product.name}</h3>
+                                        <p className="mt-2 text-2xl font-bold" style={{color: 'hsl(var(--store-primary))'}}>${product.price.toFixed(2)}</p>
+                                        <Button asChild size="sm" className="mt-4 w-full text-white" style={{backgroundColor: '#25D366', '--tw-ring-color': '#128C7E'}} disabled={!vendor?.phone}>
                                             <a href={getWhatsAppLink(product.name)} target="_blank" rel="noopener noreferrer">
                                                 <MessageCircle className="mr-2 h-4 w-4" />
                                                 Consultar
@@ -215,16 +245,16 @@ export default function PublicStorePage() {
                         </div>
                     ) : (
                         <div className="py-16 text-center">
-                            <Search className="mx-auto h-12 w-12 text-gray-400" />
+                            <Search className="mx-auto h-12 w-12" style={{color: 'hsl(var(--store-fg) / 0.4)'}} />
                             <h3 className="mt-4 text-xl font-semibold">No se encontraron productos</h3>
-                            <p className="mt-2 text-muted-foreground">Intenta con otra búsqueda o selecciona otra categoría.</p>
+                            <p className="mt-2" style={{color: 'hsl(var(--store-fg) / 0.7)'}}>Intenta con otra búsqueda o selecciona otra categoría.</p>
                         </div>
                     )}
                 </TabsContent>
             </Tabs>
         )}
         
-        <footer className="mt-12 text-center text-sm text-gray-500">
+        <footer className="mt-12 text-center text-sm" style={{color: 'hsl(var(--store-fg) / 0.5)'}}>
           <p>Potenciado por VentaRapida</p>
         </footer>
       </main>

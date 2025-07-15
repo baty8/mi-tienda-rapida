@@ -17,7 +17,7 @@ interface ProductContextType {
   updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFile?: File | null) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   setActiveCatalog: (catalog: Catalog | null) => void;
-  saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => Promise<void>;
+  saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean, template_id: string }) => Promise<void>;
   createCatalog: (name: string) => Promise<void>;
 }
 
@@ -49,7 +49,6 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const fetchCatalogsAndProducts = useCallback(async (userId: string) => {
     setLoading(true);
 
-    // Fetch catalogs
     const { data: catalogData, error: catalogError } = await supabase
         .from('catalogs')
         .select(`*, catalog_products(product_id)`)
@@ -65,15 +64,19 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         }));
         setCatalogs(formattedCatalogs);
 
-        // Si hay catálogos, establece el primero como activo si no hay ninguno seleccionado aún
-        if (formattedCatalogs.length > 0 && !activeCatalog) {
-            setActiveCatalog(formattedCatalogs[0]);
-        } else if (formattedCatalogs.length === 0) {
+        if (formattedCatalogs.length > 0) {
+            // Find if active catalog still exists
+            const currentActive = activeCatalog ? formattedCatalogs.find(c => c.id === activeCatalog.id) : undefined;
+            if(currentActive){
+              setActiveCatalog(currentActive);
+            } else {
+              setActiveCatalog(formattedCatalogs[0]);
+            }
+        } else {
             setActiveCatalog(null);
         }
     }
 
-    // Fetch products
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -88,20 +91,23 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       setProducts(formattedProducts);
     }
     setLoading(false);
-  }, [activeCatalog]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const checkUserAndFetch = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setCurrentUserId(user.id);
-        fetchCatalogsAndProducts(user.id);
+        if(user.id !== currentUserId){
+            setCurrentUserId(user.id);
+            await fetchCatalogsAndProducts(user.id);
+        }
       } else {
         setLoading(false);
       }
     };
     checkUserAndFetch();
-  }, [fetchCatalogsAndProducts]);
+  }, [currentUserId, fetchCatalogsAndProducts]);
   
   const fetchProducts = useCallback(async () => {
       if (currentUserId) {
@@ -191,7 +197,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const createCatalog = async (name: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data, error } = await supabase.from('catalogs').insert({ name, user_id: user.id, is_public: true }).select().single();
+    const { data, error } = await supabase.from('catalogs').insert({ name, user_id: user.id, is_public: true, template_id: 'modern' }).select().single();
     if (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'No se pudo crear el catálogo.' });
     } else {
@@ -202,9 +208,9 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const saveCatalog = async (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => {
-    const { name, product_ids, is_public } = catalogData;
-    const { error: updateError } = await supabase.from('catalogs').update({ name, is_public }).eq('id', catalogId);
+  const saveCatalog = async (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean; template_id: string; }) => {
+    const { name, product_ids, is_public, template_id } = catalogData;
+    const { error: updateError } = await supabase.from('catalogs').update({ name, is_public, template_id }).eq('id', catalogId);
     if (updateError) {
         toast({ variant: 'destructive', title: 'Error', description: 'No se pudo guardar el catálogo.' });
         return;

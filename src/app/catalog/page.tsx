@@ -17,7 +17,8 @@ import {
   Save,
   PlusCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  Palette
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -224,12 +225,28 @@ export default function CatalogPage() {
                  <Card>
                   <CardHeader><CardTitle>1. Edita los detalles de tu catálogo</CardTitle></CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                      <div className="md:col-span-2 space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                      <div className="space-y-2">
                         <Label htmlFor="catalog-name-edit">Nombre del Catálogo</Label>
                         <Input id="catalog-name-edit" value={activeCatalog.name} onChange={(e) => setActiveCatalog({...activeCatalog, name: e.target.value})} />
                       </div>
-                      <div className="flex items-center space-x-2">
+                       <div className="space-y-2">
+                        <Label htmlFor="catalog-template" className="flex items-center gap-1"><Palette className="h-4 w-4" /> Plantilla de Estilo</Label>
+                         <Select
+                            value={activeCatalog.template_id || 'modern'}
+                            onValueChange={(templateId) => setActiveCatalog({ ...activeCatalog, template_id: templateId })}
+                        >
+                            <SelectTrigger id="catalog-template">
+                                <SelectValue placeholder="Elige un estilo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="modern">Moderno (Azul)</SelectItem>
+                                <SelectItem value="elegant">Elegante (Gris)</SelectItem>
+                                <SelectItem value="sunset">Ocaso Tropical (Naranja)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center space-x-2 justify-self-start md:justify-self-end">
                         <Switch
                           id="is-public-switch"
                           checked={activeCatalog.is_public}
@@ -237,7 +254,7 @@ export default function CatalogPage() {
                         />
                         <Label htmlFor="is-public-switch" className="flex items-center gap-1">
                           {activeCatalog.is_public ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                          Público en Tienda
+                          Público
                         </Label>
                         <TooltipProvider>
                             <Tooltip>
