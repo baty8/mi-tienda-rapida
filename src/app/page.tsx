@@ -125,37 +125,37 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body">
-      <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl grid md:grid-cols-2 overflow-hidden min-h-[600px]">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 font-body">
+      <div className="w-full max-w-4xl rounded-2xl bg-card text-card-foreground shadow-2xl grid md:grid-cols-2 overflow-hidden min-h-[600px]">
 
         {/* Form Panel */}
         <div className="flex flex-col items-center justify-center p-6 md:p-10">
           <div className="w-full">
             {isSignUp ? (
               <form onSubmit={handleSignUp} className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
-                  <h1 className="text-3xl font-bold font-headline text-gray-800">Crear Cuenta</h1>
-                  <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-gray-100 border-none text-gray-900" />
-                  <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="email"/>
-                  <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="new-password"/>
-                  <Button type="submit" disabled={loading} className="mt-2 rounded-full bg-blue-500 px-12 py-2 font-bold uppercase tracking-wider text-white hover:bg-blue-600">
+                  <h1 className="text-3xl font-bold font-headline text-foreground">Crear Cuenta</h1>
+                  <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-input text-foreground placeholder:text-muted-foreground" />
+                  <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-input text-foreground placeholder:text-muted-foreground" autoComplete="email"/>
+                  <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-input text-foreground placeholder:text-muted-foreground" autoComplete="new-password"/>
+                  <Button type="submit" disabled={loading} className="mt-2 rounded-full px-12 py-2 font-bold uppercase tracking-wider">
                     {loading ? 'Creando...' : 'Registrarse'}
                   </Button>
                   <p className="mt-4 text-sm">
                       ¿Ya tienes una cuenta?{' '}
-                      <button type="button" onClick={() => setIsSignUp(false)} className="font-semibold text-blue-500 hover:underline">
+                      <button type="button" onClick={() => setIsSignUp(false)} className="font-semibold text-primary hover:underline">
                           Iniciar Sesión
                       </button>
                   </p>
               </form>
             ) : (
               <form onSubmit={handleLogin} className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
-                  <h1 className="text-3xl font-bold font-headline text-gray-800">Iniciar Sesión</h1>
-                  <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="email"/>
-                  <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-100 border-none text-gray-900" autoComplete="current-password"/>
+                  <h1 className="text-3xl font-bold font-headline text-foreground">Iniciar Sesión</h1>
+                  <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-input text-foreground placeholder:text-muted-foreground" autoComplete="email"/>
+                  <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-input text-foreground placeholder:text-muted-foreground" autoComplete="current-password"/>
                   
                   <AlertDialog>
                       <AlertDialogTrigger asChild>
-                          <button type="button" className="text-sm text-gray-500 hover:underline self-start">¿Olvidaste tu contraseña?</button>
+                          <button type="button" className="text-sm text-muted-foreground hover:underline self-start">¿Olvidaste tu contraseña?</button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                           <AlertDialogHeader>
@@ -166,7 +166,7 @@ export default function AuthPage() {
                           </AlertDialogHeader>
                           <div className="grid gap-4 py-4">
                             <Label htmlFor="forgot-email">Correo Electrónico</Label>
-                            <Input id="forgot-email" type="email" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} placeholder="tu@email.com" />
+                            <Input id="forgot-email" type="email" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} placeholder="tu@email.com" className="bg-input text-foreground placeholder:text-muted-foreground" />
                           </div>
                           <AlertDialogFooter>
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
@@ -177,7 +177,7 @@ export default function AuthPage() {
                       </AlertDialogContent>
                   </AlertDialog>
                   
-                  <Button type="submit" disabled={loading} className="mt-2 rounded-full bg-blue-500 px-12 py-2 font-bold uppercase tracking-wider text-white hover:bg-blue-600">
+                  <Button type="submit" disabled={loading} className="mt-2 rounded-full px-12 py-2 font-bold uppercase tracking-wider">
                     {loading ? 'Entrando...' : 'Iniciar Sesión'}
                   </Button>
               </form>
