@@ -81,10 +81,9 @@ export default function CatalogPage() {
   const { products, fetchProducts, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, deleteCatalog } = useProduct();
   const [newCatalogName, setNewCatalogName] = useState('');
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
 
-  const storeLink = userId ? `${window.location.origin}/store/${userId}` : '';
+  const catalogLink = activeCatalog ? `${window.location.origin}/catalog/${activeCatalog.id}` : '';
   
   useEffect(() => {
     const checkSession = async () => {
@@ -92,7 +91,6 @@ export default function CatalogPage() {
         if (!session) {
             router.push('/login');
         } else {
-            setUserId(session.user.id);
             fetchProducts();
         }
     };
@@ -149,25 +147,25 @@ export default function CatalogPage() {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button disabled={!storeLink}>
+              <Button disabled={!catalogLink}>
                 <Share2 className="mr-2 h-4 w-4" />
-                Compartir Tienda
+                Compartir Catálogo
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Comparte tu Tienda Pública</DialogTitle>
+                <DialogTitle>Comparte tu Catálogo</DialogTitle>
                 <DialogDescription>
-                  Cualquiera con este enlace puede ver todos tus catálogos públicos.
+                  Cualquiera con este enlace puede ver este catálogo específico.
                 </DialogDescription>
               </DialogHeader>
               <div className="flex items-center space-x-2">
                 <div className="grid flex-1 gap-2">
                   <Label htmlFor="link" className="sr-only">Enlace</Label>
-                  <Input id="link" value={storeLink} readOnly />
+                  <Input id="link" value={catalogLink} readOnly />
                 </div>
                 <Button type="submit" size="icon" onClick={() => {
-                  navigator.clipboard.writeText(storeLink);
+                  navigator.clipboard.writeText(catalogLink);
                   toast({ title: '¡Copiado!' });
                 }}>
                   <Copy className="h-4 w-4" />
@@ -290,7 +288,7 @@ export default function CatalogPage() {
                                     <span className="cursor-help text-muted-foreground">(?)</span>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Si está activo, este catálogo aparecerá en tu tienda pública.</p>
+                                    <p>Si está activo, los productos de este catálogo aparecerán en tu tienda.</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>

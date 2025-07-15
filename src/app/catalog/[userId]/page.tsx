@@ -17,7 +17,6 @@ type VendorProfile = {
   phone: string | null;
 };
 
-// Renombrar el archivo a [catalogId]/page.tsx
 export default function PublicCatalogPage() {
   const params = useParams();
   const catalogId = params.userId as string; // Esto ahora es catalogId
@@ -96,7 +95,7 @@ export default function PublicCatalogPage() {
               createdAt: '',
               tags: [],
               category: 'General',
-              in_catalog: true, // Asumimos que si está aquí, está en el catálogo
+              in_catalog: true, 
               user_id: p.user_id,
             }));
             setProducts(formattedProducts);
@@ -143,7 +142,7 @@ export default function PublicCatalogPage() {
     );
   }
 
-  const showEmptyState = !vendor || products.length === 0;
+  const showEmptyState = products.length === 0;
 
   return (
     <div className="min-h-screen bg-slate-50 font-body text-slate-800">
@@ -198,7 +197,7 @@ export default function PublicCatalogPage() {
             <div className="py-16 text-center">
                 <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-4 text-xl font-semibold">Este catálogo está vacío</h3>
-                <p className="mt-2 text-muted-foreground">El vendedor aún no ha añadido productos o el enlace es incorrecto.</p>
+                <p className="mt-2 text-muted-foreground">El vendedor aún no ha añadido productos.</p>
             </div>
         )}
 
