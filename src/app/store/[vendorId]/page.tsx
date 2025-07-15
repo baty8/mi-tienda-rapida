@@ -17,6 +17,7 @@ type VendorProfile = {
   name: string | null;
   avatar_url: string | null;
   phone: string | null;
+  store_template_id: string | null;
 };
 
 export default function PublicStorePage() {
@@ -45,7 +46,7 @@ export default function PublicStorePage() {
       try {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('name, avatar_url, phone')
+          .select('name, avatar_url, phone, store_template_id')
           .eq('id', vendorId)
           .single();
 
@@ -53,10 +54,11 @@ export default function PublicStorePage() {
           throw new Error('No se pudo encontrar la información del vendedor.');
         }
         setVendor(profileData);
+        setTheme(profileData.store_template_id ? `theme-${profileData.store_template_id}` : 'theme-modern');
 
         const { data: publicCatalogs, error: catalogError } = await supabase
           .from('catalogs')
-          .select('id, name, template_id, catalog_products!inner(product_id)')
+          .select('id, name, catalog_products!inner(product_id)')
           .eq('user_id', vendorId)
           .eq('is_public', true);
 
@@ -67,7 +69,6 @@ export default function PublicStorePage() {
         const formattedCatalogs = publicCatalogs.map(c => ({
             id: c.id,
             name: c.name,
-            template_id: c.template_id,
             product_ids: c.catalog_products.map(p => p.product_id),
             user_id: vendorId,
             is_public: true,
@@ -107,15 +108,6 @@ export default function PublicStorePage() {
 
     fetchStoreData();
   }, [vendorId]);
-
-  useEffect(() => {
-    if (activeTab === 'all') {
-      setTheme('theme-modern'); // Default theme
-    } else {
-      const activeCatalog = catalogs.find(c => c.id === activeTab);
-      setTheme(activeCatalog?.template_id ? `theme-${activeCatalog.template_id}` : 'theme-modern');
-    }
-  }, [activeTab, catalogs]);
 
   const filteredProducts = useMemo(() => {
     let productsToShow = allProducts;

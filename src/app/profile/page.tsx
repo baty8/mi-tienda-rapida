@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { User, Save, UploadCloud } from 'lucide-react';
+import { User, Save, UploadCloud, Palette } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -10,6 +10,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,13 +33,14 @@ type Profile = {
   phone: string | null;
   avatar_url: string | null;
   email: string | null;
+  store_template_id: string | null;
 };
 
 export default function ProfilePage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [profile, setProfile] = useState<Profile>({ name: '', phone: '', avatar_url: '', email: '' });
+    const [profile, setProfile] = useState<Profile>({ name: '', phone: '', avatar_url: '', email: '', store_template_id: 'modern' });
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
@@ -51,31 +59,30 @@ export default function ProfilePage() {
 
         let { data, error } = await supabase
             .from('profiles')
-            .select('name, phone, avatar_url')
+            .select('name, phone, avatar_url, store_template_id')
             .eq('id', user.id)
             .single();
         
-        if (error && error.code === 'PGRST116') { // 'PGRST116' significa que no se encontró el perfil
-            // El perfil no existe, así que lo creamos ("autoreparación")
-            const { data: newProfile, error: insertError } = await supabase
+        if (error && error.code === 'PGRST116') {
+            const { error: insertError } = await supabase
                 .from('profiles')
-                .insert({ id: user.id, email: user.email, name: 'Vendedor', role: 'vendedor' })
-                .select()
-                .single();
+                .insert({ id: user.id, email: user.email, name: 'Vendedor', role: 'vendedor', store_template_id: 'modern' });
             
             if (insertError) {
                 toast({ variant: 'destructive', title: 'Error Crítico', description: 'No se pudo crear tu perfil. Contacta a soporte.'});
                 setLoading(false);
                 return;
             }
-            data = newProfile; // Usamos el perfil recién creado
+            // Refetch after creation
+            const { data: refetchedData } = await supabase.from('profiles').select('name, phone, avatar_url, store_template_id').eq('id', user.id).single();
+            data = refetchedData;
             toast({ title: '¡Perfil Creado!', description: 'Hemos creado tu perfil. ¡Ya puedes editarlo!' });
         } else if (error) {
              toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar el perfil.'});
         }
         
         if (data) {
-            setProfile(prev => ({ ...prev, name: data.name, phone: data.phone, avatar_url: data.avatar_url }));
+            setProfile(prev => ({ ...prev, name: data.name, phone: data.phone, avatar_url: data.avatar_url, store_template_id: data.store_template_id || 'modern' }));
             if (data.avatar_url) {
                 setAvatarPreview(data.avatar_url);
             }
@@ -108,7 +115,7 @@ export default function ProfilePage() {
       if (avatarFile) {
           const fileName = `${userId}/avatar-${Date.now()}`;
           const { error: uploadError } = await supabase.storage
-              .from('product_images') // Using same bucket for simplicity
+              .from('product_images')
               .upload(fileName, avatarFile, { upsert: true });
 
           if (uploadError) {
@@ -127,9 +134,9 @@ export default function ProfilePage() {
               name: profile.name, 
               phone: profile.phone,
               avatar_url: newAvatarUrl,
+              store_template_id: profile.store_template_id,
           })
           .eq('id', userId);
-
 
       if (error) {
           toast({ variant: 'destructive', title: 'Error al guardar', description: error.message });
@@ -167,7 +174,7 @@ export default function ProfilePage() {
               Perfil y Contacto
             </h2>
             <p className="text-muted-foreground">
-              Gestiona tu información pública y de contacto.
+              Gestiona tu información pública y el estilo de tu tienda.
             </p>
           </div>
         </div>
@@ -180,7 +187,7 @@ export default function ProfilePage() {
                   <CardTitle>Información Pública del Vendedor</CardTitle>
                 </div>
                 <CardDescription>
-                  Esta información será visible para tus clientes en el catálogo.
+                  Esta información será visible para tus clientes en tu tienda.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -228,13 +235,44 @@ export default function ProfilePage() {
                   />
                 </div>
               </CardContent>
-              <CardFooter>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  <CardTitle>Estilo de la Tienda</CardTitle>
+                </div>
+                 <CardDescription>
+                  Elige la paleta de colores para tu tienda pública.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                 <div className="space-y-2">
+                    <Label htmlFor="store-template">Plantilla de Estilo</Label>
+                    <Select
+                        value={profile.store_template_id || 'modern'}
+                        onValueChange={(templateId) => setProfile({ ...profile, store_template_id: templateId })}
+                    >
+                        <SelectTrigger id="store-template">
+                            <SelectValue placeholder="Elige un estilo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="modern">Moderno (Azul)</SelectItem>
+                            <SelectItem value="elegant">Elegante (Gris)</SelectItem>
+                            <SelectItem value="sunset">Ocaso Tropical (Naranja)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                  </div>
+              </CardContent>
+            </Card>
+
+            <CardFooter className="flex justify-end">
                   <Button onClick={handleSave} disabled={saving || loading}>
                       <Save className="mr-2 h-4 w-4"/>
-                      {saving ? 'Guardando...' : 'Guardar Cambios'}
+                      {saving ? 'Guardando...' : 'Guardar Todos los Cambios'}
                   </Button>
-              </CardFooter>
-            </Card>
+            </CardFooter>
         </div>
       </main>
     </VendorLayout>

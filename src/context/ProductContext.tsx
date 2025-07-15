@@ -17,7 +17,7 @@ interface ProductContextType {
   updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFile?: File | null) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   setActiveCatalog: (catalog: Catalog | null) => void;
-  saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean, template_id: string }) => Promise<void>;
+  saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => Promise<void>;
   createCatalog: (name: string) => Promise<void>;
 }
 
@@ -59,13 +59,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     } else {
         const formattedCatalogs = catalogData.map(c => ({
             ...c,
-            template_id: c.template_id || 'modern',
             product_ids: c.catalog_products.map((cp: any) => cp.product_id),
         }));
         setCatalogs(formattedCatalogs);
 
         if (formattedCatalogs.length > 0) {
-            // Find if active catalog still exists
             const currentActive = activeCatalog ? formattedCatalogs.find(c => c.id === activeCatalog.id) : undefined;
             if(currentActive){
               setActiveCatalog(currentActive);
@@ -197,20 +195,20 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const createCatalog = async (name: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data, error } = await supabase.from('catalogs').insert({ name, user_id: user.id, is_public: true, template_id: 'modern' }).select().single();
+    const { data, error } = await supabase.from('catalogs').insert({ name, user_id: user.id, is_public: true }).select().single();
     if (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'No se pudo crear el catálogo.' });
     } else {
-        const newCatalog = { ...data, product_ids: [], template_id: 'modern' };
+        const newCatalog = { ...data, product_ids: [] };
         setCatalogs(prev => [...prev, newCatalog]);
         setActiveCatalog(newCatalog);
         toast({ title: 'Éxito', description: 'Catálogo creado.' });
     }
   };
 
-  const saveCatalog = async (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean; template_id: string; }) => {
-    const { name, product_ids, is_public, template_id } = catalogData;
-    const { error: updateError } = await supabase.from('catalogs').update({ name, is_public, template_id }).eq('id', catalogId);
+  const saveCatalog = async (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean; }) => {
+    const { name, product_ids, is_public } = catalogData;
+    const { error: updateError } = await supabase.from('catalogs').update({ name, is_public }).eq('id', catalogId);
     if (updateError) {
         toast({ variant: 'destructive', title: 'Error', description: 'No se pudo guardar el catálogo.' });
         return;
@@ -228,7 +226,6 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
     await fetchProducts();
   };
-
 
   return (
     <ProductContext.Provider value={{ products, loading, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, addProduct, updateProduct, deleteProduct, fetchProducts }}>

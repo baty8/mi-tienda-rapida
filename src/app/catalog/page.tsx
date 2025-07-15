@@ -18,7 +18,8 @@ import {
   PlusCircle,
   Eye,
   EyeOff,
-  Palette
+  Palette,
+  Smartphone as SmartphoneIcon
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -67,6 +68,7 @@ export default function CatalogPage() {
   const { products, fetchProducts, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog } = useProduct();
   const [newCatalogName, setNewCatalogName] = useState('');
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
+  const [isPreviewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
 
@@ -127,6 +129,27 @@ export default function CatalogPage() {
             <Save className="mr-2 h-4 w-4" />
             Guardar Catálogo
           </Button>
+
+          <Dialog open={isPreviewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" disabled={!storeLink}>
+                <SmartphoneIcon className="mr-2 h-4 w-4" />
+                Visualizar Tienda
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md sm:max-w-sm p-0">
+               <div className="mx-auto w-[375px] h-[750px] bg-gray-800 rounded-[40px] border-[14px] border-gray-800 shadow-xl overflow-hidden">
+                <div className="w-full h-full">
+                  <iframe 
+                    src={storeLink}
+                    className="w-full h-full border-0"
+                    title="Previsualización de la tienda móvil"
+                  />
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Dialog>
             <DialogTrigger asChild>
               <Button disabled={!storeLink}>
@@ -225,26 +248,10 @@ export default function CatalogPage() {
                  <Card>
                   <CardHeader><CardTitle>1. Edita los detalles de tu catálogo</CardTitle></CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                       <div className="space-y-2">
                         <Label htmlFor="catalog-name-edit">Nombre del Catálogo</Label>
                         <Input id="catalog-name-edit" value={activeCatalog.name} onChange={(e) => setActiveCatalog({...activeCatalog, name: e.target.value})} />
-                      </div>
-                       <div className="space-y-2">
-                        <Label htmlFor="catalog-template" className="flex items-center gap-1"><Palette className="h-4 w-4" /> Plantilla de Estilo</Label>
-                         <Select
-                            value={activeCatalog.template_id || 'modern'}
-                            onValueChange={(templateId) => setActiveCatalog({ ...activeCatalog, template_id: templateId })}
-                        >
-                            <SelectTrigger id="catalog-template">
-                                <SelectValue placeholder="Elige un estilo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="modern">Moderno (Azul)</SelectItem>
-                                <SelectItem value="elegant">Elegante (Gris)</SelectItem>
-                                <SelectItem value="sunset">Ocaso Tropical (Naranja)</SelectItem>
-                            </SelectContent>
-                        </Select>
                       </div>
                       <div className="flex items-center space-x-2 justify-self-start md:justify-self-end">
                         <Switch
