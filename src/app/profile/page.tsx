@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { User, Save, UploadCloud } from 'lucide-react';
+import { User, Save, UploadCloud, Palette } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -21,13 +21,35 @@ import { toast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import type { Profile } from '@/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+const templates = [
+  { id: 'blanco-moderno', name: 'Blanco Moderno', colors: { bg: '#FFFFFF', primary: '#111827', accent: '#F3F4F6' } },
+  { id: 'negro-moderno', name: 'Negro Moderno', colors: { bg: '#111827', primary: '#FFFFFF', accent: '#1F2937' } },
+  { id: 'gris-sofisticado', name: 'Gris Sofisticado', colors: { bg: '#E5E7EB', primary: '#1F2937', accent: '#D1D5DB' } },
+  { id: 'crema-vintage', name: 'Crema Vintage', colors: { bg: '#F5F3EF', primary: '#4A2E2E', accent: '#EAE5E0' } },
+];
 
 
 export default function ProfilePage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [profile, setProfile] = useState<Partial<Profile>>({ name: '', phone: '', avatar_url: '', email: '' });
+    const [profile, setProfile] = useState<Partial<Profile>>({ 
+      name: '', 
+      phone: '', 
+      avatar_url: '', 
+      email: '',
+      store_bg_color: '#FFFFFF',
+      store_primary_color: '#1E40AF',
+      store_accent_color: '#F3F4F6',
+    });
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
@@ -50,9 +72,17 @@ export default function ProfilePage() {
             .single();
         
         if (error && error.code === 'PGRST116') {
-            const { error: insertError, data: newData } = await supabase
+             const { error: insertError, data: newData } = await supabase
                 .from('profiles')
-                .insert({ id: user.id, email: user.email, name: 'Vendedor', role: 'vendedor' })
+                .insert({ 
+                    id: user.id, 
+                    email: user.email, 
+                    name: 'Vendedor', 
+                    role: 'vendedor',
+                    store_bg_color: '#FFFFFF',
+                    store_primary_color: '#1E40AF',
+                    store_accent_color: '#F3F4F6',
+                })
                 .select()
                 .single();
             
@@ -73,6 +103,9 @@ export default function ProfilePage() {
                 phone: data.phone, 
                 avatar_url: data.avatar_url, 
                 email: user.email || '',
+                store_bg_color: data.store_bg_color || '#FFFFFF',
+                store_primary_color: data.store_primary_color || '#1E40AF',
+                store_accent_color: data.store_accent_color || '#F3F4F6',
             });
             if (data.avatar_url) {
                 setAvatarPreview(data.avatar_url);
@@ -125,6 +158,9 @@ export default function ProfilePage() {
               name: profile.name, 
               phone: profile.phone,
               avatar_url: newAvatarUrl,
+              store_bg_color: profile.store_bg_color,
+              store_primary_color: profile.store_primary_color,
+              store_accent_color: profile.store_accent_color,
           })
           .eq('id', userId);
 
@@ -141,12 +177,29 @@ export default function ProfilePage() {
         const { id, value } = e.target;
         setProfile(prev => ({ ...prev, [id]: value }));
     };
+    
+    const handleColorChange = (colorType: 'store_bg_color' | 'store_primary_color' | 'store_accent_color', value: string) => {
+        setProfile(prev => ({ ...prev, [colorType]: value }));
+    };
+
+    const handleTemplateChange = (templateId: string) => {
+        const template = templates.find(t => t.id === templateId);
+        if (template) {
+            setProfile(prev => ({
+                ...prev,
+                store_bg_color: template.colors.bg,
+                store_primary_color: template.colors.primary,
+                store_accent_color: template.colors.accent,
+            }))
+        }
+    };
+
 
   return (
     <VendorLayout>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <h2 className="text-2xl font-bold font-headline md:hidden">
-          Perfil y Contacto
+          Perfil y Tienda
         </h2>
         <div className="flex items-center gap-4">
           <ThemeToggle />
@@ -161,15 +214,15 @@ export default function ProfilePage() {
         <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div className="flex flex-col gap-1">
             <h2 className="text-3xl font-bold font-headline">
-              Perfil y Contacto
+              Perfil y Tienda
             </h2>
             <p className="text-muted-foreground">
-              Gestiona tu información pública que verán tus clientes.
+              Gestiona tu información pública y el estilo de tu tienda.
             </p>
           </div>
         </div>
 
-        <div className="grid gap-6 max-w-2xl mx-auto">
+        <div className="grid gap-6 max-w-4xl mx-auto">
            <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -177,7 +230,7 @@ export default function ProfilePage() {
                   <CardTitle>Información Pública del Vendedor</CardTitle>
                 </div>
                 <CardDescription>
-                  Esta información será visible para tus clientes en tus catálogos.
+                  Esta información será visible para tus clientes en tu tienda.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -226,8 +279,52 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+
+             <Card>
+                <CardHeader>
+                    <div className="flex items-center gap-2">
+                        <Palette className="h-5 w-5" />
+                        <CardTitle>Estilo de la Tienda</CardTitle>
+                    </div>
+                    <CardDescription>
+                        Elige una plantilla o personaliza los colores de tu tienda pública.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div>
+                        <Label htmlFor="template-select">Elige una plantilla para empezar</Label>
+                        <Select onValueChange={handleTemplateChange}>
+                            <SelectTrigger id="template-select" className="w-full md:w-1/2 mt-2">
+                                <SelectValue placeholder="Selecciona una plantilla" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {templates.map(template => (
+                                    <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="store_bg_color">Color de Fondo</Label>
+                            <Input id="store_bg_color" type="color" value={profile.store_bg_color} onChange={e => handleColorChange('store_bg_color', e.target.value)} className="h-10 p-1" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="store_primary_color">Color Primario (Títulos)</Label>
+                            <Input id="store_primary_color" type="color" value={profile.store_primary_color} onChange={e => handleColorChange('store_primary_color', e.target.value)} className="h-10 p-1"/>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="store_accent_color">Color de Acento (Tarjetas)</Label>
+                            <Input id="store_accent_color" type="color" value={profile.store_accent_color} onChange={e => handleColorChange('store_accent_color', e.target.value)} className="h-10 p-1"/>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
       </main>
     </VendorLayout>
   );
 }
+
+    

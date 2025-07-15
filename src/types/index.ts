@@ -32,4 +32,9 @@ export type Profile = {
   avatar_url: string | null;
   email: string | null;
   role?: string;
+  store_bg_color?: string | null;
+  store_primary_color?: string | null;
+  store_accent_color?: string | null;
 };
+
+    

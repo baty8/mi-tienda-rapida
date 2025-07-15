@@ -2,27 +2,17 @@
 'use client';
 import Link from 'next/link';
 import {
-  ShoppingBag,
-  Package,
-  LineChart,
-  User,
   BookOpen,
   Share2,
-  Check,
-  Smartphone,
   Copy,
-  MessageCircle,
   LogOut,
-  TrendingUp,
   Save,
   PlusCircle,
   Eye,
   EyeOff,
-  Palette,
-  Smartphone as SmartphoneIcon,
   Trash2,
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 import {
   Card,
   CardContent,
@@ -48,7 +38,6 @@ import { Product } from '@/types';
 import * as React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -81,9 +70,10 @@ export default function CatalogPage() {
   const { products, fetchProducts, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, deleteCatalog } = useProduct();
   const [newCatalogName, setNewCatalogName] = useState('');
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
+  const [vendorId, setVendorId] = useState<string | null>(null);
   const router = useRouter();
 
-  const catalogLink = activeCatalog ? `${window.location.origin}/catalog/${activeCatalog.id}` : '';
+  const storeLink = vendorId ? `${window.location.origin}/store/${vendorId}` : '';
   
   useEffect(() => {
     const checkSession = async () => {
@@ -91,6 +81,7 @@ export default function CatalogPage() {
         if (!session) {
             router.push('/login');
         } else {
+            setVendorId(session.user.id);
             fetchProducts();
         }
     };
@@ -136,7 +127,7 @@ export default function CatalogPage() {
     <VendorLayout>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:justify-end">
         <h2 className="text-2xl font-bold font-headline md:hidden">
-          Catálogo Digital
+          Catálogos
         </h2>
         <div className="flex items-center gap-4">
           <ThemeToggle />
@@ -147,25 +138,25 @@ export default function CatalogPage() {
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button disabled={!catalogLink}>
+              <Button disabled={!storeLink}>
                 <Share2 className="mr-2 h-4 w-4" />
-                Compartir Catálogo
+                Compartir Tienda
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Comparte tu Catálogo</DialogTitle>
+                <DialogTitle>Comparte tu Tienda</DialogTitle>
                 <DialogDescription>
-                  Cualquiera con este enlace puede ver este catálogo específico.
+                  Este es el enlace público a tu tienda. Cualquiera con este enlace puede ver tus catálogos públicos.
                 </DialogDescription>
               </DialogHeader>
               <div className="flex items-center space-x-2">
                 <div className="grid flex-1 gap-2">
                   <Label htmlFor="link" className="sr-only">Enlace</Label>
-                  <Input id="link" value={catalogLink} readOnly />
+                  <Input id="link" value={storeLink} readOnly />
                 </div>
                 <Button type="submit" size="icon" onClick={() => {
-                  navigator.clipboard.writeText(catalogLink);
+                  navigator.clipboard.writeText(storeLink);
                   toast({ title: '¡Copiado!' });
                 }}>
                   <Copy className="h-4 w-4" />
@@ -288,7 +279,7 @@ export default function CatalogPage() {
                                     <span className="cursor-help text-muted-foreground">(?)</span>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Si está activo, los productos de este catálogo aparecerán en tu tienda.</p>
+                                    <p>Si está activo, los productos de este catálogo aparecerán en tu tienda pública.</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -338,3 +329,5 @@ export default function CatalogPage() {
     </VendorLayout>
   );
 }
+
+    
