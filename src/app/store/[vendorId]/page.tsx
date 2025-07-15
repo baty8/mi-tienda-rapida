@@ -9,9 +9,16 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, MessageCircle, AlertCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 
 type VendorFullProfile = Profile & {
     store_bg_color?: string;
@@ -29,7 +36,7 @@ export default function StorePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeCatalogId, setActiveCatalogId] = useState('all');
 
   useEffect(() => {
     if (!vendorId) {
@@ -63,26 +70,27 @@ export default function StorePage() {
           .eq('is_public', true);
         
         if (catalogError) throw new Error('Error al cargar los catálogos.');
-        setCatalogs(catalogData as Catalog[]);
+        const publicCatalogs = catalogData as Catalog[];
+        setCatalogs(publicCatalogs);
 
-        const catalogIds = catalogData.map(c => c.id);
+        const publicCatalogIds = publicCatalogs.map(c => c.id);
 
-        if (catalogIds.length > 0) {
+        if (publicCatalogIds.length > 0) {
             // 3. Fetch all products linked to these public catalogs
             const { data: catalogProductsData, error: catalogProductsError } = await supabase
                 .from('catalog_products')
-                .select('product_id')
-                .in('catalog_id', catalogIds);
+                .select('product_id, catalog_id')
+                .in('catalog_id', publicCatalogIds);
 
             if (catalogProductsError) throw new Error('Error al cargar productos del catálogo.');
             
-            const productIds = [...new Set(catalogProductsData.map(p => p.product_id))];
+            const productIdsInPublicCatalogs = [...new Set(catalogProductsData.map(p => p.product_id))];
 
-            if (productIds.length > 0) {
+            if (productIdsInPublicCatalogs.length > 0) {
                 const { data: productData, error: productError } = await supabase
                     .from('products')
                     .select('*')
-                    .in('id', productIds)
+                    .in('id', productIdsInPublicCatalogs)
                     .eq('visible', true);
 
                 if (productError) throw new Error('No se pudieron cargar los productos.');
@@ -99,7 +107,6 @@ export default function StorePage() {
                   createdAt: '',
                   tags: [],
                   category: 'General',
-                  in_catalog: true, 
                   user_id: p.user_id,
                   catalog_ids: catalogProductsData.filter(cp => cp.product_id === p.id).map(cp => cp.catalog_id)
                 }));
@@ -130,7 +137,7 @@ export default function StorePage() {
   
   const filteredProducts = products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCatalog = activeTab === 'all' || (product as any).catalog_ids.includes(activeTab);
+      const matchesCatalog = activeCatalogId === 'all' || (product as any).catalog_ids.includes(activeCatalogId);
       return matchesSearch && matchesCatalog;
   });
 
@@ -184,8 +191,8 @@ export default function StorePage() {
                 <h1 className="mt-4 text-4xl font-bold store-primary-text">{vendor?.name || 'Nuestra Tienda'}</h1>
             </header>
 
-            <div className="sticky top-0 z-10 py-4 store-bg">
-                 <div className="relative mb-4">
+            <div className="sticky top-0 z-10 py-4 store-bg flex flex-col sm:flex-row gap-4">
+                 <div className="relative flex-grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input 
                         placeholder="Buscar producto..." 
@@ -194,14 +201,17 @@ export default function StorePage() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                  </div>
-                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="overflow-x-auto whitespace-nowrap justify-start">
-                        <TabsTrigger value="all">Todos los Productos</TabsTrigger>
+                 <Select value={activeCatalogId} onValueChange={setActiveCatalogId}>
+                    <SelectTrigger className="w-full sm:w-[250px]">
+                        <SelectValue placeholder="Seleccionar un catálogo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todos los Productos</SelectItem>
                         {catalogs.map(catalog => (
-                            <TabsTrigger key={catalog.id} value={catalog.id}>{catalog.name}</TabsTrigger>
+                            <SelectItem key={catalog.id} value={catalog.id}>{catalog.name}</SelectItem>
                         ))}
-                    </TabsList>
-                </Tabs>
+                    </SelectContent>
+                </Select>
             </div>
 
 
@@ -257,5 +267,3 @@ export default function StorePage() {
     </div>
   );
 }
-
-    
