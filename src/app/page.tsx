@@ -121,9 +121,10 @@ export default function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body">
       <div className={cn(
-        'relative w-full max-w-4xl min-h-[550px] overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-700 ease-in-out',
+        'relative w-full max-w-4xl min-h-[550px] overflow-hidden rounded-2xl bg-white shadow-2xl'
       )}>
-        {/* Sign-Up Form Container */}
+
+        {/* Sign-Up Form */}
         <div className={cn(
             'absolute top-0 left-0 h-full w-1/2 transition-all duration-700 ease-in-out',
             isSignUp ? 'translate-x-full opacity-100 z-50' : 'opacity-0 z-10'
@@ -150,10 +151,10 @@ export default function AuthPage() {
           </form>
         </div>
 
-        {/* Sign-In Form Container */}
+        {/* Sign-In Form */}
         <div className={cn(
             'absolute top-0 left-0 h-full w-1/2 transition-all duration-700 ease-in-out',
-            isSignUp ? '-translate-x-full opacity-0 z-10' : 'translate-x-0 opacity-100 z-50'
+            isSignUp ? 'opacity-0 z-10' : 'opacity-100 z-50'
         )}>
            <form onSubmit={handleLogin} className="flex h-full flex-col items-center justify-center gap-4 bg-white px-10 text-center">
             <h1 className="text-3xl font-bold font-headline text-gray-800">Iniciar Sesión</h1>
@@ -184,12 +185,12 @@ export default function AuthPage() {
         )}>
             <div className={cn(
                 'relative h-full w-[200%] bg-gradient-to-r from-rose-500 to-red-600 text-white transition-transform duration-700 ease-in-out',
-                 isSignUp ? 'translate-x-1/2' : '-translate-x-0'
+                 isSignUp ? 'translate-x-1/2' : 'translate-x-0'
             )}>
-                 {/* Overlay Left */}
                 <div className={cn(
                     'absolute top-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out transform',
-                    isSignUp ? 'translate-x-0' : '-translate-x-1/4 opacity-0'
+                    'left-0',
+                    isSignUp ? 'translate-x-0' : '-translate-x-[20%] opacity-0'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Bienvenido de vuelta!</h1>
                     <p className="mt-4 text-sm">Para mantenerte conectado con nosotros, por favor inicia sesión con tu información personal</p>
@@ -197,10 +198,10 @@ export default function AuthPage() {
                         Iniciar Sesión
                     </Button>
                 </div>
-                 {/* Overlay Right */}
                 <div className={cn(
                     'absolute top-0 right-0 flex h-full w-1/2 flex-col items-center justify-center px-10 text-center transition-all duration-700 ease-in-out transform',
-                    isSignUp ? 'translate-x-1/4 opacity-0' : 'translate-x-0'
+                    'right-0',
+                    isSignUp ? 'translate-x-[20%] opacity-0' : 'translate-x-0'
                 )}>
                     <h1 className="text-3xl font-bold font-headline">¡Hola, Vendedor!</h1>
                     <p className="mt-4 text-sm">Crea tu catálogo, administra tus productos y publícalo en la red para obtener ventas.</p>
