@@ -7,10 +7,9 @@ import supabase from '@/lib/supabaseClient';
 import type { Product, Catalog, Profile } from '@/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, MessageCircle, AlertCircle } from 'lucide-react';
+import { ShoppingBag, MessageCircle, AlertCircle, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -230,8 +229,10 @@ export default function StorePage() {
                             />
                         </div>
                         <div className="flex flex-1 flex-col p-4">
-                            <h2 className="text-lg font-bold store-text flex-1">{product.name}</h2>
-                            {product.description && <p className="mt-1 text-sm text-gray-600 line-clamp-2">{product.description}</p>}
+                            <div className="flex-1">
+                                <h2 className="text-lg font-bold store-text">{product.name}</h2>
+                                {product.description && <p className="mt-1 text-sm text-gray-600 line-clamp-2">{product.description}</p>}
+                            </div>
                             <div className="mt-4 flex items-end justify-between gap-4">
                                 <p className="text-2xl font-extrabold store-primary-text">${product.price.toFixed(2)}</p>
                                 <Button asChild size="sm" className="shrink-0 store-primary-bg hover:opacity-90" disabled={!vendor?.phone}>
