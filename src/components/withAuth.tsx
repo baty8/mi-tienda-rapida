@@ -13,26 +13,19 @@ const withAuth = <P extends object>(WrappedComponent: ComponentType<P>) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+      // onAuthStateChange is the reliable source of truth for the session state.
+      // It fires once on load, and again whenever the auth state changes.
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if (!session) {
+          // If Supabase confirms there is no session, redirect to login.
           router.replace('/');
         } else {
+          // If Supabase confirms there is a session, stop loading and show the page.
           setLoading(false);
         }
       });
-      
-      // Also check initial session
-      const checkInitialSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            router.replace('/');
-        } else {
-            setLoading(false);
-        }
-      };
-      
-      checkInitialSession();
 
+      // Cleanup the subscription when the component unmounts
       return () => {
         subscription?.unsubscribe();
       };

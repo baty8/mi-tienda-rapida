@@ -43,10 +43,6 @@ export default function AuthPage() {
       password: loginPassword,
     });
 
-    // --- DEBUGGING ---
-    console.log('Supabase Auth Response:', authData);
-    // --- END DEBUGGING ---
-
     if (authError || !authData.user) {
       toast({
         variant: 'destructive',
