@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import supabase from '@/lib/supabaseClient';
 import type { Product, Catalog, Profile } from '@/types';
 import Image from 'next/image';
@@ -11,12 +11,12 @@ import { ShoppingBag, MessageCircle, AlertCircle, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 
 export default function PublicStorePage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const vendorId = params.vendorId as string;
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
@@ -25,6 +25,13 @@ export default function PublicStorePage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // This ensures we always have a vendor profile to use for styling, even during initial load.
+  const [activeTheme, setActiveTheme] = useState<Partial<Profile>>({
+      store_bg_color: '#FFFFFF',
+      store_primary_color: '#1E40AF',
+      store_accent_color: '#F3F4F6',
+  });
 
   useEffect(() => {
     if (!vendorId) {
@@ -48,6 +55,7 @@ export default function PublicStorePage() {
           throw new Error('No se pudo encontrar la información del vendedor.');
         }
         setVendor(profileData as Profile);
+        setActiveTheme(profileData as Profile);
 
         const { data: publicCatalogs, error: catalogError } = await supabase
           .from('catalogs')
@@ -100,7 +108,8 @@ export default function PublicStorePage() {
     };
 
     fetchStoreData();
-  }, [vendorId]);
+    // We add a dependency on the 'preview' query param to force a reload inside the iframe
+  }, [vendorId, searchParams]);
 
   const filteredProducts = useMemo(() => {
     let productsToShow = allProducts;
@@ -127,10 +136,10 @@ export default function PublicStorePage() {
   };
 
   const storeStyle = {
-    '--store-bg': vendor?.store_bg_color || '#FFFFFF',
-    '--store-primary': vendor?.store_primary_color || '#1E40AF',
-    '--store-accent': vendor?.store_accent_color || '#F3F4F6',
-    '--store-fg': '#111827' // For now, fixed foreground for readability
+    '--store-bg': activeTheme?.store_bg_color || '#FFFFFF',
+    '--store-primary': activeTheme?.store_primary_color || '#1E40AF',
+    '--store-accent': activeTheme?.store_accent_color || '#F3F4F6',
+    '--store-fg': '#111827'
   } as React.CSSProperties;
 
 
@@ -268,5 +277,3 @@ export default function PublicStorePage() {
     </div>
   );
 }
-
-    
