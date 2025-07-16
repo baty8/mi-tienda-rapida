@@ -7,7 +7,6 @@ import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
-import { getPriceSuggestion, type PriceSuggestionInput, type PriceSuggestionOutput } from '@/ai/flows/pricing-assistant-flow';
 
 const isConfigured = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
@@ -15,37 +14,10 @@ export function AiPricingAssistant() {
   const [productCost, setProductCost] = useState('');
   const [productDescription, setProductDescription] = useState('');
   const [targetAudience, setTargetAudience] = useState('');
-  const [suggestion, setSuggestion] = useState<PriceSuggestionOutput | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+ 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuggestion(null);
-
-    const cost = parseFloat(productCost);
-    if (isNaN(cost) || cost <= 0) {
-        setError('Por favor, introduce un costo válido para el producto.');
-        setLoading(false);
-        return;
-    }
-
-    try {
-      const input: PriceSuggestionInput = {
-        productCost: cost,
-        productDescription,
-        targetAudience,
-      };
-      const result = await getPriceSuggestion(input);
-      setSuggestion(result);
-    } catch (err) {
-      setError('Hubo un error al obtener la sugerencia. Inténtalo de nuevo.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -66,9 +38,9 @@ export function AiPricingAssistant() {
         {!isConfigured ? (
            <div className="flex flex-col items-center justify-center h-full text-center bg-muted rounded-lg p-6">
                 <Wand2 className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="font-semibold text-lg">Función de IA no disponible</h3>
+                <h3 className="font-semibold text-lg">Función Próximamente</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                    Esta herramienta requiere una API Key de Gemini para funcionar.
+                    Esta herramienta requerirá una API Key de Gemini para funcionar.
                 </p>
            </div>
         ) : (
@@ -111,27 +83,6 @@ export function AiPricingAssistant() {
           </form>
         )}
       </CardContent>
-
-       {isConfigured && error && <p className="mt-4 text-sm text-center text-destructive">{error}</p>}
-
-        {isConfigured && suggestion && (
-          <div className="p-6 pt-0">
-            <div className="mt-6 rounded-lg border bg-muted p-4 space-y-3 animate-in fade-in-50">
-                <h4 className="font-semibold text-center">Sugerencia de la IA</h4>
-                <div className='text-center'>
-                    <p className='text-sm text-muted-foreground'>Rango Sugerido</p>
-                    <p className='text-xl font-bold'>${suggestion.suggestedPriceRange.min.toFixed(2)} - ${suggestion.suggestedPriceRange.max.toFixed(2)}</p>
-                </div>
-                <div className='text-center bg-primary/10 p-3 rounded-md'>
-                    <p className='text-sm text-primary font-semibold'>Precio Óptimo Sugerido</p>
-                    <p className='text-3xl font-extrabold text-primary'>${suggestion.optimalPrice.toFixed(2)}</p>
-                </div>
-                <div>
-                    <p className='text-xs text-muted-foreground mt-2 whitespace-pre-wrap'>{suggestion.reasoning}</p>
-                </div>
-            </div>
-          </div>
-        )}
     </Card>
   );
 }

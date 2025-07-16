@@ -2,7 +2,6 @@
 'use client';
 import { ProductTable } from '@/components/product-table';
 import { AddProductDialog } from '@/components/add-product-dialog';
-import { BulkUploadDialog } from '@/components/bulk-upload-dialog';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 function ProductsPage() {
@@ -14,7 +13,6 @@ function ProductsPage() {
         </h2>
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          <BulkUploadDialog />
           <AddProductDialog />
         </div>
       </header>
