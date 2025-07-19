@@ -49,16 +49,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isAuthPage = pathname === '/' || pathname.startsWith('/auth');
     const isStorePage = pathname.startsWith('/store');
 
-    // Allow access to public store pages and auth pages regardless of session
-    if (isStorePage || (isAuthPage && !session)) {
-        return;
-    }
-
+    // If we have a session and we are on an auth page, redirect to products
     if (session && isAuthPage) {
       router.push('/products');
-    } else if (!session && !isAuthPage) {
-      router.push('/');
+      return;
     }
+
+    // If we have no session and are on a protected page, redirect to login
+    if (!session && !isAuthPage && !isStorePage) {
+      router.push('/');
+      return;
+    }
+    
   }, [session, loading, pathname, router]);
 
 
@@ -87,5 +89,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-    
