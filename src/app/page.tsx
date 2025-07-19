@@ -77,11 +77,9 @@ export default function AuthPage() {
         title: 'Error de inicio de sesión',
         description: error.message || 'Credenciales inválidas o correo no verificado.',
       });
-      setLoading(false);
-      return;
     }
-    
     // The AuthProvider will handle the redirect
+    setLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -121,8 +119,10 @@ export default function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      // REMOVED redirectTo. This will use the PKCE flow (pop-up) by default 
-      // on client-side, avoiding the main page redirect that is causing issues.
+      options: {
+        // PKCE flow is enabled by default on client-side, which uses a popup
+        // and avoids the problematic server-side redirection.
+      }
     });
 
     if (error) {
@@ -133,8 +133,7 @@ export default function AuthPage() {
       });
       setLoading(false);
     }
-    // No need to setLoading(false) on success, as the page won't be reloaded.
-    // The AuthProvider will detect the session change and navigate away.
+    // On success, the AuthProvider will detect the session change and navigate away.
   };
   
   const handlePasswordReset = async () => {
@@ -258,5 +257,3 @@ export default function AuthPage() {
       </div>
     </div>
   );
-
-    
