@@ -20,6 +20,34 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
 
+const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 48 48"
+    width="24px"
+    height="24px"
+  >
+    <path
+      fill="#FFC107"
+      d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+    />
+    <path
+      fill="#FF3D00"
+      d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+    />
+    <path
+      fill="#4CAF50"
+      d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+    />
+    <path
+      fill="#1976D2"
+      d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.021,35.826,44,30.338,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+    />
+  </svg>
+);
+
+
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
@@ -148,39 +176,57 @@ export default function AuthPage() {
                   </p>
               </form>
             ) : (
-              <form onSubmit={handleLogin} className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
+              <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
                   <h1 className="text-3xl font-bold font-headline text-gray-800">Iniciar Sesión</h1>
-                  <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="email"/>
-                  <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="current-password"/>
                   
-                  <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                          <button type="button" className="text-sm text-gray-500 hover:underline self-start">¿Olvidaste tu contraseña?</button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                          <AlertDialogHeader>
-                              <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                  Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
-                              </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <Label htmlFor="forgot-email">Correo Electrónico</Label>
-                            <Input id="forgot-email" type="email" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} placeholder="tu@email.com" />
-                          </div>
-                          <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={handlePasswordReset} disabled={loading}>
+                  <form onSubmit={handleLogin} className="w-full space-y-4">
+                    <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="email"/>
+                    <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="current-password"/>
+                    
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <button type="button" className="text-sm text-gray-500 hover:underline self-start float-left">¿Olvidaste tu contraseña?</button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <div className="grid gap-4 py-4">
+                                <Label htmlFor="forgot-email">Correo Electrónico</Label>
+                                <Input id="forgot-email" type="email" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} placeholder="tu@email.com" />
+                            </div>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={handlePasswordReset} disabled={loading}>
                                 {loading ? 'Enviando...' : 'Enviar Enlace'}
-                              </AlertDialogAction>
-                          </AlertDialogFooter>
-                      </AlertDialogContent>
-                  </AlertDialog>
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                    
+                    <Button type="submit" disabled={loading} className="w-full rounded-full px-12 py-2 font-bold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white">
+                      {loading ? 'Entrando...' : 'Iniciar Sesión'}
+                    </Button>
+                  </form>
                   
-                  <Button type="submit" disabled={loading} className="mt-2 rounded-full px-12 py-2 font-bold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white">
-                    {loading ? 'Entrando...' : 'Iniciar Sesión'}
+                  <div className="relative my-4 w-full">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-gray-300" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-gray-500">O continuar con</span>
+                    </div>
+                  </div>
+
+                  <Button variant="outline" onClick={() => handleOAuthLogin('google')} disabled={loading} className="w-full border-gray-300 text-gray-700">
+                    <GoogleIcon className="mr-2" />
+                    Google
                   </Button>
-              </form>
+                  
+              </div>
             )}
           </div>
         </div>
