@@ -29,6 +29,17 @@ export default function ResetPasswordPage() {
       }
     });
 
+    // Handle initial state in case the event is missed
+    const checkInitialState = async () => {
+        const {data} = await supabase.auth.getSession();
+        if(data.session?.user.aud === 'authenticated') {
+             // This can happen if the user is already in the recovery flow when landing
+             setIsSessionReady(true);
+        }
+    }
+    checkInitialState();
+
+
     return () => {
       subscription.unsubscribe();
     };
@@ -132,4 +143,3 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
-

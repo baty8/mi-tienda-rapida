@@ -126,9 +126,8 @@ export default function AuthPage() {
         title: 'Error de inicio de sesión con Google',
         description: `No se pudo iniciar la sesión: ${error.message}`,
       });
+      setLoading(false);
     }
-    // The loading state will be reset by the AuthProvider's redirection or if an error occurs.
-    setLoading(false);
   };
   
   const handlePasswordReset = async () => {
@@ -253,5 +252,3 @@ export default function AuthPage() {
     </div>
   );
 }
-
-    
