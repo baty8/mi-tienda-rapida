@@ -22,31 +22,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Function to fetch the initial session
-    const getInitialSession = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      setSession(initialSession);
-      setLoading(false);
-    };
-
-    getInitialSession();
-
     // Set up a listener for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         setSession(newSession);
-        // If loading was true, this is the first auth event, so we are done loading.
-        if (loading) {
-            setLoading(false);
-        }
+        setLoading(false);
       }
     );
+
+    // Initial check in case the listener is slow
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        setLoading(false);
+    });
+
 
     // Cleanup the listener on component unmount
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [supabase.auth, loading]);
+  }, [supabase.auth]);
 
   useEffect(() => {
     if (loading) return; // Don't do anything while loading
@@ -92,3 +87,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+    

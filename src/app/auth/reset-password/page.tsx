@@ -18,6 +18,7 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSessionReady, setIsSessionReady] = useState(false);
+  const [errorState, setErrorState] = useState<string | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -29,21 +30,24 @@ export default function ResetPasswordPage() {
       }
     });
 
-    // Handle initial state in case the event is missed
-    const checkInitialState = async () => {
-        const {data} = await supabase.auth.getSession();
-        if(data.session?.user.aud === 'authenticated') {
-             // This can happen if the user is already in the recovery flow when landing
-             setIsSessionReady(true);
-        }
+    // Handle initial state in case the page is loaded after the event
+    const hash = window.location.hash;
+    if (hash.includes('type=recovery')) {
+      // This is a sign we are in the recovery flow
+      setIsSessionReady(true);
+    } else if (!isSessionReady){
+       const timer = setTimeout(() => {
+            if(!isSessionReady) { // check again before setting error
+                setErrorState("No se detectó un token de recuperación de contraseña. Por favor, utiliza el enlace de tu correo electrónico.");
+            }
+       }, 3000);
+       return () => clearTimeout(timer);
     }
-    checkInitialState();
-
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, supabase.auth]);
+  }, [router, supabase.auth, isSessionReady]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,11 +68,37 @@ export default function ResetPasswordPage() {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
     } else {
       toast({ title: '¡Éxito!', description: 'Tu contraseña ha sido actualizada. Inicia sesión con tu nueva contraseña.' });
+      await supabase.auth.signOut(); // Force sign out to require new login
       router.push('/');
     }
   };
   
   const renderContent = () => {
+      if (errorState) {
+          return (
+              <>
+                 <CardHeader>
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                        <KeyRound className="h-6 w-6 text-red-600" />
+                    </div>
+                    <CardTitle className="mt-4 text-2xl font-bold font-headline text-gray-800">
+                       Enlace Inválido o Expirado
+                    </CardTitle>
+                    <CardDescription className="text-gray-600">
+                        {errorState}
+                    </CardDescription>
+                  </CardHeader>
+                   <CardContent>
+                      <Button asChild className="w-full bg-blue-500 hover:bg-blue-600">
+                        <Link href="/">
+                          Volver al Inicio
+                        </Link>
+                      </Button>
+                    </CardContent>
+              </>
+          )
+      }
+      
       if (!isSessionReady) {
           return (
               <>
@@ -80,16 +110,12 @@ export default function ResetPasswordPage() {
                            Esperando...
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                            Si llegaste aquí desde un enlace de tu correo, tu formulario aparecerá en breve.
+                           Verificando tu enlace de recuperación. El formulario aparecerá en breve.
                         </CardDescription>
                   </CardHeader>
-                   <CardContent>
-                      <Button asChild className="w-full bg-blue-500 hover:bg-blue-600">
-                        <Link href="/">
-                          Volver al Inicio
-                        </Link>
-                      </Button>
-                    </CardContent>
+                  <CardContent>
+                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-500" />
+                  </CardContent>
               </>
           );
       }
@@ -143,3 +169,5 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+
+    
