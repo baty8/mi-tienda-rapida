@@ -2,13 +2,15 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/utils';
 import { Sidebar } from '@/components/ui/sidebar';
 import type { Profile, Product, Catalog } from '@/types';
 import { ShoppingBag } from 'lucide-react';
 import { ProductProvider } from '@/context/ProductContext';
 import { format } from 'date-fns';
+
+// This layout is now protected by the AuthProvider in the root layout.
+// Its only responsibility is to fetch data for the vendor pages.
 
 export default function VendorPagesLayout({ children }: { children: ReactNode }) {
   const supabase = createClient();
@@ -23,8 +25,8 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
+        // The AuthProvider will handle redirection, but we can stop fetching.
         setLoading(false);
-        // The AuthProvider will handle redirection
         return;
       }
 
@@ -114,5 +116,3 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
     </ProductProvider>
   );
 }
-
-    

@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 
 const GoogleIcon = (props: React.SVGProps<SVGGSVGElement>) => (
   <svg
@@ -69,13 +70,15 @@ export default function AuthPage() {
       password: loginPassword,
     });
     
-    setLoading(false);
+    // The AuthProvider will handle redirection on success.
+    // We only need to handle errors here.
     if (error) {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión',
         description: error.message || 'Credenciales inválidas o correo no verificado.',
       });
+      setLoading(false);
     }
   };
 
@@ -116,7 +119,7 @@ export default function AuthPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: typeof window !== 'undefined' ? window.location.origin : '',
+        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : '',
       },
     });
 
@@ -128,6 +131,7 @@ export default function AuthPage() {
       });
       setLoading(false);
     }
+    // The AuthProvider will handle redirection on success.
   };
   
   const handlePasswordReset = async () => {
@@ -162,7 +166,7 @@ export default function AuthPage() {
                       <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="email"/>
                       <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="new-password"/>
                       <Button type="submit" disabled={loading} className="w-full rounded-full px-12 py-2 font-bold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white">
-                        {loading ? 'Creando...' : 'Registrarse'}
+                        {loading ? <Loader2 className="animate-spin" /> : 'Registrarse'}
                       </Button>
                   </form>
                   <div className="relative my-4 w-full">
@@ -217,7 +221,7 @@ export default function AuthPage() {
                     </AlertDialog>
                     
                     <Button type="submit" disabled={loading} className="w-full rounded-full px-12 py-2 font-bold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white">
-                      {loading ? 'Entrando...' : 'Iniciar Sesión'}
+                      {loading ? <Loader2 className="animate-spin" /> : 'Iniciar Sesión'}
                     </Button>
                   </form>
                   
@@ -252,5 +256,3 @@ export default function AuthPage() {
     </div>
   );
 }
-
-    
