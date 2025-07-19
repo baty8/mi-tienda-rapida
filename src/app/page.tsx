@@ -116,17 +116,15 @@ export default function AuthPage() {
   
   const handleOAuthLogin = async (provider: 'google') => {
     setLoading(true);
-    // Use the popup-based flow which is more robust for complex proxy environments.
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
     });
 
-    // The user's browser may block popups, so it's good practice to check for an error.
     if (error) {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión con Google',
-        description: error.message,
+        description: `No se pudo iniciar la sesión: ${error.message}`,
       });
     }
     // The loading state will be reset by the AuthProvider's redirection or if an error occurs.
