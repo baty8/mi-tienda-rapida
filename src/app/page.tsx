@@ -91,7 +91,6 @@ export default function AuthPage() {
           data: {
               name: signupName || 'Vendedor'
           },
-          // Use the site URL from Supabase config, no need to specify here for most cases
       }
     });
 
@@ -117,6 +116,9 @@ export default function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
+      options: {
+        redirectTo: window.location.origin,
+      },
     });
 
     if (error) {
@@ -249,3 +251,6 @@ export default function AuthPage() {
       </div>
     </div>
   );
+}
+
+    
