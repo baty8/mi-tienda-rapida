@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/utils';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Sidebar } from '@/components/ui/sidebar';
@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 export default function VendorPagesLayout({ children }: { children: ReactNode }) {
   const supabase = createClient();
   const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [initialProducts, setInitialProducts] = useState<Product[]>([]);
@@ -71,8 +72,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
 
       } catch (error: any) {
         console.error('Error al cargar datos iniciales:', error.message);
-        // Optionally redirect or show an error message
-        await supabase.auth.signOut(); // Log out if data fetching fails
+        await supabase.auth.signOut();
       } finally {
         setLoading(false);
       }
@@ -81,7 +81,12 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session?.user) {
+          setLoading(true);
           fetchInitialData(session.user.id);
+          // If the user is signed in and on the landing page, redirect them.
+          if (pathname === '/') {
+            router.push('/products');
+          }
         } else {
           setLoading(false);
           router.push('/');
@@ -92,7 +97,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [router, supabase, pathname]);
 
   if (loading) {
     return (
