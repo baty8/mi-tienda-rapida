@@ -94,7 +94,7 @@ export default function AuthPage() {
           data: {
               name: signupName || 'Vendedor'
           },
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/auth/callback`
       }
     });
 
