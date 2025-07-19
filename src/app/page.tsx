@@ -116,22 +116,21 @@ export default function AuthPage() {
   
   const handleOAuthLogin = async (provider: 'google') => {
     setLoading(true);
+    // Use the popup-based flow which is more robust for complex proxy environments.
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      // The popup flow is the default for client-side Supabase,
-      // but being explicit can help in some cases.
-      // This avoids the redirection issue entirely.
     });
 
+    // The user's browser may block popups, so it's good practice to check for an error.
     if (error) {
       toast({
         variant: 'destructive',
         title: 'Error de inicio de sesión con Google',
         description: error.message,
       });
-      setLoading(false);
     }
-    // The AuthProvider will handle redirection on success.
+    // The loading state will be reset by the AuthProvider's redirection or if an error occurs.
+    setLoading(false);
   };
   
   const handlePasswordReset = async () => {
@@ -194,7 +193,7 @@ export default function AuthPage() {
                   
                   <form onSubmit={handleLogin} className="w-full space-y-4">
                     <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="email"/>
-                    <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.targe.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="current-password"/>
+                    <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="current-password"/>
                     
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
