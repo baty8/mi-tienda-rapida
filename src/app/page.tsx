@@ -78,8 +78,8 @@ export default function AuthPage() {
         title: 'Error de inicio de sesión',
         description: error.message || 'Credenciales inválidas o correo no verificado.',
       });
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -119,7 +119,7 @@ export default function AuthPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : '',
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
