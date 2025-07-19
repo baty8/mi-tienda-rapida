@@ -24,7 +24,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Function to fetch the initial session
     const getInitialSession = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+      
+      // Don't treat "refresh token not found" as a critical error during initial load.
+      // It just means the user isn't logged in.
+      if (error && error.message !== 'Auth session missing!') {
+        console.error("Error getting session:", error.message);
+      }
+
       setSession(initialSession);
       setLoading(false);
     };
@@ -46,8 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [supabase.auth, loading]);
 
   useEffect(() => {
     if (loading) return; // Don't do anything while loading
@@ -55,8 +61,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isAuthPage = pathname === '/' || pathname.startsWith('/auth');
     const isStorePage = pathname.startsWith('/store');
 
-    // Allow access to public store pages regardless of session
-    if (isStorePage) {
+    // Allow access to public store pages and auth pages regardless of session
+    if (isStorePage || (isAuthPage && !session)) {
         return;
     }
 
@@ -93,3 +99,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+    

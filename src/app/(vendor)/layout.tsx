@@ -24,7 +24,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
 
       if (!user) {
         setLoading(false);
-        // The AuthProvider will handle redirection, no need to do it here.
+        // The AuthProvider will handle redirection
         return;
       }
 
@@ -114,3 +114,5 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
     </ProductProvider>
   );
 }
+
+    

@@ -77,7 +77,6 @@ export default function AuthPage() {
         description: error.message || 'Credenciales inválidas o correo no verificado.',
       });
     }
-    // The AuthProvider will handle the redirect on successful login
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -117,7 +116,7 @@ export default function AuthPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: typeof window !== 'undefined' ? window.location.origin : '',
       },
     });
 
@@ -129,7 +128,6 @@ export default function AuthPage() {
       });
       setLoading(false);
     }
-    // On success, the AuthProvider will detect the session change and navigate away.
   };
   
   const handlePasswordReset = async () => {
@@ -138,7 +136,9 @@ export default function AuthPage() {
           return;
       }
       setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail);
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
       setLoading(false);
       if (error) {
           toast({ variant: 'destructive', title: 'Error', description: error.message });
