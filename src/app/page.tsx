@@ -118,9 +118,9 @@ export default function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      // The popup flow is the default for client-side Supabase,
+      // but being explicit can help in some cases.
+      // This avoids the redirection issue entirely.
     });
 
     if (error) {
@@ -194,7 +194,7 @@ export default function AuthPage() {
                   
                   <form onSubmit={handleLogin} className="w-full space-y-4">
                     <Input type="email" placeholder="Email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="email"/>
-                    <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="current-password"/>
+                    <Input type="password" placeholder="Contraseña" value={loginPassword} onChange={e => setLoginPassword(e.targe.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="current-password"/>
                     
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -256,3 +256,5 @@ export default function AuthPage() {
     </div>
   );
 }
+
+    
