@@ -24,7 +24,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
 
       if (!user) {
         setLoading(false);
-        console.error("No user found for layout data fetch.");
+        // The AuthProvider will handle redirection, no need to do it here.
         return;
       }
 
@@ -35,11 +35,13 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
 
         const [{ data: profileData, error: profileError }, { data: productData, error: productError }, { data: catalogData, error: catalogError }] = await Promise.all([profilePromise, productsPromise, catalogsPromise]);
         
-        if (profileError) throw new Error(`No se pudo cargar el perfil: ${profileError.message}`);
-        if (productError) throw new Error(`No se pudieron cargar los productos: ${productError.message}`);
-        if (catalogError) throw new Error(`No se pudieron cargar los catálogos: ${catalogError.message}`);
+        if (profileError) console.error(`No se pudo cargar el perfil: ${profileError.message}`);
+        if (productError) console.error(`No se pudieron cargar los productos: ${productError.message}`);
+        if (catalogError) console.error(`No se pudieron cargar los catálogos: ${catalogError.message}`);
         
-        setProfile({ ...profileData, email: user.email || null });
+        if (profileData) {
+          setProfile({ ...profileData, email: user.email || null });
+        }
 
         const formattedProducts: Product[] = (productData || []).map((p: any) => ({
           id: p.id,
@@ -58,22 +60,27 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
         }));
         setInitialProducts(formattedProducts);
         
-        const catalogIds = catalogData.map(c => c.id);
-        const { data: catalogProductsData, error: catalogProductsError } = await supabase
-            .from('catalog_products')
-            .select('catalog_id, product_id')
-            .in('catalog_id', catalogIds);
+        const catalogIds = (catalogData || []).map(c => c.id);
+        if (catalogIds.length > 0) {
+          const { data: catalogProductsData, error: catalogProductsError } = await supabase
+              .from('catalog_products')
+              .select('catalog_id, product_id')
+              .in('catalog_id', catalogIds);
 
-        if (catalogProductsError) throw new Error('Error al cargar la relación de productos y catálogos.');
+          if (catalogProductsError) throw new Error('Error al cargar la relación de productos y catálogos.');
 
-        const formattedCatalogs = catalogData.map(c => {
-            const product_ids = catalogProductsData
-                ?.filter(cp => cp.catalog_id === c.id)
-                .map(cp => cp.product_id) || [];
-            return { ...c, product_ids };
-        });
+          const formattedCatalogs = (catalogData || []).map(c => {
+              const product_ids = catalogProductsData
+                  ?.filter(cp => cp.catalog_id === c.id)
+                  .map(cp => cp.product_id) || [];
+              return { ...c, product_ids };
+          });
 
-        setInitialCatalogs(formattedCatalogs as Catalog[]);
+          setInitialCatalogs(formattedCatalogs as Catalog[]);
+        } else {
+          setInitialCatalogs([]);
+        }
+
 
       } catch (error: any) {
         console.error('Error al cargar datos iniciales:', error.message);

@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,7 +50,6 @@ const GoogleIcon = (props: React.SVGProps<SVGGSVGElement>) => (
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
-  const router = useRouter();
   const supabase = createClient();
   
   const [loginEmail, setLoginEmail] = useState('');
@@ -93,7 +91,7 @@ export default function AuthPage() {
           data: {
               name: signupName || 'Vendedor'
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          // Use the site URL from Supabase config, no need to specify here for most cases
       }
     });
 
@@ -124,7 +122,7 @@ export default function AuthPage() {
     if (error) {
       toast({
         variant: 'destructive',
-        title: 'Error de inicio de sesión',
+        title: 'Error de inicio de sesión con Google',
         description: error.message,
       });
       setLoading(false);
@@ -138,9 +136,7 @@ export default function AuthPage() {
           return;
       }
       setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-          redirectTo: `${window.location.origin}/auth/reset-password`
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail);
       setLoading(false);
       if (error) {
           toast({ variant: 'destructive', title: 'Error', description: error.message });
@@ -253,5 +249,3 @@ export default function AuthPage() {
       </div>
     </div>
   );
-
-    

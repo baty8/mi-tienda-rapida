@@ -12,10 +12,7 @@ type AuthContextType = {
   supabase: SupabaseClient;
 };
 
-const AuthContext = createContext<AuthContextType>({
-  session: null,
-  supabase: createClient(),
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -25,30 +22,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
+    // Function to fetch the initial session
+    const getInitialSession = async () => {
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      setSession(initialSession);
       setLoading(false);
     };
-    getSession();
 
+    getInitialSession();
+
+    // Set up a listener for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        // Ensure loading is false after the first auth event
-        if(loading) setLoading(false);
+      (_event, newSession) => {
+        setSession(newSession);
+        // If loading was true, this is the first auth event, so we are done loading.
+        if (loading) {
+            setLoading(false);
+        }
       }
     );
 
+    // Cleanup the listener on component unmount
     return () => {
       authListener.subscription.unsubscribe();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   useEffect(() => {
-    if (loading) return; // Don't redirect until session is checked
+    if (loading) return; // Don't do anything while loading
 
     const isAuthPage = pathname === '/' || pathname.startsWith('/auth');
     const isStorePage = pathname.startsWith('/store');
@@ -85,5 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
