@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
 
-const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const GoogleIcon = (props: React.SVGProps<SVGGSVGElement>) => (
   <svg
     {...props}
     xmlns="http://www.w3.org/2000/svg"
@@ -257,3 +257,5 @@ export default function AuthPage() {
       </div>
     </div>
   );
+
+    
