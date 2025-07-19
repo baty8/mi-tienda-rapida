@@ -117,10 +117,13 @@ export default function AuthPage() {
     setIsSignUp(false); // Switch back to login form
   };
   
-  const handleOAuthLogin = async (provider: 'google' | 'apple') => {
+  const handleOAuthLogin = async (provider: 'google') => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
-      provider
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
 
     if (error) {
