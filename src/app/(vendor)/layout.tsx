@@ -3,7 +3,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/utils';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Sidebar } from '@/components/ui/sidebar';
 import type { Profile, Product, Catalog } from '@/types';

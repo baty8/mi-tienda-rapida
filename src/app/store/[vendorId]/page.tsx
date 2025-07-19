@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/utils';
 
 
 type VendorFullProfile = Profile & {

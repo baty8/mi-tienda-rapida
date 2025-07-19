@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
