@@ -81,7 +81,7 @@ export default function AuthPage() {
       return;
     }
     
-    router.push('/products');
+    // The AuthProvider will handle the redirect
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -121,9 +121,8 @@ export default function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      // REMOVED redirectTo. This will use the PKCE flow (pop-up) by default 
+      // on client-side, avoiding the main page redirect that is causing issues.
     });
 
     if (error) {
@@ -134,6 +133,8 @@ export default function AuthPage() {
       });
       setLoading(false);
     }
+    // No need to setLoading(false) on success, as the page won't be reloaded.
+    // The AuthProvider will detect the session change and navigate away.
   };
   
   const handlePasswordReset = async () => {
@@ -257,4 +258,5 @@ export default function AuthPage() {
       </div>
     </div>
   );
-}
+
+    
