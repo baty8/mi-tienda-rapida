@@ -120,10 +120,7 @@ export default function AuthPage() {
   const handleOAuthLogin = async (provider: 'google' | 'apple') => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/products`,
-      },
+      provider
     });
 
     if (error) {
