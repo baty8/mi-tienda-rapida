@@ -71,6 +71,7 @@ export default function AuthPage() {
       password: loginPassword,
     });
     
+    setLoading(false);
     if (error) {
       toast({
         variant: 'destructive',
@@ -78,8 +79,7 @@ export default function AuthPage() {
         description: error.message || 'Credenciales inválidas o correo no verificado.',
       });
     }
-    // The AuthProvider will handle the redirect
-    setLoading(false);
+    // The AuthProvider will handle the redirect on successful login
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -119,10 +119,6 @@ export default function AuthPage() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: {
-        // PKCE flow is enabled by default on client-side, which uses a popup
-        // and avoids the problematic server-side redirection.
-      }
     });
 
     if (error) {

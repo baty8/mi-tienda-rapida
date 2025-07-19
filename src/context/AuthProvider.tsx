@@ -4,10 +4,16 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from '@/lib/utils';
 import { useRouter, usePathname } from 'next/navigation';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
-const AuthContext = createContext<{ session: Session | null }>({
+type AuthContextType = {
+  session: Session | null;
+  supabase: SupabaseClient;
+}
+
+const AuthContext = createContext<AuthContextType>({
   session: null,
+  supabase: createClient(),
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -31,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        // No need to set loading to false here again
+        setLoading(false);
       }
     );
 
@@ -55,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session, pathname, router, loading]);
 
   return (
-    <AuthContext.Provider value={{ session }}>
+    <AuthContext.Provider value={{ session, supabase }}>
       {children}
     </AuthContext.Provider>
   );
