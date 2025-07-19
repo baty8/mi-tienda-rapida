@@ -8,6 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 
 let supabaseInstance: SupabaseClient | null = null;
 
+// Singleton pattern to ensure only one instance of Supabase client is used.
 export function createClient() {
   if (!supabaseInstance) {
     supabaseInstance = createSupabaseClient(
