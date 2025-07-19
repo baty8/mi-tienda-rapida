@@ -160,13 +160,27 @@ export default function AuthPage() {
         <div className="flex flex-col items-center justify-center p-6 md:p-10">
           <div className="w-full">
             {isSignUp ? (
-              <form onSubmit={handleSignUp} className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
+              <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
                   <h1 className="text-3xl font-bold font-headline text-gray-800">Crear Cuenta</h1>
-                  <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="name"/>
-                  <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="email"/>
-                  <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="new-password"/>
-                  <Button type="submit" disabled={loading} className="mt-2 rounded-full px-12 py-2 font-bold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white">
-                    {loading ? 'Creando...' : 'Registrarse'}
+                  <form onSubmit={handleSignUp} className="w-full space-y-4">
+                      <Input type="text" placeholder="Nombre" value={signupName} onChange={e => setSignupName(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="name"/>
+                      <Input type="email" placeholder="Email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="email"/>
+                      <Input type="password" placeholder="Contraseña" value={signupPassword} onChange={e => setSignupPassword(e.target.value)} required className="bg-gray-50 border-gray-300 placeholder:text-gray-500" autoComplete="new-password"/>
+                      <Button type="submit" disabled={loading} className="w-full rounded-full px-12 py-2 font-bold uppercase tracking-wider bg-blue-500 hover:bg-blue-600 text-white">
+                        {loading ? 'Creando...' : 'Registrarse'}
+                      </Button>
+                  </form>
+                  <div className="relative my-4 w-full">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-gray-300" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-gray-500">O continuar con</span>
+                    </div>
+                  </div>
+                   <Button variant="outline" onClick={() => handleOAuthLogin('google')} disabled={loading} className="w-full border-gray-300 text-gray-700">
+                    <GoogleIcon className="mr-2" />
+                    Google
                   </Button>
                   <p className="mt-4 text-sm text-gray-600">
                       ¿Ya tienes una cuenta?{' '}
@@ -174,7 +188,7 @@ export default function AuthPage() {
                           Iniciar Sesión
                       </button>
                   </p>
-              </form>
+              </div>
             ) : (
               <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
                   <h1 className="text-3xl font-bold font-headline text-gray-800">Iniciar Sesión</h1>
