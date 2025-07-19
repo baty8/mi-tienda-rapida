@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from '@/lib/utils';
 import { useRouter, usePathname } from 'next/navigation';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
+import { ShoppingBag } from 'lucide-react';
 
 type AuthContextType = {
   session: Session | null;
@@ -26,9 +27,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Fetch initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setLoading(false);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+      } catch (error) {
+        // This can happen if the network fails or if Supabase is down.
+        // We'll treat it as if there's no session.
+        console.error('Error getting initial session:', error);
+        setSession(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     getInitialSession();
@@ -37,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        setLoading(false);
+        // No need to set loading to false here, as getInitialSession already does it.
       }
     );
 
@@ -59,6 +68,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push('/');
     }
   }, [session, pathname, router, loading]);
+
+
+  if (loading) {
+     return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <ShoppingBag className="h-12 w-12 animate-pulse text-primary" />
+          <p className="text-muted-foreground">Cargando sesión...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ session, supabase }}>
