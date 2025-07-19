@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/utils';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Sidebar } from '@/components/ui/sidebar';
@@ -11,30 +11,40 @@ import { ShoppingBag } from 'lucide-react';
 import { ProductProvider } from '@/context/ProductContext';
 import { format } from 'date-fns';
 
+// This layout now assumes the user is authenticated, because the AuthProvider
+// in the root layout will handle redirection for unauthenticated users.
+
 export default function VendorPagesLayout({ children }: { children: ReactNode }) {
   const supabase = createClient();
-  const router = useRouter();
-  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [initialProducts, setInitialProducts] = useState<Product[]>([]);
   const [initialCatalogs, setInitialCatalogs] = useState<Catalog[]>([]);
 
   useEffect(() => {
-    const fetchInitialData = async (userId: string) => {
+    const fetchInitialData = async () => {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        setLoading(false);
+        // AuthProvider will handle the redirect, but as a safeguard:
+        console.error("No user found, redirect should have happened.");
+        return;
+      }
+
       try {
-        const profilePromise = supabase.from('profiles').select('*').eq('id', userId).single();
-        const productsPromise = supabase.from('products').select('*').eq('user_id', userId).order('created_at', { ascending: false });
-        const catalogsPromise = supabase.from('catalogs').select('id, name, created_at, is_public, user_id').eq('user_id', userId).order('name', { ascending: true });
+        const profilePromise = supabase.from('profiles').select('*').eq('id', user.id).single();
+        const productsPromise = supabase.from('products').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+        const catalogsPromise = supabase.from('catalogs').select('id, name, created_at, is_public, user_id').eq('user_id', user.id).order('name', { ascending: true });
 
         const [{ data: profileData, error: profileError }, { data: productData, error: productError }, { data: catalogData, error: catalogError }] = await Promise.all([profilePromise, productsPromise, catalogsPromise]);
-
-        if (profileError) throw new Error('No se pudo cargar el perfil.');
-        if (productError) throw new Error('No se pudieron cargar los productos.');
-        if (catalogError) throw new Error('No se pudieron cargar los catálogos.');
         
-        const userEmail = (await supabase.auth.getUser()).data.user?.email || null;
-        setProfile({ ...profileData, email: userEmail });
+        if (profileError) throw new Error(`No se pudo cargar el perfil: ${profileError.message}`);
+        if (productError) throw new Error(`No se pudieron cargar los productos: ${productError.message}`);
+        if (catalogError) throw new Error(`No se pudieron cargar los catálogos: ${catalogError.message}`);
+        
+        setProfile({ ...profileData, email: user.email || null });
 
         const formattedProducts: Product[] = (productData || []).map((p: any) => ({
           id: p.id,
@@ -72,32 +82,13 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
 
       } catch (error: any) {
         console.error('Error al cargar datos iniciales:', error.message);
-        await supabase.auth.signOut();
       } finally {
         setLoading(false);
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session?.user) {
-          setLoading(true);
-          fetchInitialData(session.user.id);
-          // If the user is signed in and on the landing page, redirect them.
-          if (pathname === '/') {
-            router.push('/products');
-          }
-        } else {
-          setLoading(false);
-          router.push('/');
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [router, supabase, pathname]);
+    fetchInitialData();
+  }, [supabase]);
 
   if (loading) {
     return (
@@ -111,20 +102,13 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
   }
 
   return (
-    <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-    >
-      <ProductProvider initialProducts={initialProducts} initialCatalogs={initialCatalogs}>
-        <div className="flex min-h-screen w-full bg-muted/40">
-            <Sidebar profile={profile} />
-            <div className="flex flex-1 flex-col">
-                {children}
-            </div>
-        </div>
-      </ProductProvider>
-    </ThemeProvider>
+    <ProductProvider initialProducts={initialProducts} initialCatalogs={initialCatalogs}>
+      <div className="flex min-h-screen w-full bg-muted/40">
+          <Sidebar profile={profile} />
+          <div className="flex flex-1 flex-col">
+              {children}
+          </div>
+      </div>
+    </ProductProvider>
   );
 }
