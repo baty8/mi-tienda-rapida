@@ -122,8 +122,8 @@ export default function AuthPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        // Omitting redirectTo to let Supabase handle the redirect back to the default site URL.
-        // The layout component will manage routing based on session state.
+        // Omitting redirectTo to let Supabase use the default Site URL from the dashboard.
+        // This is the most reliable method.
       },
     });
 
