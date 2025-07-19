@@ -10,7 +10,7 @@ import { ShoppingBag } from 'lucide-react';
 type AuthContextType = {
   session: Session | null;
   supabase: SupabaseClient;
-}
+};
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
@@ -25,49 +25,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch initial session
-    const getInitialSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-      } catch (error) {
-        // This can happen if the network fails or if Supabase is down.
-        // We'll treat it as if there's no session.
-        console.error('Error getting initial session:', error);
-        setSession(null);
-      } finally {
-        setLoading(false);
-      }
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+      setLoading(false);
     };
+    getSession();
 
-    getInitialSession();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
         setSession(session);
-        // No need to set loading to false here, as getInitialSession already does it.
+        // Ensure loading is false after the first auth event
+        if(loading) setLoading(false);
       }
     );
 
     return () => {
-      subscription.unsubscribe();
+      authListener.subscription.unsubscribe();
     };
-  }, [supabase.auth]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   useEffect(() => {
-    if (loading) return; // Wait until initial session check is complete
+    if (loading) return; // Don't redirect until session is checked
 
     const isAuthPage = pathname === '/' || pathname.startsWith('/auth');
+    const isStorePage = pathname.startsWith('/store');
+
+    // Allow access to public store pages regardless of session
+    if (isStorePage) {
+        return;
+    }
 
     if (session && isAuthPage) {
-      // User is logged in but on an auth page, redirect to products
       router.push('/products');
     } else if (!session && !isAuthPage) {
-      // User is not logged in and not on an auth page, redirect to login
       router.push('/');
     }
-  }, [session, pathname, router, loading]);
+  }, [session, loading, pathname, router]);
 
 
   if (loading) {

@@ -4,15 +4,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/utils';
-import { ThemeProvider } from '@/components/theme-provider';
 import { Sidebar } from '@/components/ui/sidebar';
 import type { Profile, Product, Catalog } from '@/types';
 import { ShoppingBag } from 'lucide-react';
 import { ProductProvider } from '@/context/ProductContext';
 import { format } from 'date-fns';
-
-// This layout now assumes the user is authenticated, because the AuthProvider
-// in the root layout will handle redirection for unauthenticated users.
 
 export default function VendorPagesLayout({ children }: { children: ReactNode }) {
   const supabase = createClient();
@@ -28,8 +24,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
 
       if (!user) {
         setLoading(false);
-        // AuthProvider will handle the redirect, but as a safeguard:
-        console.error("No user found, redirect should have happened.");
+        console.error("No user found for layout data fetch.");
         return;
       }
 
