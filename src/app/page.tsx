@@ -39,6 +39,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path
       fill="#4CAF50"
       d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+    // eslint-disable-next-line
     />
     <path
       fill="#1976D2"
@@ -121,7 +122,7 @@ export default function AuthPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}/products`,
       },
     });
 
@@ -142,7 +143,7 @@ export default function AuthPage() {
       }
       setLoading(true);
       const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-          redirectTo: `${window.location.origin}/`
+          redirectTo: `${window.location.origin}/auth/reset-password`
       });
       setLoading(false);
       if (error) {
