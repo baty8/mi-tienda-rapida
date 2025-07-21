@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import type { Profile } from '@/types';
 
 const menuItems = [
@@ -31,7 +31,6 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Sidebar({ profile, className }: SidebarProps) {
   const pathname = usePathname();
-  const supabase = createClient();
 
   const handleLogout = async () => {
     // La única responsabilidad del botón es cerrar la sesión.

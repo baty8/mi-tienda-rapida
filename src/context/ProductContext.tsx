@@ -4,7 +4,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import type { Product, Catalog } from '@/types';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -32,7 +32,6 @@ interface ProductProviderProps {
 }
 
 export const ProductProvider = ({ children, initialProducts, initialCatalogs }: ProductProviderProps) => {
-  const supabase = createClient();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [catalogs, setCatalogs] = useState<Catalog[]>(initialCatalogs);
   const [activeCatalog, setActiveCatalog] = useState<Catalog | null>(null);
@@ -90,7 +89,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       setProducts(formattedProducts);
     }
     setLoading(false);
-  }, [supabase]);
+  }, []);
 
 
   const uploadImage = async (file: File, userId: string): Promise<string> => {
@@ -230,7 +229,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
 
         setCatalogs(formattedCatalogs as Catalog[]);
         return formattedCatalogs;
-    }, [supabase]);
+    }, []);
 
 
   const createCatalog = async (name: string) => {

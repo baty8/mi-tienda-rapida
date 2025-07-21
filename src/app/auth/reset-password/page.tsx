@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,6 @@ import { Loader2, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ResetPasswordPage() {
-  const supabase = createClient();
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -47,7 +46,7 @@ export default function ResetPasswordPage() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, supabase.auth, isSessionReady]);
+  }, [router, isSessionReady]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();

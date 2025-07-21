@@ -52,7 +52,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProduct } from '@/context/ProductContext';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import {
@@ -71,7 +71,6 @@ function CatalogPage() {
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
   const [vendorId, setVendorId] = useState<string | null>(null);
   const router = useRouter();
-  const supabase = createClient();
 
   const [storeLink, setStoreLink] = useState('');
 
@@ -87,7 +86,7 @@ function CatalogPage() {
         }
     };
     checkSession();
-  }, [router, fetchProducts, supabase.auth]);
+  }, [router, fetchProducts]);
   
   const handleToggleProductInCatalog = (productId: string) => {
     if (!activeCatalog) return;

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,7 +59,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isForgotDialogOpen, setForgotDialogOpen] = useState(false);
-  const supabase = createClient();
 
   useEffect(() => {
     // This effect redirects the user if they are already logged in.
@@ -81,7 +80,7 @@ export default function LoginPage() {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [router, supabase]);
+  }, [router]);
 
 
   const handleLogin = async (e: React.FormEvent) => {

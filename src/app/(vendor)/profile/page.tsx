@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { toast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -54,7 +54,6 @@ const fonts = [
 
 function ProfilePage() {
     const router = useRouter();
-    const supabase = createClient();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [profile, setProfile] = useState<Partial<Profile>>({ 
@@ -118,7 +117,7 @@ function ProfilePage() {
             }
         }
         setLoading(false);
-    }, [router, supabase]);
+    }, [router]);
 
     useEffect(() => {
         fetchProfile();
