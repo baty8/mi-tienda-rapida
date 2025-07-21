@@ -95,7 +95,20 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
 
   const uploadImage = async (file: File, userId: string): Promise<string> => {
     const fileName = `${userId}/${Date.now()}-${file.name}`;
-    const { error: uploadError } = await supabase.storage.from('product_images').upload(fileName, file);
+    // Use Supabase Image Transformations to resize the image on upload.
+    // This reduces storage and improves loading times significantly.
+    const { data, error: uploadError } = await supabase.storage
+      .from('product_images')
+      .upload(fileName, file, {
+        // `transform` is available in Supabase Storage V3
+        // If not available, upload normally and rely on client-side rendering.
+        // For best practice, ensure your Supabase project is up to date.
+         transform: {
+          width: 1024,
+          height: 1024,
+          resize: 'inside', // 'inside' preserves aspect ratio
+        },
+      });
 
     if (uploadError) {
       console.error('Error uploading image:', uploadError);

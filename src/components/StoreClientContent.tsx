@@ -21,7 +21,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at' | 'is_public'> & {
@@ -200,60 +200,54 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         )}
         
         <Dialog open={!!selectedProduct} onOpenChange={(isOpen) => !isOpen && closeModal()}>
-                <DialogContent className="max-w-lg w-full p-0">
-                <DialogHeader className="sr-only">
-                    <DialogTitle>{selectedProduct?.name}</DialogTitle>
-                    <DialogDescription>{selectedProduct?.description || 'Detalles del producto'}</DialogDescription>
-                </DialogHeader>
-                {selectedProduct && (
-                    <div className="relative w-full rounded-xl bg-white p-6 shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
-                        <DialogClose asChild>
-                            <button className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 z-10">
-                                <X className="h-5 w-5" />
-                                <span className="sr-only">Cerrar</span>
-                            </button>
-                        </DialogClose>
-                        <Carousel className="w-full max-w-md mx-auto mb-4">
-                            <CarouselContent>
-                                {(selectedProduct.image_urls && selectedProduct.image_urls.length > 0 ? selectedProduct.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
-                                    <CarouselItem key={index}>
-                                        <div className="aspect-square w-full max-h-80 overflow-hidden relative rounded-lg">
-                                            <Image
-                                                src={url}
-                                                alt={`${selectedProduct.name} - imagen ${index + 1}`}
-                                                fill
-                                                sizes="(max-width: 768px) 100vw, 50vw"
-                                                className="object-contain"
-                                                data-ai-hint="product image"
-                                            />
-                                        </div>
-                                    </CarouselItem>
-                                ))}
-                            </CarouselContent>
-                            {selectedProduct.image_urls && selectedProduct.image_urls.length > 1 && (
-                                <>
-                                <CarouselPrevious />
-                                <CarouselNext />
-                                </>
-                            )}
-                        </Carousel>
-                        <div className="flex flex-col flex-grow text-black">
-                            <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
-                            <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">
-                            <p>{selectedProduct.description}</p>
-                            </div>
-                            <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <p className="text-3xl font-extrabold text-blue-600">${selectedProduct.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                                <Button asChild size="lg" className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700" disabled={!profile?.phone}>
-                                <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
-                                    <MessageCircle className="mr-2 h-5 w-5" />
-                                    Consultar por WhatsApp
-                                </a>
-                                </Button>
+                <DialogContent className="max-w-lg w-full p-0 bg-white" onClick={(e) => e.stopPropagation()}>
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>{selectedProduct?.name}</DialogTitle>
+                        <DialogDescription>{selectedProduct?.description || 'Detalles del producto'}</DialogDescription>
+                    </DialogHeader>
+                    {selectedProduct && (
+                        <div className="relative w-full p-6 flex flex-col">
+                            <Carousel className="w-full max-w-md mx-auto mb-4">
+                                <CarouselContent>
+                                    {(selectedProduct.image_urls && selectedProduct.image_urls.length > 0 ? selectedProduct.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
+                                        <CarouselItem key={index}>
+                                            <div className="aspect-square w-full max-h-80 overflow-hidden relative rounded-lg">
+                                                <Image
+                                                    src={url}
+                                                    alt={`${selectedProduct.name} - imagen ${index + 1}`}
+                                                    fill
+                                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                                    className="object-contain"
+                                                    data-ai-hint="product image"
+                                                />
+                                            </div>
+                                        </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                {selectedProduct.image_urls && selectedProduct.image_urls.length > 1 && (
+                                    <>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                    </>
+                                )}
+                            </Carousel>
+                            <div className="flex flex-col flex-grow text-black">
+                                <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
+                                <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">
+                                <p>{selectedProduct.description}</p>
+                                </div>
+                                <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <p className="text-3xl font-extrabold text-blue-600">${selectedProduct.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                                    <Button asChild size="lg" className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700" disabled={!profile?.phone}>
+                                    <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
+                                        <MessageCircle className="mr-2 h-5 w-5" />
+                                        Consultar por WhatsApp
+                                    </a>
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
                 </DialogContent>
         </Dialog>
         <footer className="mt-12 text-center text-sm text-gray-500 store-font">
@@ -263,5 +257,3 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
     </div>
   );
 }
-
-    
