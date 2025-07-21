@@ -21,7 +21,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at' | 'is_public'> & {
@@ -119,7 +119,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
           style={headerStyle}
         >
             {profile.store_banner_url && (
-                <Image src={profile.store_banner_url} alt="Banner de la tienda" layout="fill" objectFit="cover" className="z-0" data-ai-hint="product lifestyle" />
+                <Image src={profile.store_banner_url} alt="Banner de la tienda" fill objectFit="cover" className="z-0" data-ai-hint="product lifestyle" />
             )}
             <div className="absolute inset-0 bg-black/50 z-10"></div>
             <div className="relative z-20 p-6 flex flex-col items-center text-white">
@@ -179,14 +179,14 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                             data-ai-hint="product image"
                         />
                     </div>
-                    <div className="flex flex-1 flex-col p-4">
-                        <div className="flex-1">
+                    <div className="flex flex-1 flex-col p-4 justify-between">
+                        <div>
                             <h2 className="text-lg font-bold store-text truncate">{product.name}</h2>
                             {product.description && <p className="mt-1 text-sm line-clamp-2 store-secondary-text">{product.description}</p>}
                         </div>
-                        <div className="mt-4 flex w-full items-end justify-between gap-2">
-                            <p className="text-2xl font-extrabold store-primary-text whitespace-nowrap">${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                            <Button asChild size="sm" className="shrink-0 store-primary-bg hover:opacity-90" disabled={!profile?.phone} onClick={(e) => e.stopPropagation()}>
+                        <div className="mt-4 space-y-2">
+                            <p className="text-2xl font-extrabold store-primary-text">${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                            <Button asChild className="w-full store-primary-bg hover:opacity-90" disabled={!profile?.phone} onClick={(e) => e.stopPropagation()}>
                                 <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
                                     <MessageCircle className="mr-2 h-4 w-4" />
                                     Consultar
@@ -203,8 +203,11 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                 <DialogContent className="max-w-lg w-full p-0" onClick={(e) => e.stopPropagation()}>
                     {selectedProduct && (
                         <div className="relative w-full p-6 flex flex-col">
-                            <DialogHeader className="sr-only">
-                              <DialogTitle>{selectedProduct.name}</DialogTitle>
+                             <DialogHeader>
+                                <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
+                                <DialogDescription className="sr-only">
+                                    Vista detallada del producto: {selectedProduct.description}
+                                </DialogDescription>
                             </DialogHeader>
                             <Carousel className="w-full max-w-md mx-auto mb-4">
                                 <CarouselContent>
