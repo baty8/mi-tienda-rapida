@@ -344,3 +344,5 @@ export function StorePageComponent({ error: initialError, initialVendor, vendorI
     </div>
   );
 }
+
+    
