@@ -71,42 +71,44 @@ export default function StorePage() {
       setError(null);
 
       try {
-        const { data, error: rpcError } = await supabase.rpc('get_store_data_for_vendor', {
-            vendor_id_input: vendorId,
-        });
+        // Fetch all data in parallel
+        const [profileRes, catalogsRes, productsRes] = await Promise.all([
+            supabase.from('profiles').select('*').eq('id', vendorId).single(),
+            supabase.from('catalogs').select('*, catalog_products(product_id)').eq('user_id', vendorId).eq('is_public', true),
+            supabase.from('products').select('*').eq('user_id', vendorId).eq('visible', true)
+        ]);
 
-        if (rpcError) {
-          console.error("RPC Error:", rpcError);
-          throw new Error('Hubo un problema al cargar los datos de la tienda.');
+        if (profileRes.error || !profileRes.data) {
+             throw new Error('No se pudo encontrar la tienda de este vendedor.');
         }
+        setVendor(profileRes.data as VendorFullProfile);
 
-        if (!data || !data.profile) {
-           throw new Error('No se pudo encontrar la tienda de este vendedor.');
+        if (productsRes.error) {
+            console.error("Error fetching products:", productsRes.error);
+            throw new Error('Hubo un problema al cargar los productos.');
         }
+        const visibleProducts = productsRes.data as Product[];
+        const visibleProductsMap = new Map(visibleProducts.map(p => [p.id, p]));
 
-        setVendor(data.profile as VendorFullProfile);
+        if (catalogsRes.error) {
+            console.error("Error fetching catalogs:", catalogsRes.error);
+            throw new Error('Hubo un problema al cargar los catálogos.');
+        }
         
-        const fetchedCatalogs = (data.catalogs || []) as CatalogWithProducts[];
-        setCatalogs(fetchedCatalogs);
-
-        // Consolidate all unique products from all catalogs
-        const productMap = new Map<string, Product>();
-        fetchedCatalogs.forEach(catalog => {
-            (catalog.products || []).forEach(product => {
-                if (!productMap.has(product.id)) {
-                    // Add catalog_ids property to the product
-                    const productWithCatalogs = {
-                        ...product,
-                        catalog_ids: fetchedCatalogs
-                            .filter(c => c.products.some(p => p.id === product.id))
-                            .map(c => c.id)
-                    };
-                    productMap.set(product.id, productWithCatalogs);
-                }
-            });
+        const fetchedCatalogs = (catalogsRes.data || []).map(catalog => {
+            const productIdsInCatalog = (catalog.catalog_products as { product_id: string }[]).map(cp => cp.product_id);
+            const productsInCatalog = productIdsInCatalog
+                .map(id => visibleProductsMap.get(id))
+                .filter((p): p is Product => p !== undefined);
+            
+            return {
+                ...catalog,
+                products: productsInCatalog,
+            };
         });
 
-        setAllProducts(Array.from(productMap.values()));
+        setCatalogs(fetchedCatalogs as CatalogWithProducts[]);
+        setAllProducts(visibleProducts);
 
       } catch (err: any) {
         setError(err.message);
@@ -136,7 +138,13 @@ export default function StorePage() {
   
   const filteredProducts = allProducts.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCatalog = activeCatalogId === 'all' || (product as any).catalog_ids.includes(activeCatalogId);
+      
+      let matchesCatalog = true;
+      if (activeCatalogId !== 'all') {
+          const activeCatalog = catalogs.find(c => c.id === activeCatalogId);
+          matchesCatalog = activeCatalog ? activeCatalog.products.some(p => p.id === product.id) : false;
+      }
+
       return matchesSearch && matchesCatalog;
   });
 
@@ -348,5 +356,3 @@ export default function StorePage() {
     </div>
   );
 }
-
-    
