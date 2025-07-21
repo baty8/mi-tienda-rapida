@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation';
 import type { Product, Catalog, Profile } from '@/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, MessageCircle, AlertCircle, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingBag, MessageCircle, AlertCircle, Search, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
@@ -25,8 +25,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { cn } from '@/lib/utils';
-
 
 type VendorFullProfile = Profile & {
     store_bg_color?: string;

@@ -109,8 +109,8 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
 
   return (
     <ProductProvider initialProducts={initialProducts} initialCatalogs={initialCatalogs}>
-      <div className="flex min-h-screen w-full bg-muted/40">
-          <Sidebar profile={profile} className="hidden md:flex" />
+      <div className="grid min-h-screen w-full md:grid-cols-[280px_1fr] bg-muted/40">
+          <Sidebar profile={profile} className="hidden md:block" />
           <div className="flex flex-1 flex-col">
               <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
                 <Sheet>
@@ -120,11 +120,8 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
                       <span className="sr-only">Toggle Menu</span>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="md:hidden p-0 w-72">
-                     <SheetHeader>
-                        <SheetTitle className="sr-only">Menú Principal</SheetTitle>
-                    </SheetHeader>
-                    <Sidebar profile={profile} />
+                  <SheetContent side="left" className="md:hidden p-0 w-full max-w-sm">
+                     <Sidebar profile={profile} />
                   </SheetContent>
                 </Sheet>
               </header>
