@@ -82,6 +82,10 @@ function ProfilePage() {
     const fetchProfile = useCallback(async () => {
         setLoading(true);
         const supabase = getSupabase();
+        if (!supabase) {
+          setLoading(false);
+          return;
+        }
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             router.push('/');
@@ -116,7 +120,7 @@ function ProfilePage() {
                 store_description: data.store_description,
                 store_banner_url: data.store_banner_url,
                 store_bg_color: data.store_bg_color || '#FFFFFF',
-                store_primary_color: data.store_primary_color || '#1E40AF',
+                store_primary_color: data.store_primary_color || '#111827',
                 store_accent_color: data.store_accent_color || '#F3F4F6',
                 store_font_family: data.store_font_family || 'PT Sans',
             });
@@ -142,6 +146,12 @@ function ProfilePage() {
         }
       }
     };
+    
+    const removeBannerImage = () => {
+        setBannerFile(null);
+        setBannerPreview(null);
+        setProfile(prev => ({ ...prev, store_banner_url: null }));
+    }
 
     const handleSave = async () => {
       if (!userId) return;
@@ -150,6 +160,11 @@ function ProfilePage() {
       let newAvatarUrl = profile.avatar_url;
       let newBannerUrl = profile.store_banner_url;
       const supabase = getSupabase();
+
+      if (!supabase) {
+        setSaving(false);
+        return;
+      }
 
       if (avatarFile) {
           const fileName = `${userId}/avatar-${Date.now()}`;
@@ -368,7 +383,10 @@ function ProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="space-y-2">
-                      <Label>Imagen de Banner</Label>
+                        <div className="flex justify-between items-center">
+                            <Label>Imagen de Banner</Label>
+                             {bannerPreview && <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={removeBannerImage}><X className="mr-2 h-4 w-4"/>Quitar imagen</Button>}
+                        </div>
                       <label htmlFor="banner-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-muted relative">
                           {bannerPreview ? (
                               <Image src={bannerPreview} alt="Vista previa del banner" fill sizes="100%" style={{objectFit: 'cover'}} className="rounded-lg" data-ai-hint="product lifestyle" />
@@ -381,7 +399,7 @@ function ProfilePage() {
                           <input id="banner-upload" type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'banner')} />
                       </label>
                        <p className="text-xs text-muted-foreground">
-                        Sube una imagen atractiva que represente tu tienda. Se mostrará en la parte superior.
+                        Sube una imagen atractiva que represente tu tienda. Si no subes una, se usará un fondo de color.
                       </p>
                     </div>
 

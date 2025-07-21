@@ -88,9 +88,9 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
   const showEmptyState = initialCatalogsWithProducts.length === 0 && allProducts.length === 0;
 
   const storeStyle = {
-    '--store-bg': profile.store_bg_color || '#FAF0E6',
-    '--store-primary': profile.store_primary_color || '#FF9800',
-    '--store-accent': profile.store_accent_color || '#64B5F6',
+    '--store-bg': profile.store_bg_color || '#FFFFFF',
+    '--store-primary': profile.store_primary_color || '#111827',
+    '--store-accent': profile.store_accent_color || '#F3F4F6',
     '--store-card-bg': profile.store_bg_color === '#111827' ? '#1F2937' : '#FFFFFF', // dark or light card
     '--store-card-text': profile.store_bg_color === '#111827' ? '#FFFFFF' : '#111827',
     '--store-font-family': getFontFamily(profile.store_font_family),
@@ -110,12 +110,13 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
             .store-font { font-family: var(--store-font-family); }
         `}</style>
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
-        <header className="relative mb-8 h-48 md:h-64 w-full overflow-hidden rounded-xl shadow-lg flex items-center justify-center text-center">
+        <header 
+          className="relative mb-8 h-48 md:h-64 w-full overflow-hidden rounded-xl shadow-lg flex items-center justify-center text-center"
+          style={{ background: `linear-gradient(45deg, ${profile.store_primary_color || '#60A5FA'}, ${profile.store_accent_color || '#E0E7FF'})`}}
+        >
             {profile.store_banner_url ? (
                 <Image src={profile.store_banner_url} alt="Banner de la tienda" layout="fill" objectFit="cover" className="z-0" data-ai-hint="product lifestyle" />
-            ) : (
-                <div className="absolute inset-0 bg-gradient-to-r from-gray-300 to-gray-400 z-0"></div>
-            )}
+            ) : null}
             <div className="absolute inset-0 bg-black/50 z-10"></div>
             <div className="relative z-20 p-6 flex flex-col items-center text-white">
                 <Avatar className="h-20 w-20 border-4 border-white/50 shadow-lg mb-2">
