@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -34,6 +33,10 @@ type VendorFullProfile = Profile & {
     store_font_family?: string;
 };
 
+type CatalogWithProducts = Catalog & {
+    products: Product[];
+}
+
 const fontMap: { [key: string]: string } = {
   'Roboto': 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap',
   'Lato': 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap',
@@ -50,8 +53,8 @@ export default function StorePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [vendor, setVendor] = useState<VendorFullProfile | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [catalogs, setCatalogs] = useState<Catalog[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [catalogs, setCatalogs] = useState<CatalogWithProducts[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCatalogId, setActiveCatalogId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -68,87 +71,42 @@ export default function StorePage() {
       setError(null);
 
       try {
-        // Fetch profile and public catalogs in parallel
-        const [profileResult, catalogResult] = await Promise.all([
-          supabase.from('profiles').select('*').eq('id', vendorId).single(),
-          supabase.from('catalogs').select('id, name').eq('user_id', vendorId).eq('is_public', true)
-        ]);
-        
-        const { data: profileData, error: profileError } = profileResult;
-        if (profileError || !profileData) {
-          throw new Error('No se pudo encontrar la tienda de este vendedor.');
-        }
-        setVendor(profileData as VendorFullProfile);
-        
-        const { data: catalogData, error: catalogError } = catalogResult;
-        if (catalogError) {
-          throw new Error('Error al cargar los catálogos.');
-        }
-
-        if (!catalogData || catalogData.length === 0) {
-            setProducts([]);
-            setCatalogs([]);
-            return;
-        }
-
-        const catalogIds = catalogData.map(c => c.id);
-
-        const { data: catalogProductsData, error: catalogProductsError } = await supabase
-            .from('catalog_products')
-            .select('catalog_id, product_id')
-            .in('catalog_id', catalogIds);
-        
-        if (catalogProductsError) {
-          throw new Error('Error al cargar los productos de los catálogos.');
-        }
-        
-        const publicCatalogs = catalogData.map(c => {
-            const product_ids = catalogProductsData
-                ?.filter(cp => cp.catalog_id === c.id)
-                .map(cp => cp.product_id) || [];
-            return { ...c, product_ids, is_public: true, user_id: vendorId, created_at: '' };
+        const { data, error: rpcError } = await supabase.rpc('get_store_data_for_vendor', {
+            vendor_id_input: vendorId,
         });
 
-        setCatalogs(publicCatalogs as Catalog[]);
+        if (rpcError) {
+          console.error("RPC Error:", rpcError);
+          throw new Error('Hubo un problema al cargar los datos de la tienda.');
+        }
 
-        const allProductIdsInPublicCatalogs = [...new Set(publicCatalogs.flatMap(c => c.product_ids))];
+        if (!data || !data.profile) {
+           throw new Error('No se pudo encontrar la tienda de este vendedor.');
+        }
 
-        if (allProductIdsInPublicCatalogs.length > 0) {
-            const { data: productData, error: productError } = await supabase
-                .from('products')
-                .select('*')
-                .in('id', allProductIdsInPublicCatalogs)
-                .eq('visible', true);
+        setVendor(data.profile as VendorFullProfile);
+        
+        const fetchedCatalogs = (data.catalogs || []) as CatalogWithProducts[];
+        setCatalogs(fetchedCatalogs);
 
-            if (productError) {
-              throw new Error('No se pudieron cargar los productos.');
-            }
-
-            const formattedProducts = productData.map((p: any) => {
-                const containingCatalogs = publicCatalogs
-                    .filter(c => (c as Catalog).product_ids.includes(p.id))
-                    .map(c => c.id);
-                
-                return {
-                  id: p.id,
-                  name: p.name,
-                  description: p.description || '',
-                  price: p.price,
-                  cost: 0,
-                  stock: p.stock || 0,
-                  visible: p.visible,
-                  image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : ['https://placehold.co/600x400.png'],
-                  createdAt: '',
-                  tags: [],
-                  category: 'General',
-                  user_id: p.user_id,
-                  catalog_ids: containingCatalogs
+        // Consolidate all unique products from all catalogs
+        const productMap = new Map<string, Product>();
+        fetchedCatalogs.forEach(catalog => {
+            (catalog.products || []).forEach(product => {
+                if (!productMap.has(product.id)) {
+                    // Add catalog_ids property to the product
+                    const productWithCatalogs = {
+                        ...product,
+                        catalog_ids: fetchedCatalogs
+                            .filter(c => c.products.some(p => p.id === product.id))
+                            .map(c => c.id)
+                    };
+                    productMap.set(product.id, productWithCatalogs);
                 }
             });
-            setProducts(formattedProducts);
-        } else {
-            setProducts([]);
-        }
+        });
+
+        setAllProducts(Array.from(productMap.values()));
 
       } catch (err: any) {
         setError(err.message);
@@ -176,7 +134,7 @@ export default function StorePage() {
     return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
   
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = allProducts.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCatalog = activeCatalogId === 'all' || (product as any).catalog_ids.includes(activeCatalogId);
       return matchesSearch && matchesCatalog;
@@ -231,6 +189,7 @@ export default function StorePage() {
   return (
     <div style={storeStyle} className="min-h-screen" >
         <Head>
+            <title>{vendor?.name || 'Tienda'}</title>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
             <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
             {fontUrl && <link href={fontUrl} rel="stylesheet" />}
