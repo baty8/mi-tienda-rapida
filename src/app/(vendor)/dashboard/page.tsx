@@ -1,3 +1,4 @@
+
 'use client';
 import { useProduct } from '@/context/ProductContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,23 +16,18 @@ function DashboardPage() {
     const inventoryValue = products.reduce((acc, p) => acc + (p.stock * p.cost), 0);
 
   return (
-    <>
-      <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <h2 className="text-2xl font-bold font-headline md:hidden">Dashboard</h2>
+    <div className="flex flex-col flex-1">
+      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
+          <h2 className="text-xl font-bold font-headline">Dashboard</h2>
            <div className="flex items-center gap-4">
               <ThemeToggle />
            </div>
       </header>
 
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-              <div className="flex flex-col gap-1">
-                  <h2 className="text-3xl font-bold font-headline">Dashboard</h2>
-                  <p className="text-muted-foreground">
-                      Un resumen del rendimiento y estado de tu inventario.
-                  </p>
-              </div>
-          </div>
+          <p className="text-muted-foreground mb-6">
+              Un resumen del rendimiento y estado de tu inventario.
+          </p>
           
           {products.length > 0 ? (
               <div className="grid gap-6">
@@ -96,7 +92,7 @@ function DashboardPage() {
           )}
 
       </main>
-    </>
+    </div>
   );
 }
 

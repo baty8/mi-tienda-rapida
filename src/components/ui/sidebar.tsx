@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   ShoppingBag,
   Package,
@@ -25,11 +25,11 @@ const menuItems = [
   { href: '/profile', label: 'Perfil', icon: User },
 ];
 
-interface SidebarProps {
+interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   profile: Profile | null;
 }
 
-export function Sidebar({ profile }: SidebarProps) {
+export function Sidebar({ profile, className }: SidebarProps) {
   const pathname = usePathname();
   const supabase = createClient();
 
@@ -51,7 +51,7 @@ export function Sidebar({ profile }: SidebarProps) {
 
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r bg-sidebar">
+    <aside className={cn("flex w-full flex-col border-r bg-sidebar", className)}>
       <div className="flex h-16 items-center justify-center border-b border-sidebar-border">
         <Link href="/products" className="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
           <ShoppingBag className="h-6 w-6 text-primary" />

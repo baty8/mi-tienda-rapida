@@ -5,9 +5,11 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { createClient } from '@/lib/utils';
 import { Sidebar } from '@/components/ui/sidebar';
 import type { Profile, Product, Catalog } from '@/types';
-import { ShoppingBag } from 'lucide-react';
+import { Menu, ShoppingBag } from 'lucide-react';
 import { ProductProvider } from '@/context/ProductContext';
 import { format } from 'date-fns';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
 
 // This layout is now protected by the AuthProvider in the root layout.
 // Its only responsibility is to fetch data for the vendor pages.
@@ -108,8 +110,21 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
   return (
     <ProductProvider initialProducts={initialProducts} initialCatalogs={initialCatalogs}>
       <div className="flex min-h-screen w-full bg-muted/40">
-          <Sidebar profile={profile} />
+          <Sidebar profile={profile} className="hidden md:flex" />
           <div className="flex flex-1 flex-col">
+              <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button size="icon" variant="outline" className="md:hidden">
+                      <Menu className="h-5 w-5" />
+                      <span className="sr-only">Toggle Menu</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="md:hidden p-0 w-64">
+                    <Sidebar profile={profile} />
+                  </SheetContent>
+                </Sheet>
+              </header>
               {children}
           </div>
       </div>

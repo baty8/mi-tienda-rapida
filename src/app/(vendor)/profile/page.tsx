@@ -158,7 +158,9 @@ function ProfilePage() {
       } else {
           toast({ title: '¡Éxito!', description: 'Tu perfil ha sido actualizado.' });
           setProfile(prev => ({...prev, avatar_url: newAvatarUrl}));
-          router.refresh(); // This is the key change to refresh the UI state
+          // Refresh the page or specific components if needed after save
+          // Forcing a reload for simplicity to update sidebar
+          window.location.reload();
       }
       setSaving(false);
     };
@@ -186,9 +188,9 @@ function ProfilePage() {
 
 
   return (
-    <>
-      <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <h2 className="text-2xl font-bold font-headline md:hidden">
+    <div className="flex flex-col flex-1">
+      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
+        <h2 className="text-xl font-bold font-headline">
           Perfil y Tienda
         </h2>
         <div className="flex items-center gap-4">
@@ -197,7 +199,7 @@ function ProfilePage() {
                 <DialogTrigger asChild>
                     <Button variant="outline">
                         <Eye className="mr-2 h-4 w-4" />
-                        Visualizar Tienda
+                        Visualizar
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-[360px] p-2 sm:max-w-[380px] h-[750px] flex items-center justify-center">
@@ -223,22 +225,15 @@ function ProfilePage() {
             </Dialog>
           <Button onClick={handleSave} disabled={saving || loading}>
             <Save className="mr-2 h-4 w-4"/>
-            {saving ? 'Guardando...' : 'Guardar Cambios'}
+            {saving ? 'Guardando...' : 'Guardar'}
           </Button>
         </div>
       </header>
 
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-        <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-3xl font-bold font-headline">
-              Perfil y Tienda
-            </h2>
-            <p className="text-muted-foreground">
-              Gestiona tu información pública y el estilo de tu tienda.
-            </p>
-          </div>
-        </div>
+        <p className="text-muted-foreground mb-6">
+            Gestiona tu información pública y el estilo de tu tienda.
+        </p>
 
         <div className="grid gap-6 max-w-4xl mx-auto">
            <Card>
@@ -341,7 +336,7 @@ function ProfilePage() {
             </Card>
         </div>
       </main>
-    </>
+    </div>
   );
 }
 
