@@ -141,7 +141,7 @@ export default function LoginPage() {
   )
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 font-body md:bg-white">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 font-body md:bg-white light">
       {/* Container for Desktop */}
       <div className="w-full max-w-4xl bg-white text-black shadow-2xl md:grid md:grid-cols-2 md:rounded-2xl md:overflow-hidden">
         
