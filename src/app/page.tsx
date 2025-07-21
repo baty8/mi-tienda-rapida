@@ -122,10 +122,12 @@ export default function LoginPage() {
 
   const WelcomePanel = () => (
     <div className="flex flex-col items-center justify-center p-12 text-center text-white bg-gradient-to-br from-blue-500 to-cyan-400 h-full">
+        {/* Content for mobile header */}
         <div className="md:hidden mb-6">
              <h2 className="text-3xl font-bold font-headline">¡Bienvenido!</h2>
              <p className="max-w-sm text-sm">Tu tienda online, simple y rápida.</p>
         </div>
+        {/* Content for desktop sidebar */}
         <div className="hidden md:block">
             <h2 className="mb-4 text-4xl font-bold font-headline">¡Bienvenido a Tu Tienda Rápida!</h2>
             <p className="mb-8 max-w-sm">
@@ -139,15 +141,17 @@ export default function LoginPage() {
   )
 
   return (
-    <main className="flex min-h-screen flex-col md:flex-row items-center justify-center bg-gray-100 font-body">
-      <div className="w-full md:hidden">
-        <WelcomePanel />
-      </div>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 font-body md:bg-white">
+      {/* Container for Desktop */}
       <div className="w-full max-w-4xl bg-white text-black shadow-2xl md:grid md:grid-cols-2 md:rounded-2xl md:overflow-hidden">
         
-        {/* Columna Izquierda: Formulario */}
-        <div className="flex flex-col justify-center p-8 sm:p-12">
-          <h1 className="mb-6 text-3xl font-bold font-headline text-gray-800">
+        {/* Form Column (Left on Desktop, Main on Mobile) */}
+        <div className="flex flex-col justify-center p-8 sm:p-12 w-full h-full bg-white">
+          <div className="md:hidden">
+            <WelcomePanel />
+          </div>
+
+          <h1 className="my-6 text-3xl font-bold font-headline text-gray-800 text-center md:text-left">
             {isLoginView ? 'Iniciar Sesión' : 'Crear Cuenta'}
           </h1>
           
@@ -207,13 +211,12 @@ export default function LoginPage() {
 
           <div className="my-6 flex items-center">
             <div className="flex-grow border-t border-gray-300"></div>
-            <span className="mx-4 text-xs text-gray-500">O CONTINUAR CON</span>
+            <span className="mx-4 text-xs text-gray-500">O</span>
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
 
           <Button variant="outline" onClick={handleOAuthLogin} disabled={loading} className="w-full h-11 rounded-lg border-gray-300">
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2" />}
-            Google
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <><GoogleIcon className="mr-2" /> Continuar con Google</>}
           </Button>
 
            <div className="mt-6 text-center text-sm md:hidden">
@@ -223,7 +226,7 @@ export default function LoginPage() {
            </div>
         </div>
 
-        {/* Columna Derecha: Bienvenida */}
+        {/* Welcome Column (Right on Desktop, Hidden on Mobile) */}
         <div className="hidden md:flex">
           <WelcomePanel />
         </div>

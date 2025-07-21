@@ -112,17 +112,14 @@ export function ProductTable() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40px]">
+                  <TableHead className="w-[40px] hidden sm:table-cell">
                     <Checkbox />
                   </TableHead>
                   <TableHead className="min-w-[250px]">Producto</TableHead>
-                  <TableHead>Etiquetas</TableHead>
+                  <TableHead className="hidden md:table-cell">Etiquetas</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Precio</TableHead>
-                  <TableHead>Visibilidad</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    Fecha Creación
-                  </TableHead>
+                  <TableHead className="hidden sm:table-cell">Visibilidad</TableHead>
                   <TableHead>
                     <span className="sr-only">Acciones</span>
                   </TableHead>
@@ -132,7 +129,7 @@ export function ProductTable() {
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell><Checkbox disabled /></TableCell>
+                      <TableCell className="hidden sm:table-cell"><Checkbox disabled /></TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Skeleton className="h-16 w-16 rounded-md" />
@@ -142,11 +139,10 @@ export function ProductTable() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-10" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-11 rounded-full" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell className="hidden sm:table-cell"><Skeleton className="h-6 w-11 rounded-full" /></TableCell>
                       <TableCell>
                         <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                       </TableCell>
@@ -161,7 +157,7 @@ export function ProductTable() {
                 ) : (
                 filteredProducts.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Checkbox />
                     </TableCell>
                     <TableCell className="font-medium">
@@ -182,7 +178,7 @@ export function ProductTable() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <div className="flex gap-1">
                         {product.tags.map((tag) => (
                           <Badge
@@ -278,16 +274,13 @@ export function ProductTable() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Switch
                         checked={product.visible}
                         onCheckedChange={(value) =>
                           handleUpdate(product.id, 'visible', value)
                         }
                       />
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {product.createdAt}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
