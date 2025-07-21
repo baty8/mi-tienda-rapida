@@ -114,10 +114,11 @@ export default function AuthPage() {
   
   const handleOAuthLogin = async (provider: 'google') => {
     setLoading(true);
-    // By NOT providing a `redirectTo` option or any `options`, Supabase defaults to a popup flow.
-    // This is the most robust way to handle OAuth in complex environments or if redirects fail.
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
 
     if (error) {
@@ -126,10 +127,10 @@ export default function AuthPage() {
         title: 'Error de inicio de sesión con Google',
         description: `No se pudo iniciar la sesión: ${error.message}`,
       });
+      setLoading(false);
     }
-    // Set loading to false. The AuthProvider will handle redirection on success.
-    // If there's an error, we want the user to be able to try again.
-    setLoading(false);
+    // No es necesario setLoading(false) aquí en el caso exitoso,
+    // ya que la página se redirigirá.
   };
   
   const handlePasswordReset = async () => {
