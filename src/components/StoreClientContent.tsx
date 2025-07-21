@@ -175,7 +175,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                             alt={product.name}
                             fill
                             sizes="(max-width: 768px) 100vw, 50vw"
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            className="object-contain transition-transform duration-300 group-hover:scale-105"
                             data-ai-hint="product image"
                         />
                     </div>
@@ -201,10 +201,6 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         
         <Dialog open={!!selectedProduct} onOpenChange={(isOpen) => !isOpen && closeModal()}>
                 <DialogContent className="max-w-lg w-full p-0 bg-white" onClick={(e) => e.stopPropagation()}>
-                    <DialogHeader className="sr-only">
-                        <DialogTitle>{selectedProduct?.name}</DialogTitle>
-                        <DialogDescription>{selectedProduct?.description || 'Detalles del producto'}</DialogDescription>
-                    </DialogHeader>
                     {selectedProduct && (
                         <div className="relative w-full p-6 flex flex-col">
                             <Carousel className="w-full max-w-md mx-auto mb-4">
