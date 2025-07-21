@@ -78,14 +78,13 @@ function LoginPage() {
         });
       }
     }
-    // El AuthProvider se encargará de redirigir en caso de éxito
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -109,11 +108,10 @@ function LoginPage() {
   };
 
   const handleOAuthLogin = async () => {
+    // This simple call forces the popup flow, which works best for local dev
+    // and is also robust for production.
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
     });
   };
 
