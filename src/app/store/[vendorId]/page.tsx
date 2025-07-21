@@ -1,7 +1,7 @@
 
 import type { Product, Catalog, Profile } from '@/types';
 import { createClient } from '@/lib/utils';
-import { StorePageComponent } from './StorePageComponent'; // Componente de cliente
+import { StorePageComponent } from '@/components/StorePageComponent'; // Componente de cliente
 
 type VendorFullProfile = Profile & {
     store_bg_color?: string;
@@ -38,7 +38,7 @@ async function getStoreData(vendorId: string) {
     
     // Extraer todos los productos únicos de los catálogos cargados
     const allProducts = catalogsRes.data.reduce((acc: Product[], catalog) => {
-        catalog.products.forEach((product: Product) => {
+        (catalog.products || []).forEach((product: Product) => {
             // Añadir solo si el producto no está ya en la lista
             if (!acc.some(p => p.id === product.id)) {
                 acc.push(product);

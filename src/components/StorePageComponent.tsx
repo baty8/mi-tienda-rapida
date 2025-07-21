@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -98,7 +99,7 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
       let matchesCatalog = true;
       if (activeCatalogId !== 'all') {
           const activeCatalog = (catalogs || []).find(c => c.id === activeCatalogId);
-          matchesCatalog = activeCatalog ? activeCatalog.products.some(p => p.id === product.id) : false;
+          matchesCatalog = activeCatalog ? (activeCatalog.products || []).some(p => p.id === product.id) : false;
       }
 
       return matchesSearch && matchesCatalog;
