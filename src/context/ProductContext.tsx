@@ -4,7 +4,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import type { Product, Catalog } from '@/types';
-import { createClient } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 

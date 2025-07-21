@@ -1,5 +1,5 @@
 
-import { createClient } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/server';
 import type { Metadata } from 'next';
 
 type Props = {

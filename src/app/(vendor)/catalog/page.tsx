@@ -52,7 +52,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProduct } from '@/context/ProductContext';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import {
@@ -329,5 +329,3 @@ function CatalogPage() {
 }
 
 export default CatalogPage;
-
-    

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { createClient } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/types';
 
 const menuItems = [

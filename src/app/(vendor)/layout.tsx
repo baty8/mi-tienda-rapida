@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { createClient } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
 import { Sidebar } from '@/components/ui/sidebar';
 import type { Profile, Product, Catalog } from '@/types';
 import { Menu, ShoppingBag } from 'lucide-react';
@@ -18,9 +18,9 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
   const [profile, setProfile] = useState<Profile | null>(null);
   const [initialProducts, setInitialProducts] = useState<Product[]>([]);
   const [initialCatalogs, setInitialCatalogs] = useState<Catalog[]>([]);
+  const supabase = createClient();
 
   useEffect(() => {
-    const supabase = createClient();
     const fetchInitialData = async () => {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -105,7 +105,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [router]);
+  }, [router, supabase]);
 
   if (loading) {
     return (

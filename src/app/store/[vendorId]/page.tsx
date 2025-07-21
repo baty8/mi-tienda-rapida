@@ -1,5 +1,5 @@
 
-import { createClient, createAdminClient } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/server';
 import type { Profile, Product, Catalog } from '@/types';
 import { notFound } from 'next/navigation';
 import * as React from 'react';
@@ -10,7 +10,7 @@ type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at
 };
 
 async function getStoreData(vendorId: string): Promise<{ profile: Profile; catalogsWithProducts: CatalogWithProducts[] } | null> {
-    const supabase = createAdminClient();
+    const supabase = createClient();
 
     const { data: profileData, error: profileError } = await supabase
         .from('profiles')
