@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -113,6 +114,7 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
   return (
     <div style={storeStyle} className="min-h-screen" >
         <style jsx global>{`
+            body { background-color: var(--store-bg); }
             .store-bg { background-color: var(--store-bg); }
             .store-text { color: var(--store-text-on-bg); font-family: var(--store-font-family); }
             .store-primary-text { color: var(--store-primary); font-family: var(--store-font-family); }
@@ -160,15 +162,15 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
                     <div key={product.id} className="group flex transform flex-col overflow-hidden rounded-xl border border-gray-200 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
                         <Carousel className="w-full" opts={{ loop: true }}>
                             <CarouselContent>
-                                {product.image_urls.map((url, index) => (
+                                {(product.image_urls.length > 0 ? product.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
                                     <CarouselItem key={index} onClick={() => openModal(product)} className="cursor-pointer">
-                                        <div className="aspect-square w-full overflow-hidden">
+                                        <div className="aspect-square w-full overflow-hidden relative">
                                             <Image
                                                 src={url}
                                                 alt={`${product.name} - imagen ${index + 1}`}
-                                                width={300}
-                                                height={300}
-                                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                className="object-cover transition-transform duration-300 group-hover:scale-105"
                                                 data-ai-hint="product image"
                                             />
                                         </div>
@@ -217,15 +219,15 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
                     </button>
                     <Carousel className="w-full max-w-md mx-auto mb-4">
                         <CarouselContent>
-                             {selectedProduct.image_urls.map((url, index) => (
+                             {(selectedProduct.image_urls.length > 0 ? selectedProduct.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
                                 <CarouselItem key={index}>
-                                    <div className="aspect-square w-full max-h-80 overflow-hidden rounded-lg">
+                                    <div className="aspect-square w-full max-h-80 overflow-hidden relative rounded-lg">
                                         <Image
                                             src={url}
                                             alt={`${selectedProduct.name} - imagen ${index + 1}`}
-                                            width={500}
-                                            height={500}
-                                            className="h-full w-full object-contain"
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                            className="object-contain"
                                             data-ai-hint="product image"
                                         />
                                     </div>

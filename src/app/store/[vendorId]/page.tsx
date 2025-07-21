@@ -38,10 +38,25 @@ async function getStoreData(vendorId: string) {
     
     // Extraer todos los productos únicos de los catálogos cargados para la vista "Todos los Productos"
     const allProducts = catalogsRes.data.reduce((acc: Product[], catalog) => {
-        (catalog.products || []).forEach((product: Product) => {
+        (catalog.products || []).forEach((product: any) => { // Usar any temporalmente por si la forma no es perfecta
+            const formattedProduct: Product = {
+                id: product.id,
+                name: product.name,
+                description: product.description || '',
+                price: product.price,
+                cost: product.cost || 0,
+                stock: product.stock || 0,
+                visible: product.visible,
+                image_urls: (product.image_urls && Array.isArray(product.image_urls) && product.image_urls.length > 0) ? product.image_urls : ['https://placehold.co/600x400.png'],
+                createdAt: product.created_at,
+                tags: product.stock > 0 ? [] : ['Out of Stock'],
+                category: 'General',
+                in_catalog: product.in_catalog || false,
+                user_id: product.user_id,
+            };
             // Añadir solo si el producto no está ya en la lista
-            if (!acc.some(p => p.id === product.id)) {
-                acc.push(product);
+            if (!acc.some(p => p.id === formattedProduct.id)) {
+                acc.push(formattedProduct);
             }
         });
         return acc;
