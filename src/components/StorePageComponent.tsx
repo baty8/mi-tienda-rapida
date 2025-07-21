@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -35,10 +34,10 @@ type CatalogWithProducts = Catalog & {
 }
 
 type StorePageComponentProps = {
-    error: string | undefined;
-    vendor: VendorFullProfile | null | undefined;
-    catalogs: CatalogWithProducts[] | null | undefined;
-    allProducts: Product[] | null | undefined;
+    error?: string;
+    vendor?: VendorFullProfile | null;
+    catalogs?: CatalogWithProducts[] | null;
+    allProducts?: Product[] | null;
 }
 
 
@@ -93,16 +92,11 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
     return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
   
-  const filteredProducts = (allProducts || []).filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      let matchesCatalog = true;
-      if (activeCatalogId !== 'all') {
-          const activeCatalog = (catalogs || []).find(c => c.id === activeCatalogId);
-          matchesCatalog = activeCatalog ? (activeCatalog.products || []).some(p => p.id === product.id) : false;
-      }
-
-      return matchesSearch && matchesCatalog;
+  const filteredProducts = (activeCatalogId === 'all' 
+    ? allProducts 
+    : catalogs?.find(c => c.id === activeCatalogId)?.products || []
+  ).filter(product => {
+      return product.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
   
   const showEmptyState = filteredProducts.length === 0;

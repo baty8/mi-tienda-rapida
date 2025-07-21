@@ -1,7 +1,7 @@
 
 import type { Product, Catalog, Profile } from '@/types';
 import { createClient } from '@/lib/utils';
-import { StorePageComponent } from '@/components/StorePageComponent'; // Componente de cliente
+import { StorePageComponent } from '@/components/StorePageComponent';
 
 type VendorFullProfile = Profile & {
     store_bg_color?: string;
@@ -21,10 +21,10 @@ async function getStoreData(vendorId: string) {
     // Las consultas se ejecutan en paralelo para máxima eficiencia
     const [profileRes, catalogsRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', vendorId).single(),
-        supabase.from('catalogs').select('*, products(*)')
+        supabase.from('catalogs').select('*, products!inner(*)') // Usamos !inner para asegurar que solo vengan catálogos con productos
             .eq('user_id', vendorId)
             .eq('is_public', true)
-            .eq('products.visible', true) // Filtramos productos visibles directamente en la consulta
+            .eq('products.visible', true)
     ]);
 
     if (profileRes.error || !profileRes.data) {
@@ -36,7 +36,7 @@ async function getStoreData(vendorId: string) {
         return { error: 'Hubo un problema al cargar los catálogos.' };
     }
     
-    // Extraer todos los productos únicos de los catálogos cargados
+    // Extraer todos los productos únicos de los catálogos cargados para la vista "Todos los Productos"
     const allProducts = catalogsRes.data.reduce((acc: Product[], catalog) => {
         (catalog.products || []).forEach((product: Product) => {
             // Añadir solo si el producto no está ya en la lista

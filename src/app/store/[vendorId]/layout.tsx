@@ -1,3 +1,4 @@
+
 import { createClient } from '@/lib/utils';
 import type { Metadata } from 'next';
 
@@ -28,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+// Layout simplificado para la tienda
 export default async function StoreLayout({
   children,
   params,
@@ -42,7 +44,7 @@ export default async function StoreLayout({
     .eq('id', params.vendorId)
     .single();
 
-  const fontUrl = profile?.store_font_family ? fontMap[profile.store_font_family] : null;
+  const fontUrl = profile?.store_font_family ? fontMap[profile.store_font_family] : fontMap['PT Sans'];
 
   return (
     <html lang="es">
