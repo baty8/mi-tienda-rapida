@@ -48,13 +48,14 @@ export default async function StoreLayout({
   const fontUrl = fontMap[selectedFont];
 
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {fontUrl && <link href={fontUrl} rel="stylesheet" />}
       </head>
-      <body>{children}</body>
+      {/* Añadimos las clases del body del layout principal para evitar el error de hidratación */}
+      <body className="font-body antialiased">{children}</body>
     </html>
   );
 }
