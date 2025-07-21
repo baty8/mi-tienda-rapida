@@ -95,7 +95,7 @@ export default function LoginPage() {
     if (!isSupabaseConfigured) return;
     setLoading(true);
     const supabase = getSupabase();
-    if (!supabase) return; // Should not happen if configured
+    if (!supabase) return; 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       toast({ variant: 'destructive', title: 'Error al iniciar sesión', description: error.message });
@@ -112,7 +112,7 @@ export default function LoginPage() {
     }
     setLoading(true);
     const supabase = getSupabase();
-    if (!supabase) return; // Should not happen if configured
+    if (!supabase) return; 
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -135,7 +135,7 @@ export default function LoginPage() {
     if (!isSupabaseConfigured) return;
     setLoading(true);
     const supabase = getSupabase();
-    if (!supabase) return; // Should not happen if configured
+    if (!supabase) return;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
     });
@@ -149,7 +149,7 @@ export default function LoginPage() {
      if (!isSupabaseConfigured) return;
      setLoading(true);
      const supabase = getSupabase();
-     if (!supabase) return; // Should not happen if configured
+     if (!supabase) return;
      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
        redirectTo: `${window.location.origin}/auth/reset-password`,
      });
