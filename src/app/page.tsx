@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ShoppingBag } from 'lucide-react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -120,15 +120,8 @@ export default function LoginPage() {
      }
   };
 
-  const WelcomePanel = () => (
-    <div className="flex flex-col items-center justify-center p-12 text-center text-white bg-gradient-to-br from-blue-500 to-cyan-400 h-full">
-        {/* Content for mobile header */}
-        <div className="md:hidden mb-6">
-             <h2 className="text-3xl font-bold font-headline">¡Bienvenido!</h2>
-             <p className="max-w-sm text-sm">Tu tienda online, simple y rápida.</p>
-        </div>
-        {/* Content for desktop sidebar */}
-        <div className="hidden md:block">
+  const DesktopWelcomePanel = () => (
+      <div className="hidden md:flex flex-col items-center justify-center p-12 text-center text-white bg-gradient-to-br from-blue-500 to-cyan-400 h-full">
             <h2 className="mb-4 text-4xl font-bold font-headline">¡Bienvenido a Tu Tienda Rápida!</h2>
             <p className="mb-8 max-w-sm">
                 Administra tu tienda online creando catálogos y administrando tus productos de manera sencilla.
@@ -136,24 +129,32 @@ export default function LoginPage() {
             <Button variant="outline" onClick={() => setIsLoginView(!isLoginView)} className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-blue-600 h-11 px-8 rounded-full">
                 {isLoginView ? 'REGÍSTRATE GRATIS' : 'INICIAR SESIÓN'}
             </Button>
-        </div>
-    </div>
-  )
+      </div>
+  );
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 font-body md:bg-white light">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 font-body light md:bg-white">
       {/* Container for Desktop */}
       <div className="w-full max-w-4xl bg-white text-black shadow-2xl md:grid md:grid-cols-2 md:rounded-2xl md:overflow-hidden">
         
         {/* Form Column (Left on Desktop, Main on Mobile) */}
-        <div className="flex flex-col justify-center p-8 sm:p-12 w-full h-full bg-white">
-          <div className="md:hidden">
-            <WelcomePanel />
-          </div>
-
-          <h1 className="my-6 text-3xl font-bold font-headline text-gray-800 text-center md:text-left">
-            {isLoginView ? 'Iniciar Sesión' : 'Crear Cuenta'}
-          </h1>
+        <div className="flex flex-col justify-center p-6 sm:p-12 w-full h-full bg-white">
+            {/* Mobile Header */}
+            <div className="md:hidden text-center mb-8">
+                 <div className="inline-block p-4 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full">
+                    <ShoppingBag className="h-8 w-8 text-white"/>
+                 </div>
+                 <h1 className="mt-4 text-3xl font-bold font-headline text-gray-800">
+                    VentaRapida
+                 </h1>
+                 <p className="text-muted-foreground">
+                    {isLoginView ? 'Inicia sesión para continuar' : 'Crea tu cuenta gratis'}
+                 </p>
+            </div>
+            
+            <h1 className="hidden md:block my-6 text-3xl font-bold font-headline text-gray-800 text-left">
+                {isLoginView ? 'Iniciar Sesión' : 'Crear Cuenta'}
+            </h1>
           
           <form onSubmit={isLoginView ? handleLogin : handleSignUp} className="space-y-4">
             {!isLoginView && (
@@ -226,11 +227,11 @@ export default function LoginPage() {
            </div>
         </div>
 
-        {/* Welcome Column (Right on Desktop, Hidden on Mobile) */}
-        <div className="hidden md:flex">
-          <WelcomePanel />
-        </div>
+        {/* Welcome Column (Right on Desktop) */}
+        <DesktopWelcomePanel />
       </div>
     </main>
   );
 }
+
+    
