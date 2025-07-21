@@ -8,7 +8,7 @@ import type { Profile, Product, Catalog } from '@/types';
 import { Menu, ShoppingBag } from 'lucide-react';
 import { ProductProvider } from '@/context/ProductContext';
 import { format } from 'date-fns';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 
 // This layout is now protected by the AuthProvider in the root layout.
@@ -120,7 +120,10 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
                       <span className="sr-only">Toggle Menu</span>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="md:hidden p-0 w-64">
+                  <SheetContent side="left" className="md:hidden p-0 w-72">
+                     <SheetHeader>
+                        <SheetTitle className="sr-only">Menú Principal</SheetTitle>
+                    </SheetHeader>
                     <Sidebar profile={profile} />
                   </SheetContent>
                 </Sheet>

@@ -52,13 +52,13 @@ export function Sidebar({ profile, className }: SidebarProps) {
 
   return (
     <aside className={cn("flex w-full flex-col border-r bg-sidebar", className)}>
-      <div className="flex h-16 items-center justify-center border-b border-sidebar-border">
+      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
         <Link href="/products" className="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
           <ShoppingBag className="h-6 w-6 text-primary" />
           <span>VentaRapida</span>
         </Link>
       </div>
-      <nav className="flex-1 space-y-1 p-2">
+      <nav className="flex-1 space-y-1 p-4">
         {menuItems.map((item) => (
           <Link
             key={item.href}
@@ -73,7 +73,7 @@ export function Sidebar({ profile, className }: SidebarProps) {
           </Link>
         ))}
       </nav>
-      <div className="mt-auto p-2">
+      <div className="mt-auto p-4">
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground/80 transition-all hover:text-sidebar-foreground hover:bg-sidebar-accent"
