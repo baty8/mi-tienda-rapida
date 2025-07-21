@@ -56,12 +56,24 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const supabase = createClient();
   const router = useRouter();
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isForgotDialogOpen, setForgotDialogOpen] = useState(false);
 
   useEffect(() => {
+    // This effect redirects the user if they are already logged in.
+    // It creates a client only when needed.
+    const checkSession = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push('/products');
+      }
+    };
+    checkSession();
+
+    // Listen for auth state changes (e.g., successful login)
+    const supabase = createClient();
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         router.push('/products');
@@ -71,12 +83,13 @@ export default function LoginPage() {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [supabase, router]);
+  }, [router]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       toast({ variant: 'destructive', title: 'Error al iniciar sesión', description: error.message });
@@ -92,6 +105,7 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
+    const supabase = createClient();
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -112,6 +126,7 @@ export default function LoginPage() {
 
   const handleOAuthLogin = async () => {
     setLoading(true);
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
     });
@@ -123,6 +138,7 @@ export default function LoginPage() {
   
   const handleForgotPassword = async () => {
      setLoading(true);
+     const supabase = createClient();
      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
        redirectTo: `${window.location.origin}/auth/reset-password`,
      });
