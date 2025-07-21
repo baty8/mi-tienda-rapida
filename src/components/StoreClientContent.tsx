@@ -115,7 +115,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         `}</style>
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
         <header 
-          className="relative mb-8 h-48 md:h-64 w-full overflow-hidden rounded-xl shadow-lg flex items-center justify-center text-center"
+          className="relative mb-8 h-56 md:h-72 w-full overflow-hidden rounded-xl shadow-lg flex items-center justify-center text-center"
           style={headerStyle}
         >
             {profile.store_banner_url && (
@@ -169,7 +169,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filteredProducts.map((product) => product && (
                 <div key={product.id} onClick={() => openModal(product)} className="group flex cursor-pointer transform flex-col overflow-hidden rounded-xl border border-gray-200/50 shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl store-card">
-                    <div className="aspect-square w-full overflow-hidden relative">
+                    <div className="aspect-[4/3] w-full overflow-hidden relative">
                         <Image
                             src={product.image_urls[0]}
                             alt={product.name}
@@ -263,3 +263,5 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
     </div>
   );
 }
+
+    
