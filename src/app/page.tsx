@@ -59,20 +59,17 @@ export default function LoginPage() {
   const router = useRouter();
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isForgotDialogOpen, setForgotDialogOpen] = useState(false);
-  const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true); // Assume configured until checked
+  const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true);
 
   useEffect(() => {
-    // Comprobar si las variables de entorno están presentes
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.error("Supabase environment variables are not set.");
+    const supabase = getSupabase();
+    if (!supabase) {
       setIsSupabaseConfigured(false);
-      return; // Detener la ejecución si no está configurado
+      return;
     }
     
     setIsSupabaseConfigured(true);
-    const supabase = getSupabase();
 
-    // El resto de los efectos solo se ejecutan si Supabase está configurado
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -98,6 +95,7 @@ export default function LoginPage() {
     if (!isSupabaseConfigured) return;
     setLoading(true);
     const supabase = getSupabase();
+    if (!supabase) return; // Should not happen if configured
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       toast({ variant: 'destructive', title: 'Error al iniciar sesión', description: error.message });
@@ -114,6 +112,7 @@ export default function LoginPage() {
     }
     setLoading(true);
     const supabase = getSupabase();
+    if (!supabase) return; // Should not happen if configured
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -136,6 +135,7 @@ export default function LoginPage() {
     if (!isSupabaseConfigured) return;
     setLoading(true);
     const supabase = getSupabase();
+    if (!supabase) return; // Should not happen if configured
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
     });
@@ -149,6 +149,7 @@ export default function LoginPage() {
      if (!isSupabaseConfigured) return;
      setLoading(true);
      const supabase = getSupabase();
+     if (!supabase) return; // Should not happen if configured
      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
        redirectTo: `${window.location.origin}/auth/reset-password`,
      });
