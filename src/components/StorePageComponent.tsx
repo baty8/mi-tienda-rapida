@@ -22,6 +22,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 type VendorFullProfile = Profile & {
     store_bg_color?: string;
@@ -106,7 +107,7 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
     '--store-bg': vendor?.store_bg_color || '#FFFFFF',
     '--store-primary': vendor?.store_primary_color || '#111827',
     '--store-accent': vendor?.store_accent_color || '#F3F4F6',
-    '--store-text-on-primary': '#FFFFFF', // Assuming white text on primary color for contrast
+    '--store-text-on-primary': '#FFFFFF',
     '--store-text-on-bg': vendor?.store_primary_color || '#111827',
     '--store-font-family': getFontFamily(vendor?.store_font_family),
   } as React.CSSProperties;
@@ -160,7 +161,7 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {filteredProducts.map((product) => (
                     <div key={product.id} className="group flex transform flex-col overflow-hidden rounded-xl border border-gray-200 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
-                        <Carousel className="w-full" opts={{ loop: true }}>
+                        <Carousel className="w-full" opts={{ loop: product.image_urls.length > 1 }}>
                             <CarouselContent>
                                 {(product.image_urls.length > 0 ? product.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
                                     <CarouselItem key={index} onClick={() => openModal(product)} className="cursor-pointer">
@@ -210,55 +211,57 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
                 </div>
             )}
             
-            {selectedProduct && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-in fade-in-0" onClick={closeModal}>
-                <div className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl animate-in zoom-in-95 flex flex-col" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={closeModal} className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 z-10">
-                        <X className="h-5 w-5" />
-                        <span className="sr-only">Cerrar</span>
-                    </button>
-                    <Carousel className="w-full max-w-md mx-auto mb-4">
-                        <CarouselContent>
-                             {(selectedProduct.image_urls.length > 0 ? selectedProduct.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
-                                <CarouselItem key={index}>
-                                    <div className="aspect-square w-full max-h-80 overflow-hidden relative rounded-lg">
-                                        <Image
-                                            src={url}
-                                            alt={`${selectedProduct.name} - imagen ${index + 1}`}
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                            className="object-contain"
-                                            data-ai-hint="product image"
-                                        />
-                                    </div>
-                                </CarouselItem>
-                            ))}
-                        </CarouselContent>
-                         {selectedProduct.image_urls.length > 1 && (
-                            <>
-                              <CarouselPrevious />
-                              <CarouselNext />
-                            </>
-                        )}
-                    </Carousel>
-                    <div className="flex flex-col flex-grow">
-                        <h2 className="text-2xl font-bold store-text">{selectedProduct.name}</h2>
-                        <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">
-                          <p className="store-font">{selectedProduct.description}</p>
+            <Dialog open={!!selectedProduct} onOpenChange={(isOpen) => !isOpen && closeModal()}>
+                 <DialogContent className="max-w-lg w-full p-0">
+                    {selectedProduct && (
+                       <div className="relative w-full rounded-xl bg-white p-6 shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+                            <button onClick={closeModal} className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 z-10">
+                                <X className="h-5 w-5" />
+                                <span className="sr-only">Cerrar</span>
+                            </button>
+                            <Carousel className="w-full max-w-md mx-auto mb-4">
+                                <CarouselContent>
+                                    {(selectedProduct.image_urls.length > 0 ? selectedProduct.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
+                                        <CarouselItem key={index}>
+                                            <div className="aspect-square w-full max-h-80 overflow-hidden relative rounded-lg">
+                                                <Image
+                                                    src={url}
+                                                    alt={`${selectedProduct.name} - imagen ${index + 1}`}
+                                                    fill
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                    className="object-contain"
+                                                    data-ai-hint="product image"
+                                                />
+                                            </div>
+                                        </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                {selectedProduct.image_urls.length > 1 && (
+                                    <>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                    </>
+                                )}
+                            </Carousel>
+                            <div className="flex flex-col flex-grow">
+                                <h2 className="text-2xl font-bold store-text">{selectedProduct.name}</h2>
+                                <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">
+                                <p className="store-font">{selectedProduct.description}</p>
+                                </div>
+                                <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <p className="text-3xl font-extrabold store-primary-text">${selectedProduct.price.toFixed(2)}</p>
+                                    <Button asChild size="lg" className="w-full sm:w-auto store-primary-bg hover:opacity-90" disabled={!vendor?.phone}>
+                                    <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
+                                        <MessageCircle className="mr-2 h-5 w-5" />
+                                        Consultar
+                                    </a>
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
-                        <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-3xl font-extrabold store-primary-text">${selectedProduct.price.toFixed(2)}</p>
-                            <Button asChild size="lg" className="w-full sm:w-auto store-primary-bg hover:opacity-90" disabled={!vendor?.phone}>
-                            <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
-                                <MessageCircle className="mr-2 h-5 w-5" />
-                                Consultar
-                            </a>
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-              </div>
-            )}
+                    )}
+                 </DialogContent>
+            </Dialog>
 
 
             <footer className="mt-12 text-center text-sm text-gray-500 store-font">
