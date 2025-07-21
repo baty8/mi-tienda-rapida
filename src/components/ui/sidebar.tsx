@@ -51,8 +51,8 @@ export function Sidebar({ profile, className }: SidebarProps) {
 
 
   return (
-    <aside className={cn("flex w-full flex-col border-r bg-sidebar", className)}>
-      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
+    <aside className={cn("flex flex-col border-r bg-sidebar", className)}>
+      <div className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-6">
         <Link href="/products" className="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
           <ShoppingBag className="h-6 w-6 text-primary" />
           <span>VentaRapida</span>
@@ -82,7 +82,7 @@ export function Sidebar({ profile, className }: SidebarProps) {
           Cerrar Sesión
         </button>
       </div>
-      <div className="flex items-center gap-3 p-4 border-t border-sidebar-border">
+      <div className="flex shrink-0 items-center gap-3 p-4 border-t border-sidebar-border">
         <Avatar className="h-9 w-9">
             <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.name || "User avatar"} data-ai-hint="male user" />
             <AvatarFallback>{getInitials(profile?.name)}</AvatarFallback>
