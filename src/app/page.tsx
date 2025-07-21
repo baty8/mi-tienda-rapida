@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
-import { Loader2, ShoppingBag, AlertTriangle } from 'lucide-react';
+import { Loader2, ShoppingBag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -59,17 +59,9 @@ export default function LoginPage() {
   const router = useRouter();
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isForgotDialogOpen, setForgotDialogOpen] = useState(false);
-  const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true);
-
+  
   useEffect(() => {
     const supabase = getSupabase();
-    if (!supabase) {
-      setIsSupabaseConfigured(false);
-      return;
-    }
-    
-    setIsSupabaseConfigured(true);
-
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -92,10 +84,8 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isSupabaseConfigured) return;
     setLoading(true);
     const supabase = getSupabase();
-    if (!supabase) return; 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       toast({ variant: 'destructive', title: 'Error al iniciar sesión', description: error.message });
@@ -105,14 +95,12 @@ export default function LoginPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isSupabaseConfigured) return;
     if (password !== confirmPassword) {
       toast({ variant: 'destructive', title: 'Error', description: 'Las contraseñas no coinciden.' });
       return;
     }
     setLoading(true);
     const supabase = getSupabase();
-    if (!supabase) return; 
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -132,10 +120,8 @@ export default function LoginPage() {
   };
 
   const handleOAuthLogin = async () => {
-    if (!isSupabaseConfigured) return;
     setLoading(true);
     const supabase = getSupabase();
-    if (!supabase) return;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
     });
@@ -146,10 +132,8 @@ export default function LoginPage() {
   };
   
   const handleForgotPassword = async () => {
-     if (!isSupabaseConfigured) return;
      setLoading(true);
      const supabase = getSupabase();
-     if (!supabase) return;
      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
        redirectTo: `${window.location.origin}/auth/reset-password`,
      });
@@ -162,19 +146,6 @@ export default function LoginPage() {
      }
   };
   
-   const NotConfiguredWarning = () => (
-      <div className="space-y-4 text-center p-4 border border-yellow-400 bg-yellow-50 rounded-lg">
-          <AlertTriangle className="mx-auto h-8 w-8 text-yellow-500" />
-          <h3 className="font-bold text-yellow-800">Configuración Requerida</h3>
-          <p className="text-sm text-yellow-700">
-              La conexión con la base de datos no está configurada. Por favor, añade las variables de entorno 
-              <code className="bg-yellow-200 p-1 rounded">NEXT_PUBLIC_SUPABASE_URL</code> y 
-              <code className="bg-yellow-200 p-1 rounded">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> 
-              a tu archivo <code className="bg-yellow-200 p-1 rounded">.env</code> para continuar.
-          </p>
-      </div>
-  );
-
   const DesktopWelcomePanel = () => (
       <div className="hidden md:flex flex-col items-center justify-center p-12 text-center text-white bg-gradient-to-br from-blue-500 to-cyan-400 h-full">
             <h2 className="mb-4 text-4xl font-bold font-headline">¡Bienvenido a Tu Tienda Rápida!</h2>
@@ -208,7 +179,6 @@ export default function LoginPage() {
                 {isLoginView ? 'Iniciar Sesión' : 'Crear Cuenta'}
             </h1>
           
-           {!isSupabaseConfigured ? <NotConfiguredWarning /> : (
             <>
               <form onSubmit={isLoginView ? handleLogin : handleSignUp} className="space-y-4">
                 {!isLoginView && (
@@ -274,7 +244,7 @@ export default function LoginPage() {
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <><GoogleIcon className="mr-2" /> Continuar con Google</>}
               </Button>
             </>
-          )}
+          
 
 
            <div className="mt-6 text-center text-sm md:hidden">
