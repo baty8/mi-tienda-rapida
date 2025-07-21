@@ -171,8 +171,8 @@ function ProfilePage() {
       } else {
           toast({ title: '¡Éxito!', description: 'Tu perfil ha sido actualizado.' });
           setProfile(prev => ({...prev, avatar_url: newAvatarUrl}));
-          // This re-fetches server-side props for the current route.
-          // It's a soft refresh, better than window.location.reload().
+          // This soft-refreshes data for the current route,
+          // avoiding a full page reload.
           router.refresh(); 
       }
       setSaving(false);

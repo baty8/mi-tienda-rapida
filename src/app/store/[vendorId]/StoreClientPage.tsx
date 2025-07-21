@@ -2,6 +2,8 @@
 import type { Profile, Catalog, Product } from '@/types';
 import * as React from 'react';
 import { StoreClientContent } from '@/components/StoreClientContent';
+import { createClient } from '@/lib/utils';
+import { ShoppingBag } from 'lucide-react';
 
 type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at' | 'is_public'> & {
     products: Product[];
@@ -9,7 +11,6 @@ type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at
 
 type StoreClientPageProps = {
     profile: Profile;
-    catalogsWithProducts: CatalogWithProducts[];
 }
 
 const getFontFamily = (fontName: string | null | undefined): string => {
@@ -23,7 +24,76 @@ const getFontFamily = (fontName: string | null | undefined): string => {
     }
 };
 
-export function StoreClientPage({ profile, catalogsWithProducts }: StoreClientPageProps) {
+export function StoreClientPage({ profile }: StoreClientPageProps) {
+    const [catalogsWithProducts, setCatalogsWithProducts] = React.useState<CatalogWithProducts[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const fetchStoreData = async () => {
+            setLoading(true);
+            setError(null);
+            const supabase = createClient();
+
+            try {
+                // 1. Fetch public catalogs
+                const { data: publicCatalogs, error: catalogsError } = await supabase
+                    .from('catalogs')
+                    .select('id, name')
+                    .eq('user_id', profile.id)
+                    .eq('is_public', true);
+
+                if (catalogsError) throw new Error(`Error fetching catalogs: ${catalogsError.message}`);
+                if (!publicCatalogs || publicCatalogs.length === 0) {
+                    setCatalogsWithProducts([]);
+                    setLoading(false);
+                    return;
+                }
+
+                const publicCatalogIds = publicCatalogs.map(c => c.id);
+
+                // 2. Fetch products associated with those public catalogs
+                const { data: catalogProducts, error: productsError } = await supabase
+                    .from('catalog_products')
+                    .select('catalog_id, products(*)')
+                    .in('catalog_id', publicCatalogIds)
+                    .eq('products.visible', true);
+
+                if (productsError) throw new Error(`Error fetching products: ${productsError.message}`);
+
+                // 3. Organize data
+                const catalogProductMap = new Map<string, Product[]>();
+                catalogProducts?.forEach(cp => {
+                    if (cp.products) {
+                        const product = cp.products as unknown as Product;
+                        if (!catalogProductMap.has(cp.catalog_id)) {
+                            catalogProductMap.set(cp.catalog_id, []);
+                        }
+                        catalogProductMap.get(cp.catalog_id)?.push(product);
+                    }
+                });
+
+                const finalData = publicCatalogs
+                    .map(catalog => ({
+                        id: catalog.id,
+                        name: catalog.name,
+                        products: catalogProductMap.get(catalog.id) || []
+                    }))
+                    .filter(c => c.products.length > 0);
+
+                setCatalogsWithProducts(finalData);
+
+            } catch (err: any) {
+                console.error("Failed to fetch store data:", err);
+                setError("No se pudo cargar la información de la tienda. Por favor, intenta de nuevo más tarde.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStoreData();
+    }, [profile.id]);
+
     const storeStyle = {
         '--store-bg': profile.store_bg_color || '#FFFFFF',
         '--store-primary': profile.store_primary_color || '#111827',
@@ -44,10 +114,23 @@ export function StoreClientPage({ profile, catalogsWithProducts }: StoreClientPa
                 .store-font { font-family: var(--store-font-family); }
             `}</style>
           <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
-            <StoreClientContent 
-                profile={profile}
-                initialCatalogsWithProducts={catalogsWithProducts}
-            />
+            {loading ? (
+                 <div className="flex h-[60vh] w-full items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <ShoppingBag className="h-12 w-12 animate-pulse text-[color:var(--store-primary)]" />
+                        <p className="text-[color:var(--store-primary)] opacity-80 store-font">Cargando tienda...</p>
+                    </div>
+                </div>
+            ) : error ? (
+                <div className="flex h-[60vh] w-full items-center justify-center text-center">
+                    <p className="text-red-500 store-font">{error}</p>
+                </div>
+            ) : (
+                <StoreClientContent 
+                    profile={profile}
+                    initialCatalogsWithProducts={catalogsWithProducts}
+                />
+            )}
             <footer className="mt-12 text-center text-sm text-gray-500 store-font">
                 <p>Potenciado por VentaRapida</p>
             </footer>
