@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/utils';
+import { createAdminClient } from '@/lib/utils';
 import type { Profile, Product, Catalog } from '@/types';
 import { notFound } from 'next/navigation';
 import * as React from 'react';
@@ -9,9 +9,8 @@ type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at
 };
 
 async function getStoreData(vendorId: string): Promise<{ profile: Profile; catalogsWithProducts: CatalogWithProducts[] } | null> {
-    const supabase = createClient();
+    const supabase = createAdminClient();
 
-    // 1. Fetch the vendor's profile.
     const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -20,10 +19,9 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
     
     if (profileError || !profileData) {
         console.error('Error fetching profile or profile not found:', profileError?.message);
-        return null; // Return null if profile doesn't exist.
+        return null;
     }
 
-    // 2. Fetch all public catalogs for the vendor
     const { data: publicCatalogs, error: catalogsError } = await supabase
       .from('catalogs')
       .select('id, name')
@@ -32,7 +30,7 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
     
     if (catalogsError) {
       console.error('Error fetching public catalogs:', catalogsError.message);
-      return { profile: profileData, catalogsWithProducts: [] }; // Return profile but no catalogs
+      return { profile: profileData, catalogsWithProducts: [] };
     }
 
     if (!publicCatalogs || publicCatalogs.length === 0) {
@@ -41,7 +39,6 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
 
     const publicCatalogIds = publicCatalogs.map(c => c.id);
 
-    // 3. Fetch all products linked to these public catalogs that are also visible
     const { data: catalogProducts, error: productsError } = await supabase
         .from('catalog_products')
         .select('catalog_id, products(*)')
@@ -51,10 +48,8 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
     
     if (productsError) {
         console.error(`Error fetching products for catalogs:`, productsError.message);
-        // We can still proceed, just with empty catalogs
     }
 
-    // 4. Structure the data
     const catalogProductMap = new Map<string, Product[]>();
     (catalogProducts || []).forEach(cp => {
         const product = cp.products as unknown as Product;
@@ -62,7 +57,6 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
             if (!catalogProductMap.has(cp.catalog_id)) {
                 catalogProductMap.set(cp.catalog_id, []);
             }
-            // Ensure product has valid image_urls
             const formattedProduct: Product = {
                 ...product,
                 image_urls: (product.image_urls && product.image_urls.length > 0) ? product.image_urls : ['https://placehold.co/600x400.png']
@@ -77,7 +71,7 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
             name: catalog.name,
             products: catalogProductMap.get(catalog.id) || []
         }))
-        .filter(c => c.products.length > 0); // Only show catalogs that have visible products
+        .filter(c => c.products.length > 0);
 
     return {
         profile: profileData,
@@ -93,6 +87,5 @@ export default async function StorePage({ params }: { params: { vendorId: string
       notFound();
   }
   
-  // The complete data is passed to the Client Component, which just displays it.
   return <StoreClientContent profile={storeData.profile} initialCatalogsWithProducts={storeData.catalogsWithProducts} />;
 }
