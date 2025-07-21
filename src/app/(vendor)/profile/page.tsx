@@ -170,7 +170,9 @@ function ProfilePage() {
       } else {
           toast({ title: '¡Éxito!', description: 'Tu perfil ha sido actualizado.' });
           setProfile(prev => ({...prev, avatar_url: newAvatarUrl}));
-          window.location.reload();
+          // Instead of reloading, we can just let the state update reflect the changes.
+          // Or if a reload is truly needed for other components to pick up changes, we can navigate.
+          router.refresh(); // This re-fetches data for the current route without a full page reload.
       }
       setSaving(false);
     };
@@ -216,7 +218,7 @@ function ProfilePage() {
                         Visualizar
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-sm w-full p-0 sm:p-0 bg-transparent border-none shadow-none">
+                <DialogContent className="max-w-[328px] w-full p-0 sm:p-0 bg-transparent border-none shadow-none">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Previsualización Móvil</DialogTitle>
                     </DialogHeader>
@@ -239,7 +241,7 @@ function ProfilePage() {
                             )}
                         </div>
                     </div>
-                     <DialogClose className="absolute top-0 right-0 sm:-right-4 sm:-top-4 rounded-full bg-background p-1 text-foreground opacity-80 hover:opacity-100 z-10 shadow-lg">
+                     <DialogClose className="absolute -top-2 -right-2 sm:-right-4 sm:-top-4 rounded-full bg-background p-1 text-foreground opacity-80 hover:opacity-100 z-10 shadow-lg">
                         <X className="h-5 w-5" />
                         <span className="sr-only">Cerrar</span>
                     </DialogClose>
@@ -386,3 +388,5 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
+
+    

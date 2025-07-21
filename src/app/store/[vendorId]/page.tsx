@@ -6,7 +6,7 @@ import type { Product, Catalog, Profile } from '@/types';
 import { createClient } from '@/lib/utils';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, MessageCircle, AlertCircle, Search } from 'lucide-react';
+import { ShoppingBag, MessageCircle, AlertCircle, Search, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/carousel"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { X } from 'lucide-react';
 
 type VendorFullProfile = Profile & {
     store_bg_color?: string;
@@ -34,7 +33,7 @@ type VendorFullProfile = Profile & {
     store_font_family?: string;
 };
 
-type CatalogWithProducts = Catalog & {
+type CatalogWithProducts = Omit<Catalog, 'product_ids'> & {
     products: Product[];
 }
 
@@ -109,41 +108,42 @@ export default function StorePage({ params }: StorePageProps) {
           setProfile(profileData);
 
           // 2. Fetch public catalogs
-          const { data: publicCatalogs, error: catalogsError } = await supabase
+          const { data: publicCatalogsData, error: catalogsError } = await supabase
               .from('catalogs')
               .select('id, name')
               .eq('user_id', vendorId)
               .eq('is_public', true);
           
           if (catalogsError) throw new Error("Error al cargar catálogos.");
-          if (!publicCatalogs || publicCatalogs.length === 0) {
-              setAllProducts([]);
-              setCatalogs([]);
-              setLoading(false);
-              return;
+
+          const publicCatalogIds = publicCatalogsData.map(c => c.id);
+
+          if(publicCatalogIds.length === 0) {
+            setAllProducts([]);
+            setCatalogs([]);
+            setLoading(false);
+            return;
           }
 
-          const publicCatalogIds = publicCatalogs.map(c => c.id);
-
           // 3. Fetch products linked to those public catalogs
-          const { data: catalogProducts, error: cpError } = await supabase
+          const { data: catalogProductsData, error: cpError } = await supabase
               .from('catalog_products')
               .select('product_id, catalog_id')
               .in('catalog_id', publicCatalogIds);
 
           if (cpError) throw new Error("Error al cargar productos del catálogo.");
-          if (!catalogProducts || catalogProducts.length === 0) {
-              setAllProducts([]);
-              setCatalogs([]);
-              setLoading(false);
-              return;
-  
-          }
           
-          const productIdsInPublicCatalogs = [...new Set(catalogProducts.map(cp => cp.product_id))];
+          const productIdsInPublicCatalogs = [...new Set(catalogProductsData.map(cp => cp.product_id))];
+
+           if(productIdsInPublicCatalogs.length === 0) {
+             setAllProducts([]);
+             setCatalogs([]);
+             setLoading(false);
+             return;
+           }
 
           // 4. Fetch details for those visible products
-          const { data: productData, error: productsError } = await supabase
+          const { data: productsData, error: productsError } = await supabase
               .from('products')
               .select('*')
               .in('id', productIdsInPublicCatalogs)
@@ -151,22 +151,29 @@ export default function StorePage({ params }: StorePageProps) {
 
           if (productsError) throw new Error("Error al cargar detalles de productos.");
           
-          const visibleProducts = productData || [];
+          const visibleProducts = productsData || [];
           setAllProducts(visibleProducts);
 
           const productsById = new Map(visibleProducts.map(p => [p.id, p]));
 
-          const catalogsWithProducts = publicCatalogs.map(catalog => {
-              const productIdsInThisCatalog = catalogProducts
+          const catalogsWithProducts: CatalogWithProducts[] = publicCatalogsData.map(catalog => {
+              const productIdsForThisCatalog = catalogProductsData
                   .filter(cp => cp.catalog_id === catalog.id)
                   .map(cp => cp.product_id);
               
-              const products = productIdsInThisCatalog
+              const products = productIdsForThisCatalog
                 .map(id => productsById.get(id))
-                .filter((p): p is Product => !!p);
+                .filter((p): p is Product => !!p); // Filter out undefined products
 
-              return { ...catalog, products, product_ids: [], created_at: '', user_id: vendorId, is_public: true };
-          }).filter(c => c.products.length > 0);
+              return { 
+                id: catalog.id, 
+                name: catalog.name, 
+                products, 
+                created_at: '', // dummy data
+                user_id: vendorId, // dummy data
+                is_public: true // dummy data
+               };
+          }).filter(c => c.products.length > 0); // Only keep catalogs that have visible products
           
           setCatalogs(catalogsWithProducts);
 
@@ -400,3 +407,6 @@ export default function StorePage({ params }: StorePageProps) {
     </div>
   );
 }
+
+
+    
