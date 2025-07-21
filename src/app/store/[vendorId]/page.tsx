@@ -1,44 +1,14 @@
 
-'use client';
-
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { Product, Catalog, Profile } from '@/types';
 import { createClient } from '@/lib/utils';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { ShoppingBag, MessageCircle, AlertCircle, Search, X } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
+import type { Profile } from '@/types';
+import { notFound } from 'next/navigation';
+import { StoreClientContent } from '@/components/StoreClientContent';
 
 type VendorFullProfile = Profile & {
     store_bg_color?: string;
     store_primary_color?: string;
     store_accent_color?: string;
     store_font_family?: string;
-};
-
-type CatalogWithProducts = Omit<Catalog, 'product_ids'> & {
-    products: Product[];
-}
-
-type StorePageProps = {
-  params: { vendorId: string };
 };
 
 const getFontFamily = (fontName: string | null | undefined): string => {
@@ -52,188 +22,25 @@ const getFontFamily = (fontName: string | null | undefined): string => {
     }
 };
 
-function StorePageSkeleton() {
-    return (
-        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-            <header className="mb-8 flex flex-col items-center">
-                <Skeleton className="h-24 w-24 rounded-full" />
-                <Skeleton className="mt-4 h-8 w-48" />
-            </header>
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <Skeleton className="h-10 flex-grow" />
-                <Skeleton className="h-10 w-full sm:w-[250px]" />
-            </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="flex flex-col gap-2">
-                        <Skeleton className="aspect-square w-full rounded-xl" />
-                        <Skeleton className="h-5 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                        <Skeleton className="h-8 w-1/4 mt-2" />
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+async function getProfile(vendorId: string): Promise<VendorFullProfile> {
+    const supabase = createClient();
+    const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', vendorId)
+        .single();
+    
+    if (profileError || !profileData) {
+        console.error('Error fetching profile or profile not found:', profileError?.message);
+        notFound();
+    }
+    return profileData;
 }
 
-export default function StorePage({ params }: StorePageProps) {
+export default async function StorePage({ params }: { params: { vendorId: string }}) {
   const { vendorId } = params;
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<VendorFullProfile | null>(null);
-  const [catalogs, setCatalogs] = useState<CatalogWithProducts[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const profile = await getProfile(vendorId);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCatalogId, setActiveCatalogId] = useState('all');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  
-  const fetchStoreData = useCallback(async () => {
-      setLoading(true);
-      setError(null);
-      const supabase = createClient();
-
-      try {
-          // 1. Fetch Profile
-          const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', vendorId)
-              .single();
-
-          if (profileError || !profileData) {
-              throw new Error("Tienda no encontrada o no disponible.");
-          }
-          setProfile(profileData);
-
-          // 2. Fetch public catalogs
-          const { data: publicCatalogsData, error: catalogsError } = await supabase
-              .from('catalogs')
-              .select('id, name')
-              .eq('user_id', vendorId)
-              .eq('is_public', true);
-          
-          if (catalogsError) throw new Error("Error al cargar catálogos.");
-
-          const publicCatalogIds = publicCatalogsData.map(c => c.id);
-
-          if(publicCatalogIds.length === 0) {
-            setAllProducts([]);
-            setCatalogs([]);
-            setLoading(false);
-            return;
-          }
-
-          // 3. Fetch products linked to those public catalogs
-          const { data: catalogProductsData, error: cpError } = await supabase
-              .from('catalog_products')
-              .select('product_id, catalog_id')
-              .in('catalog_id', publicCatalogIds);
-
-          if (cpError) throw new Error("Error al cargar productos del catálogo.");
-          
-          const productIdsInPublicCatalogs = [...new Set(catalogProductsData.map(cp => cp.product_id))];
-
-           if(productIdsInPublicCatalogs.length === 0) {
-             setAllProducts([]);
-             setCatalogs([]);
-             setLoading(false);
-             return;
-           }
-
-          // 4. Fetch details for those visible products
-          const { data: productsData, error: productsError } = await supabase
-              .from('products')
-              .select('*')
-              .in('id', productIdsInPublicCatalogs)
-              .eq('visible', true);
-
-          if (productsError) throw new Error("Error al cargar detalles de productos.");
-          
-          const visibleProducts = productsData || [];
-          setAllProducts(visibleProducts);
-
-          const productsById = new Map(visibleProducts.map(p => [p.id, p]));
-
-          const catalogsWithProducts: CatalogWithProducts[] = publicCatalogsData.map(catalog => {
-              const productIdsForThisCatalog = catalogProductsData
-                  .filter(cp => cp.catalog_id === catalog.id)
-                  .map(cp => cp.product_id);
-              
-              const products = productIdsForThisCatalog
-                .map(id => productsById.get(id))
-                .filter((p): p is Product => !!p); // Filter out undefined products
-
-              return { 
-                id: catalog.id, 
-                name: catalog.name, 
-                products, 
-                created_at: '', // dummy data
-                user_id: vendorId, // dummy data
-                is_public: true // dummy data
-               };
-          }).filter(c => c.products.length > 0); // Only keep catalogs that have visible products
-          
-          setCatalogs(catalogsWithProducts);
-
-      } catch (e: any) {
-          console.error(e);
-          setError(e.message);
-      } finally {
-          setLoading(false);
-      }
-  }, [vendorId]);
-
-
-  useEffect(() => {
-    fetchStoreData();
-  }, [fetchStoreData]);
-
-  const filteredProducts = useMemo(() => {
-    let productsToFilter = allProducts;
-
-    if (activeCatalogId !== 'all') {
-      productsToFilter = catalogs.find(c => c.id === activeCatalogId)?.products || [];
-    }
-    
-    if (searchQuery) {
-        return productsToFilter.filter(product => 
-            product.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }
-    
-    return productsToFilter;
-  }, [allProducts, catalogs, activeCatalogId, searchQuery]);
-
-
-  if (loading) {
-     return <StorePageSkeleton />;
-  }
-
-  if (error || !profile) {
-    return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gray-50 p-4">
-        <AlertCircle className="h-16 w-16 text-destructive" />
-        <h2 className="mt-4 text-2xl font-bold">¡Ups! Algo salió mal</h2>
-        <p className="mt-2 text-center text-muted-foreground">{error || 'No se pudieron cargar los datos de la tienda.'}</p>
-        <Button onClick={() => window.location.reload()} className="mt-6">Intentar de nuevo</Button>
-      </div>
-    );
-  }
-  
-  const showEmptyState = allProducts.length === 0;
-
-  const openModal = (product: Product) => setSelectedProduct(product);
-  const closeModal = () => setSelectedProduct(null);
-
-  const getWhatsAppLink = (product: Product) => {
-    const sellerPhoneNumber = profile?.phone || '';
-    if (!sellerPhoneNumber) return '#';
-    const message = `Hola, estoy interesado en el producto "${product.name}". ¿Está disponible?`;
-    return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-  };
-  
   const storeStyle = {
     '--store-bg': profile.store_bg_color || '#FFFFFF',
     '--store-primary': profile.store_primary_color || '#111827',
@@ -242,171 +49,26 @@ export default function StorePage({ params }: StorePageProps) {
   } as React.CSSProperties;
 
   return (
-    <div style={storeStyle} className="min-h-screen" >
-        <style jsx global>{`
+    <div style={storeStyle} className="min-h-screen">
+       <style jsx global>{`
             body { background-color: var(--store-bg); }
             .store-bg { background-color: var(--store-bg); }
-            .store-text { color: var(--store-text-on-bg); font-family: var(--store-font-family); }
+            .store-text { color: var(--store-primary); font-family: var(--store-font-family); }
             .store-primary-text { color: var(--store-primary); font-family: var(--store-font-family); }
+            .store-secondary-text { color: #6b7280; font-family: var(--store-font-family); }
             .store-primary-bg { background-color: var(--store-primary); color: var(--store-bg); font-family: var(--store-font-family); }
             .store-accent-bg { background-color: var(--store-accent); }
             .store-font { font-family: var(--store-font-family); }
         `}</style>
-        <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
-            <header className="mb-8 text-center">
-                <Avatar className="mx-auto h-24 w-24 border-4 border-white shadow-lg">
-                    <AvatarImage src={profile.avatar_url || undefined} alt={profile.name || 'Vendedor'} data-ai-hint="logo business" />
-                    <AvatarFallback>{profile.name?.charAt(0) || 'V'}</AvatarFallback>
-                </Avatar>
-                <h1 className="mt-4 text-3xl sm:text-4xl font-bold store-primary-text">{profile.name || 'Nuestra Tienda'}</h1>
-            </header>
-
-            <div className="sticky top-0 z-10 py-4 store-bg flex flex-col sm:flex-row gap-4 mb-8">
-                 <div className="relative flex-grow">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input 
-                        placeholder="Buscar producto..." 
-                        className="pl-10 w-full store-font" 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                 </div>
-                 <Select value={activeCatalogId} onValueChange={setActiveCatalogId} disabled={catalogs.length === 0}>
-                    <SelectTrigger className="w-full sm:w-[250px] store-font">
-                        <SelectValue placeholder="Seleccionar un catálogo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all" className="store-font">Todos los Productos</SelectItem>
-                        {catalogs.map(catalog => (
-                            <SelectItem key={catalog.id} value={catalog.id} className="store-font">{catalog.name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
-            {!showEmptyState ? (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {filteredProducts.map((product) => product && (
-                    <div key={product.id} className="group flex transform flex-col overflow-hidden rounded-xl border border-gray-200 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
-                        <Carousel className="w-full" opts={{ loop: product.image_urls.length > 1 }}>
-                            <CarouselContent>
-                                {(product.image_urls && product.image_urls.length > 0 ? product.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
-                                    <CarouselItem key={index} onClick={() => openModal(product)} className="cursor-pointer">
-                                        <div className="aspect-square w-full overflow-hidden relative">
-                                            <Image
-                                                src={url}
-                                                alt={`${product.name} - imagen ${index + 1}`}
-                                                fill
-                                                sizes="(max-width: 768px) 100vw, 50vw"
-                                                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                                data-ai-hint="product image"
-                                            />
-                                        </div>
-                                    </CarouselItem>
-                                ))}
-                            </CarouselContent>
-                             {product.image_urls && product.image_urls.length > 1 && (
-                                <>
-                                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 transform text-white bg-black/30 hover:bg-black/50 border-none" />
-                                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 transform text-white bg-black/30 hover:bg-black/50 border-none" />
-                                </>
-                            )}
-                        </Carousel>
-                        <div className="flex flex-1 flex-col p-4">
-                            <div className="flex-1" onClick={() => openModal(product)} >
-                                <h2 className="text-lg font-bold store-text truncate cursor-pointer">{product.name}</h2>
-                                {product.description && <p className="mt-1 text-sm text-gray-600 line-clamp-2 store-font">{product.description}</p>}
-                            </div>
-                            <div className="mt-4 flex w-full items-end justify-between gap-2">
-                                <p className="text-2xl font-extrabold store-primary-text whitespace-nowrap">${product.price.toFixed(2)}</p>
-                                <Button asChild size="sm" className="shrink-0 store-primary-bg hover:opacity-90" disabled={!profile?.phone}>
-                                    <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                                        <MessageCircle className="mr-2 h-4 w-4" />
-                                        Consultar
-                                    </a>
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-                </div>
-            ) : (
-                <div className="py-16 text-center">
-                    <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-4 text-xl font-semibold store-text">
-                        Esta tienda aún no tiene productos públicos.
-                    </h3>
-                    <p className="mt-2 text-gray-500 store-font">
-                        Añade productos a un catálogo público para que aparezcan aquí.
-                    </p>
-                </div>
-            )}
-            
-            <Dialog open={!!selectedProduct} onOpenChange={(isOpen) => !isOpen && closeModal()}>
-                 <DialogContent className="max-w-lg w-full p-0">
-                    <DialogHeader>
-                       <DialogTitle className="sr-only">{selectedProduct?.name}</DialogTitle>
-                       <DialogDescription className="sr-only">{selectedProduct?.description || 'Detalles del producto'}</DialogDescription>
-                    </DialogHeader>
-                    {selectedProduct && (
-                       <div className="relative w-full rounded-xl bg-white p-6 shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
-                            <DialogClose asChild>
-                                <button className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 z-10">
-                                    <X className="h-5 w-5" />
-                                    <span className="sr-only">Cerrar</span>
-                                </button>
-                            </DialogClose>
-                            <Carousel className="w-full max-w-md mx-auto mb-4">
-                                <CarouselContent>
-                                    {(selectedProduct.image_urls && selectedProduct.image_urls.length > 0 ? selectedProduct.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
-                                        <CarouselItem key={index}>
-                                            <div className="aspect-square w-full max-h-80 overflow-hidden relative rounded-lg">
-                                                <Image
-                                                    src={url}
-                                                    alt={`${selectedProduct.name} - imagen ${index + 1}`}
-                                                    fill
-                                                    sizes="(max-width: 768px) 100vw, 50vw"
-                                                    className="object-contain"
-                                                    data-ai-hint="product image"
-                                                />
-                                            </div>
-                                        </CarouselItem>
-                                    ))}
-                                </CarouselContent>
-                                {selectedProduct.image_urls && selectedProduct.image_urls.length > 1 && (
-                                    <>
-                                    <CarouselPrevious />
-                                    <CarouselNext />
-                                    </>
-                                )}
-                            </Carousel>
-                            <div className="flex flex-col flex-grow">
-                                <h2 className="text-2xl font-bold store-text">{selectedProduct.name}</h2>
-                                <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">
-                                <p className="store-font">{selectedProduct.description}</p>
-                                </div>
-                                <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                    <p className="text-3xl font-extrabold store-primary-text">${selectedProduct.price.toFixed(2)}</p>
-                                    <Button asChild size="lg" className="w-full sm:w-auto store-primary-bg hover:opacity-90" disabled={!profile?.phone}>
-                                    <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
-                                        <MessageCircle className="mr-2 h-5 w-5" />
-                                        Consultar
-                                    </a>
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                 </DialogContent>
-            </Dialog>
-
-            <footer className="mt-12 text-center text-sm text-gray-500 store-font">
-                <p>Potenciado por VentaRapida</p>
-            </footer>
-        </main>
+      <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
+        <StoreClientContent 
+            profile={profile}
+            vendorId={vendorId}
+        />
+        <footer className="mt-12 text-center text-sm text-gray-500 store-font">
+            <p>Potenciado por VentaRapida</p>
+        </footer>
+      </main>
     </div>
   );
 }
-
-
-    
