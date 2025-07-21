@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import type { Product, Catalog, Profile } from '@/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, MessageCircle, Search, X, Loader2 } from 'lucide-react';
+import { ShoppingBag, MessageCircle, Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -23,9 +23,6 @@ import {
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { createClient } from '@/lib/utils';
-import { Skeleton } from './ui/skeleton';
-
 
 type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at' | 'is_public'> & {
     products: Product[];
@@ -33,100 +30,18 @@ type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at
 
 type StoreClientContentProps = {
     profile: Profile;
-    vendorId: string;
+    initialCatalogsWithProducts: CatalogWithProducts[];
 }
 
-export function StoreClientContent({ profile, vendorId }: StoreClientContentProps) {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [catalogsWithProducts, setCatalogsWithProducts] = useState<CatalogWithProducts[]>([]);
-  
+// This is a Client Component. It receives data from the server and handles user interactions.
+export function StoreClientContent({ profile, initialCatalogsWithProducts }: StoreClientContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCatalogId, setActiveCatalogId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  useEffect(() => {
-    const fetchStoreData = async () => {
-        setLoading(true);
-        setError(null);
-        const supabase = createClient();
-        
-        try {
-            // 1. Get all public catalogs for the vendor
-            const { data: publicCatalogs, error: catalogsError } = await supabase
-                .from('catalogs')
-                .select('id, name')
-                .eq('user_id', vendorId)
-                .eq('is_public', true);
-
-            if (catalogsError) throw new Error(`Error al cargar catálogos: ${catalogsError.message}`);
-            if (!publicCatalogs || publicCatalogs.length === 0) {
-              setCatalogsWithProducts([]);
-              setLoading(false);
-              return;
-            }
-
-            const publicCatalogIds = publicCatalogs.map(c => c.id);
-
-            // 2. Get all product IDs linked to those public catalogs
-            const { data: catalogProducts, error: cpError } = await supabase
-                .from('catalog_products')
-                .select('catalog_id, product_id')
-                .in('catalog_id', publicCatalogIds);
-
-            if (cpError) throw new Error(`Error al cargar la relación de productos: ${cpError.message}`);
-            
-            const productIds = [...new Set(catalogProducts.map(cp => cp.product_id))];
-            if (productIds.length === 0) {
-              setCatalogsWithProducts([]);
-              setLoading(false);
-              return;
-            }
-            
-            // 3. Get all visible products matching those IDs
-            const { data: productsData, error: productsError } = await supabase
-                .from('products')
-                .select('*')
-                .in('id', productIds)
-                .eq('visible', true);
-            
-            if (productsError) throw new Error(`Error al cargar productos: ${productsError.message}`);
-
-            // 4. Join data in code
-            const productsById = new Map(productsData.map(p => [p.id, p]));
-            const finalCatalogs = publicCatalogs.map(catalog => {
-              const product_ids_for_catalog = catalogProducts
-                .filter(cp => cp.catalog_id === catalog.id)
-                .map(cp => cp.product_id);
-              
-              const products = product_ids_for_catalog
-                .map(pid => productsById.get(pid))
-                .filter((p): p is Product => p !== undefined);
-
-              return {
-                id: catalog.id,
-                name: catalog.name,
-                products: products,
-              }
-            }).filter(c => c.products.length > 0);
-
-            setCatalogsWithProducts(finalCatalogs);
-
-        } catch (err: any) {
-            console.error("Client-side data fetching error:", err);
-            setError(err.message || 'No se pudo cargar la tienda.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    fetchStoreData();
-  }, [vendorId]);
-
-
   const allProducts = useMemo(() => {
     const productMap = new Map<string, Product>();
-    catalogsWithProducts.forEach(catalog => {
+    initialCatalogsWithProducts.forEach(catalog => {
         catalog.products.forEach(product => {
             if (!productMap.has(product.id)) {
                 productMap.set(product.id, product);
@@ -134,12 +49,12 @@ export function StoreClientContent({ profile, vendorId }: StoreClientContentProp
         });
     });
     return Array.from(productMap.values());
-  }, [catalogsWithProducts]);
+  }, [initialCatalogsWithProducts]);
 
   const filteredProducts = useMemo(() => {
     let productsToFilter = activeCatalogId === 'all'
         ? allProducts
-        : catalogsWithProducts.find(c => c.id === activeCatalogId)?.products || [];
+        : initialCatalogsWithProducts.find(c => c.id === activeCatalogId)?.products || [];
     
     if (searchQuery) {
         return productsToFilter.filter(product => 
@@ -148,7 +63,7 @@ export function StoreClientContent({ profile, vendorId }: StoreClientContentProp
     }
     
     return productsToFilter;
-  }, [allProducts, catalogsWithProducts, activeCatalogId, searchQuery]);
+  }, [allProducts, initialCatalogsWithProducts, activeCatalogId, searchQuery]);
 
   const openModal = (product: Product) => setSelectedProduct(product);
   const closeModal = () => setSelectedProduct(null);
@@ -160,44 +75,6 @@ export function StoreClientContent({ profile, vendorId }: StoreClientContentProp
     return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
   
-  if (loading) {
-    return (
-        <div className="space-y-8">
-            <header className="mb-8 text-center flex flex-col items-center">
-                 <Skeleton className="h-24 w-24 rounded-full" />
-                 <Skeleton className="h-8 w-48 mt-4" />
-            </header>
-             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <Skeleton className="h-10 flex-grow" />
-                <Skeleton className="h-10 w-full sm:w-[250px]" />
-            </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="flex flex-col gap-2">
-                        <Skeleton className="aspect-square w-full rounded-xl" />
-                        <Skeleton className="h-5 w-3/4" />
-                        <Skeleton className="h-8 w-1/2" />
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
-  }
-
-  if (error) {
-     return (
-          <div className="py-16 text-center">
-              <X className="mx-auto h-12 w-12 text-destructive" />
-              <h3 className="mt-4 text-xl font-semibold store-text">
-                  Error al cargar la tienda
-              </h3>
-              <p className="mt-2 text-gray-500 store-font">
-                  {error}
-              </p>
-          </div>
-      );
-  }
-
   const showEmptyState = allProducts.length === 0;
 
   return (
@@ -220,13 +97,13 @@ export function StoreClientContent({ profile, vendorId }: StoreClientContentProp
                   onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Select value={activeCatalogId} onValueChange={setActiveCatalogId} disabled={catalogsWithProducts.length === 0}>
+            <Select value={activeCatalogId} onValueChange={setActiveCatalogId} disabled={initialCatalogsWithProducts.length === 0}>
               <SelectTrigger className="w-full sm:w-[250px] store-font bg-white/80 dark:bg-black/20">
                   <SelectValue placeholder="Seleccionar un catálogo" />
               </SelectTrigger>
               <SelectContent>
                   <SelectItem value="all" className="store-font">Todos los Productos</SelectItem>
-                  {catalogsWithProducts.map(catalog => (
+                  {initialCatalogsWithProducts.map(catalog => (
                       <SelectItem key={catalog.id} value={catalog.id} className="store-font">{catalog.name}</SelectItem>
                   ))}
               </SelectContent>

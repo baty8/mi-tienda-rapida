@@ -1,19 +1,94 @@
 
-'use client';
-
 import { createClient } from '@/lib/utils';
-import type { Profile } from '@/types';
+import type { Profile, Product, Catalog } from '@/types';
 import { notFound } from 'next/navigation';
 import { StoreClientContent } from '@/components/StoreClientContent';
 import * as React from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 
-type VendorFullProfile = Profile & {
-    store_bg_color?: string;
-    store_primary_color?: string;
-    store_accent_color?: string;
-    store_font_family?: string;
+// This is a Server Component, responsible for fetching data.
+// It's the most robust way to get data from the database.
+
+// We create a specific type for the data structure we will pass to the client
+type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at' | 'is_public'> & {
+    products: Product[];
 };
+
+type StorePageData = {
+    profile: Profile;
+    catalogsWithProducts: CatalogWithProducts[];
+};
+
+async function getStoreData(vendorId: string): Promise<StorePageData | null> {
+    const supabase = createClient();
+
+    // Step 1: Fetch the vendor's profile.
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', vendorId)
+        .single();
+    
+    if (profileError || !profile) {
+        console.error('Error fetching profile or profile not found:', profileError?.message);
+        return null; // Return null if profile doesn't exist.
+    }
+
+    // Step 2: Fetch all public catalogs for this vendor.
+    const { data: publicCatalogs, error: catalogsError } = await supabase
+        .from('catalogs')
+        .select('id, name')
+        .eq('user_id', vendorId)
+        .eq('is_public', true);
+    
+    if (catalogsError) {
+        console.error('Error fetching public catalogs:', catalogsError.message);
+        return { profile, catalogsWithProducts: [] }; // Return what we have
+    }
+
+    if (!publicCatalogs || publicCatalogs.length === 0) {
+        return { profile, catalogsWithProducts: [] }; // No public catalogs to show
+    }
+
+    const publicCatalogIds = publicCatalogs.map(c => c.id);
+
+    // Step 3: Fetch all products that are visible AND belong to any of the public catalogs.
+    const { data: catalogProducts, error: productsError } = await supabase
+        .from('catalog_products')
+        .select('product_id, products(*)') // Efficiently join and fetch product details
+        .in('catalog_id', publicCatalogIds)
+        .eq('products.visible', true);
+
+    if (productsError) {
+        console.error('Error fetching products for catalogs:', productsError.message);
+        return { profile, catalogsWithProducts: [] }; // Return what we have
+    }
+
+    // Step 4: Organize the data in a structured way for the client component.
+    const productsById = new Map();
+    const catalogProductMap = new Map<string, Product[]>();
+
+    catalogProducts?.forEach(cp => {
+        if (cp.products) {
+            // Add product to its catalog list
+            const product = cp.products as Product;
+            if (!catalogProductMap.has(cp.catalog_id)) {
+                catalogProductMap.set(cp.catalog_id, []);
+            }
+            catalogProductMap.get(cp.catalog_id)?.push(product);
+        }
+    });
+
+    const catalogsWithProducts = publicCatalogs
+        .map(catalog => ({
+            id: catalog.id,
+            name: catalog.name,
+            products: catalogProductMap.get(catalog.id) || []
+        }))
+        .filter(c => c.products.length > 0); // Only include catalogs that have visible products
+        
+
+    return { profile, catalogsWithProducts };
+}
 
 const getFontFamily = (fontName: string | null | undefined): string => {
     if (!fontName) return '"PT Sans", sans-serif';
@@ -26,63 +101,20 @@ const getFontFamily = (fontName: string | null | undefined): string => {
     }
 };
 
-
-export default function StorePage({ params }: { params: { vendorId: string }}) {
+export default async function StorePage({ params }: { params: { vendorId: string }}) {
   const { vendorId } = params;
-  const [profile, setProfile] = React.useState<VendorFullProfile | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
 
-  React.useEffect(() => {
-    const getProfile = async () => {
-        const supabase = createClient();
-        const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', vendorId)
-            .single();
-        
-        if (profileError || !profileData) {
-            console.error('Error fetching profile or profile not found:', profileError?.message);
-            setError(true);
-        } else {
-            setProfile(profileData as VendorFullProfile);
-        }
-        setLoading(false);
-    };
+  // Fetch data on the server. If this fails, the whole page build fails,
+  // but our logic above is simple and robust.
+  const data = await getStoreData(vendorId);
 
-    getProfile();
-  }, [vendorId]);
-
-
-  if (loading) {
-    return (
-        <div className="min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
-             <header className="mb-8 text-center flex flex-col items-center">
-                 <Skeleton className="h-24 w-24 rounded-full" />
-                 <Skeleton className="h-8 w-48 mt-4" />
-            </header>
-             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <Skeleton className="h-10 flex-grow" />
-                <Skeleton className="h-10 w-full sm:w-[250px]" />
-            </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="flex flex-col gap-2">
-                        <Skeleton className="aspect-square w-full rounded-xl" />
-                        <Skeleton className="h-5 w-3/4" />
-                        <Skeleton className="h-8 w-1/2" />
-                    </div>
-                ))}
-            </div>
-        </div>
-    )
+  if (!data || !data.profile) {
+      notFound(); // Triggers the not-found page if the vendor doesn't exist
   }
 
-  if (error || !profile) {
-      notFound();
-  }
+  const { profile, catalogsWithProducts } = data;
 
+  // Set up CSS variables for styling, passed to the client.
   const storeStyle = {
     '--store-bg': profile.store_bg_color || '#FFFFFF',
     '--store-primary': profile.store_primary_color || '#111827',
@@ -103,9 +135,10 @@ export default function StorePage({ params }: { params: { vendorId: string }}) {
             .store-font { font-family: var(--store-font-family); }
         `}</style>
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
+        {/* Pass the server-fetched data as props to the Client Component */}
         <StoreClientContent 
             profile={profile}
-            vendorId={vendorId}
+            initialCatalogsWithProducts={catalogsWithProducts}
         />
         <footer className="mt-12 text-center text-sm text-gray-500 store-font">
             <p>Potenciado por VentaRapida</p>
