@@ -1,7 +1,7 @@
 
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { createClient } from '@/lib/utils';
 import { useRouter, usePathname } from 'next/navigation';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
@@ -14,7 +14,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = createClient();
   const router = useRouter();
   const pathname = usePathname();
@@ -22,25 +22,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up a listener for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        setSession(newSession);
-        setLoading(false);
-      }
-    );
-
-    // Initial check in case the listener is slow
+    // 1. Fetch the initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+
+      // 2. Set up a listener for auth state changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         setSession(session);
         setLoading(false);
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
     });
-
-
-    // Cleanup the listener on component unmount
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
   }, [supabase.auth]);
 
   useEffect(() => {
@@ -60,12 +56,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push('/');
       return;
     }
-    
   }, [session, loading, pathname, router]);
 
 
+  // Show a loading screen only during the initial session check
   if (loading) {
-     return (
+    return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <ShoppingBag className="h-12 w-12 animate-pulse text-primary" />
@@ -75,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Once loading is false, render the children. The useEffect above will handle redirection.
   return (
     <AuthContext.Provider value={{ session, supabase }}>
       {children}
