@@ -41,199 +41,174 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
       d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
     />
     <path
-      fill="#1E88E5"
-      d="M44,24c0-0.112-0.014-0.221-0.02-0.33l-0.007-0.126l-0.016-0.124l-0.012-0.091l-0.021-0.134l-0.015-0.08l-0.025-0.132l-0.019-0.08l-0.029-0.125l-0.022-0.07l-0.032-0.117l-0.025-0.062l-0.035-0.106l-0.028-0.052l-0.039-0.095l-0.031-0.043l-0.042-0.082l-0.034-0.034l-0.046-0.071l-0.037-0.025l-0.049-0.059l-0.04-0.016l-0.051-0.045l-0.042-0.007l-0.054-0.031l-0.045,0.007c-0.159-0.054-0.323-0.101-0.492-0.142l-0.045-0.011l-0.058-0.028l-0.048-0.011l-0.061-0.024l-0.05-0.011l-0.063-0.02l-0.052-0.007l-0.066-0.016l-0.055-0.004l-0.068-0.011l-0.057,0.002l-0.069-0.007l-0.059,0.004c-0.211-0.022-0.424-0.036-0.639-0.04l-0.061-0.002l-0.071,0.002c-0.21-0.005-0.421-0.005-0.632-0.005H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C39.99,38.937,44,32.2,44,24z"
+      fill="#1976D2"
+      d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C41.386,35.637,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"
     />
   </svg>
 );
 
 
-function LoginPage() {
-  const supabase = createClient();
+export default function LoginPage() {
+  const [isLoginView, setIsLoginView] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const supabase = createClient();
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [isForgotDialogOpen, setForgotDialogOpen] = useState(false);
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      if (error.message.includes("Email not confirmed")) {
-         toast({
-          variant: "destructive",
-          title: "Email no confirmado",
-          description: "Por favor, revisa tu correo electrónico y haz clic en el enlace de verificación para activar tu cuenta.",
-        });
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error de inicio de sesión',
-          description: 'El correo electrónico o la contraseña son incorrectos.',
-        });
-      }
+      toast({ variant: 'destructive', title: 'Error al iniciar sesión', description: error.message });
     }
+    setLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Las contraseñas no coinciden.' });
+      return;
+    }
     setLoading(true);
-
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: { name: name },
+        emailRedirectTo: `${window.location.origin}/auth/verify`,
       },
     });
-    setLoading(false);
 
     if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error de registro',
-        description: error.message,
-      });
+      toast({ variant: 'destructive', title: 'Error al registrarse', description: error.message });
     } else {
-      toast({
-        title: '¡Revisa tu correo!',
-        description: 'Se ha enviado un enlace de verificación a tu correo electrónico para completar el registro.',
-      });
+      toast({ title: '¡Registro exitoso!', description: 'Por favor, revisa tu correo electrónico para verificar tu cuenta.' });
+      setIsLoginView(true); // Switch to login view after successful sign-up prompt
     }
+    setLoading(false);
   };
 
   const handleOAuthLogin = async () => {
-    // This simple call forces the popup flow, which works best for local dev
-    // and is also robust for production.
-    await supabase.auth.signInWithOAuth({
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
     });
-  };
-
-  const handleForgotPassword = async () => {
-    if (!forgotPasswordEmail) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Por favor, introduce tu correo electrónico.' });
-      return;
-    }
-    setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-    });
-    setLoading(false);
-    
     if (error) {
-       toast({ variant: 'destructive', title: 'Error', description: error.message });
-    } else {
-        toast({ title: '¡Revisa tu correo!', description: 'Se ha enviado un enlace para restablecer tu contraseña.' });
+      toast({ variant: 'destructive', title: 'Error', description: `No se pudo iniciar sesión con Google: ${error.message}`});
+      setLoading(false);
     }
   };
-
+  
+  const handleForgotPassword = async () => {
+     setLoading(true);
+     const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+       redirectTo: `${window.location.origin}/auth/reset-password`,
+     });
+     setLoading(false);
+     setForgotDialogOpen(false);
+     if (error) {
+       toast({ variant: 'destructive', title: 'Error', description: error.message });
+     } else {
+       toast({ title: 'Correo enviado', description: 'Revisa tu bandeja de entrada para restablecer tu contraseña.' });
+     }
+  };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body dark:bg-gray-900">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 text-black shadow-2xl dark:bg-gray-800 dark:text-white">
-        <h1 className="text-center text-3xl font-bold font-headline text-gray-800 dark:text-white">
-          Bienvenido a VentaRapida
-        </h1>
-        <p className="mt-2 text-center text-gray-600 dark:text-gray-300">
-          Tu sistema de ventas, simple y potente.
-        </p>
-
-        <form onSubmit={handleLogin} className="mt-8 space-y-6">
-          <Input
-            type="email"
-            placeholder="Correo electrónico"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="bg-gray-50 dark:bg-gray-700"
-          />
-          <Input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="bg-gray-50 dark:bg-gray-700"
-          />
-
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Iniciar Sesión
-            </Button>
-            <Button
-              type="button"
-              onClick={handleSignUp}
-              disabled={loading}
-              variant="secondary"
-              className="w-full"
-            >
-              Registrarse
-            </Button>
-          </div>
-        </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-gray-300 dark:border-gray-600" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-              O continúa con
-            </span>
-          </div>
-        </div>
-
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={handleOAuthLogin}
-        >
-          <GoogleIcon className="mr-2 h-5 w-5" />
-          Google
-        </Button>
+    <main className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body">
+      <div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-white text-black shadow-2xl md:grid md:grid-cols-2">
         
-        <div className="mt-4 text-center">
-             <AlertDialog>
-                <AlertDialogTrigger asChild>
-                     <button className="text-sm text-blue-500 hover:underline dark:text-blue-400">
-                        ¿Olvidaste tu contraseña?
-                    </button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
+        {/* Columna Izquierda: Formulario */}
+        <div className="flex flex-col justify-center p-8 sm:p-12">
+          <h1 className="mb-6 text-3xl font-bold font-headline text-gray-800">
+            {isLoginView ? 'Iniciar Sesión' : 'Crear Cuenta'}
+          </h1>
+          
+          <form onSubmit={isLoginView ? handleLogin : handleSignUp} className="space-y-4">
+            {!isLoginView && (
+              <div>
+                <Label htmlFor="name">Nombre</Label>
+                <Input id="name" type="text" placeholder="Tu nombre" value={name} onChange={(e) => setName(e.target.value)} required />
+              </div>
+            )}
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div>
+              <Label htmlFor="password">Contraseña</Label>
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+             {!isLoginView && (
+              <div>
+                <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                <Input id="confirmPassword" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              </div>
+            )}
+
+            {isLoginView && (
+              <div className="text-right">
+                <AlertDialog open={isForgotDialogOpen} onOpenChange={setForgotDialogOpen}>
+                  <AlertDialogTrigger asChild>
+                    <button type="button" className="text-sm text-blue-600 hover:underline">¿Olvidaste tu contraseña?</button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
-                        <AlertDialogDescription>
-                           Introduce tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
-                        </AlertDialogDescription>
+                      <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                      </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="grid gap-4 py-4">
-                        <Label htmlFor="forgot-password-email">Correo Electrónico</Label>
-                        <Input id="forgot-password-email" type="email" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} placeholder="tu@email.com" />
+                      <Label htmlFor="forgot-email">Correo Electrónico</Label>
+                      <Input id="forgot-email" type="email" placeholder="tu@email.com" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} />
                     </div>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleForgotPassword} disabled={loading}>
-                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Enviar Enlace
-                        </AlertDialogAction>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleForgotPassword}>Enviar Enlace</AlertDialogAction>
                     </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
+            
+            <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 h-11 rounded-lg text-base">
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoginView ? 'INICIAR SESIÓN' : 'CREAR CUENTA'}
+            </Button>
+          </form>
+
+          <div className="my-6 flex items-center">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="mx-4 text-xs text-gray-500">O CONTINUAR CON</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+
+          <Button variant="outline" onClick={handleOAuthLogin} disabled={loading} className="w-full h-11 rounded-lg border-gray-300">
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2" />}
+            Google
+          </Button>
+
         </div>
+
+        {/* Columna Derecha: Bienvenida */}
+        <div className="hidden md:flex flex-col items-center justify-center p-12 text-center text-white bg-gradient-to-br from-blue-500 to-cyan-400">
+           <h2 className="mb-4 text-4xl font-bold font-headline">¡Bienvenido a Tu Tienda Rápida!</h2>
+           <p className="mb-8 max-w-sm">
+             Administra tu tienda online creando catálogos y administrando tus productos de manera sencilla.
+           </p>
+           <Button variant="outline" onClick={() => setIsLoginView(!isLoginView)} className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-blue-600 h-11 px-8 rounded-full">
+            {isLoginView ? 'REGÍSTRATE GRATIS' : 'INICIAR SESIÓN'}
+           </Button>
+        </div>
+
       </div>
-    </div>
+    </main>
   );
 }
-
-export default LoginPage;

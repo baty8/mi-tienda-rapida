@@ -1,51 +1,213 @@
-
 'use client';
 
-import { ShoppingBag } from 'lucide-react';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 
-export default function AuthCallbackPage() {
-    const router = useRouter();
-    const supabase = createClient();
+const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 48 48"
+    width="24px"
+    height="24px"
+  >
+    <path
+      fill="#FFC107"
+      d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+    />
+    <path
+      fill="#FF3D00"
+      d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+    />
+    <path
+      fill="#4CAF50"
+      d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+    />
+    <path
+      fill="#1976D2"
+      d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C41.386,35.637,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+    />
+  </svg>
+);
 
-    useEffect(() => {
-        const handleAuthCallback = async () => {
-            // The user has been redirected here from an email link.
-            // We check the session. The AuthProvider will then take over.
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                // If there's a session, the AuthProvider in the root layout
-                // will redirect to '/products'. We can push them there as a fallback.
-                router.push('/products');
-            } else {
-                // If there's no session after coming from a callback,
-                // it might be a password recovery or other flow.
-                // We'll wait for the onAuthStateChange listener to fire.
-                // If nothing happens, we send them to login.
-                const timer = setTimeout(() => {
-                    router.push('/');
-                }, 3000);
-                return () => clearTimeout(timer);
-            }
-        };
 
-        handleAuthCallback();
-    }, [router, supabase]);
+export default function LoginPage() {
+  const [isLoginView, setIsLoginView] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const supabase = createClient();
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [isForgotDialogOpen, setForgotDialogOpen] = useState(false);
 
 
-    return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body">
-            <div className="w-full max-w-md text-center rounded-2xl bg-white text-black shadow-2xl p-8">
-                <ShoppingBag className="mx-auto h-16 w-16 animate-pulse text-blue-500" />
-                <h1 className="mt-4 text-2xl font-bold font-headline text-gray-800">
-                    Autenticando...
-                </h1>
-                <p className="mt-2 text-gray-600">
-                    Estamos verificando tu sesión. Serás redirigido en un momento.
-                </p>
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al iniciar sesión', description: error.message });
+    }
+    setLoading(false);
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Las contraseñas no coinciden.' });
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name: name },
+        emailRedirectTo: `${window.location.origin}/auth/verify`,
+      },
+    });
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al registrarse', description: error.message });
+    } else {
+      toast({ title: '¡Registro exitoso!', description: 'Por favor, revisa tu correo electrónico para verificar tu cuenta.' });
+      setIsLoginView(true); // Switch to login view after successful sign-up prompt
+    }
+    setLoading(false);
+  };
+
+  const handleOAuthLogin = async () => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    });
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error', description: `No se pudo iniciar sesión con Google: ${error.message}`});
+      setLoading(false);
+    }
+  };
+  
+  const handleForgotPassword = async () => {
+     setLoading(true);
+     const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+       redirectTo: `${window.location.origin}/auth/reset-password`,
+     });
+     setLoading(false);
+     setForgotDialogOpen(false);
+     if (error) {
+       toast({ variant: 'destructive', title: 'Error', description: error.message });
+     } else {
+       toast({ title: 'Correo enviado', description: 'Revisa tu bandeja de entrada para restablecer tu contraseña.' });
+     }
+  };
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body">
+      <div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-white text-black shadow-2xl md:grid md:grid-cols-2">
+        
+        {/* Columna Izquierda: Formulario */}
+        <div className="flex flex-col justify-center p-8 sm:p-12">
+          <h1 className="mb-6 text-3xl font-bold font-headline text-gray-800">
+            {isLoginView ? 'Iniciar Sesión' : 'Crear Cuenta'}
+          </h1>
+          
+          <form onSubmit={isLoginView ? handleLogin : handleSignUp} className="space-y-4">
+            {!isLoginView && (
+              <div>
+                <Label htmlFor="name">Nombre</Label>
+                <Input id="name" type="text" placeholder="Tu nombre" value={name} onChange={(e) => setName(e.target.value)} required />
+              </div>
+            )}
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
+            <div>
+              <Label htmlFor="password">Contraseña</Label>
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+             {!isLoginView && (
+              <div>
+                <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                <Input id="confirmPassword" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              </div>
+            )}
+
+            {isLoginView && (
+              <div className="text-right">
+                <AlertDialog open={isForgotDialogOpen} onOpenChange={setForgotDialogOpen}>
+                  <AlertDialogTrigger asChild>
+                    <button type="button" className="text-sm text-blue-600 hover:underline">¿Olvidaste tu contraseña?</button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <Label htmlFor="forgot-email">Correo Electrónico</Label>
+                      <Input id="forgot-email" type="email" placeholder="tu@email.com" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} />
+                    </div>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleForgotPassword}>Enviar Enlace</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
+            
+            <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 h-11 rounded-lg text-base">
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoginView ? 'INICIAR SESIÓN' : 'CREAR CUENTA'}
+            </Button>
+          </form>
+
+          <div className="my-6 flex items-center">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="mx-4 text-xs text-gray-500">O CONTINUAR CON</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+
+          <Button variant="outline" onClick={handleOAuthLogin} disabled={loading} className="w-full h-11 rounded-lg border-gray-300">
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2" />}
+            Google
+          </Button>
+
         </div>
-    );
+
+        {/* Columna Derecha: Bienvenida */}
+        <div className="hidden md:flex flex-col items-center justify-center p-12 text-center text-white bg-gradient-to-br from-blue-500 to-cyan-400">
+           <h2 className="mb-4 text-4xl font-bold font-headline">¡Bienvenido a Tu Tienda Rápida!</h2>
+           <p className="mb-8 max-w-sm">
+             Administra tu tienda online creando catálogos y administrando tus productos de manera sencilla.
+           </p>
+           <Button variant="outline" onClick={() => setIsLoginView(!isLoginView)} className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-blue-600 h-11 px-8 rounded-full">
+            {isLoginView ? 'REGÍSTRATE GRATIS' : 'INICIAR SESIÓN'}
+           </Button>
+        </div>
+
+      </div>
+    </main>
+  );
 }

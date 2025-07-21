@@ -1,7 +1,7 @@
 
 'use client';
 
-import { CheckCircle, PartyPopper } from 'lucide-react';
+import { PartyPopper } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -17,12 +17,7 @@ export default function VerifyPage() {
                 <p className="mt-2 text-gray-600">
                     Tu cuenta ha sido activada correctamente. Ya puedes iniciar sesión y empezar a vender.
                 </p>
-                <Button asChild className="mt-6 w-full bg-blue-500 hover:bg-blue-600">
+                <Button asChild className="mt-6 w-full bg-blue-600 hover:bg-blue-700">
                    <Link href="/">
                      Ir a Iniciar Sesión
-                   </Link>
-                </Button>
-            </div>
-        </div>
-    );
-}
+                   
