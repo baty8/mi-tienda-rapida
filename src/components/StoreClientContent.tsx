@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -43,7 +44,6 @@ const getFontFamily = (fontName: string | null | undefined): string => {
     }
 };
 
-// This is a Client Component. It receives data from the server and handles user interactions.
 export function StoreClientContent({ profile, initialCatalogsWithProducts }: StoreClientContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCatalogId, setActiveCatalogId] = useState('all');
@@ -88,58 +88,71 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
   const showEmptyState = initialCatalogsWithProducts.length === 0 && allProducts.length === 0;
 
   const storeStyle = {
-    '--store-bg': profile.store_bg_color || '#FFFFFF',
-    '--store-primary': profile.store_primary_color || '#111827',
-    '--store-accent': profile.store_accent_color || '#F3F4F6',
+    '--store-bg': profile.store_bg_color || '#FAF0E6',
+    '--store-primary': profile.store_primary_color || '#FF9800',
+    '--store-accent': profile.store_accent_color || '#64B5F6',
+    '--store-card-bg': profile.store_bg_color === '#111827' ? '#1F2937' : '#FFFFFF', // dark or light card
+    '--store-card-text': profile.store_bg_color === '#111827' ? '#FFFFFF' : '#111827',
     '--store-font-family': getFontFamily(profile.store_font_family),
   } as React.CSSProperties;
 
   return (
-    <div style={storeStyle} className="min-h-screen">
+    <div style={storeStyle} className="min-h-screen store-font">
        <style jsx global>{`
-            body { background-color: var(--store-bg); }
+            body { background-color: var(--store-bg); color: var(--store-card-text); }
             .store-bg { background-color: var(--store-bg); }
-            .store-text { color: var(--store-primary); font-family: var(--store-font-family); }
-            .store-primary-text { color: var(--store-primary); font-family: var(--store-font-family); }
-            .store-secondary-text { color: #6b7280; font-family: var(--store-font-family); }
-            .store-primary-bg { background-color: var(--store-primary); color: var(--store-bg); font-family: var(--store-font-family); }
+            .store-text { color: var(--store-card-text); }
+            .store-primary-text { color: var(--store-primary); }
+            .store-secondary-text { color: #6b7280; }
+            .store-primary-bg { background-color: var(--store-primary); color: white; }
             .store-accent-bg { background-color: var(--store-accent); }
+            .store-card { background-color: var(--store-card-bg); color: var(--store-card-text); }
             .store-font { font-family: var(--store-font-family); }
         `}</style>
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
-        <header className="mb-8 text-center">
-                <Avatar className="mx-auto h-24 w-24 border-4 border-white shadow-lg">
+        <header className="mb-8 overflow-hidden rounded-xl shadow-lg store-card flex flex-col md:flex-row items-center">
+            <div className="p-6 flex flex-col items-center text-center md:items-start md:text-left">
+                 <Avatar className="h-20 w-20 border-4 border-[var(--store-bg)] shadow-md mb-2">
                     <AvatarImage src={profile.avatar_url || undefined} alt={profile.name || 'Vendedor'} data-ai-hint="logo business" />
                     <AvatarFallback>{profile.name?.charAt(0) || 'V'}</AvatarFallback>
                 </Avatar>
-                <h1 className="mt-4 text-3xl sm:text-4xl font-bold store-primary-text">{profile.name || 'Nuestra Tienda'}</h1>
+                <h1 className="text-3xl sm:text-4xl font-bold store-text">{profile.name || 'Nuestra Tienda'}</h1>
+                <p className="mt-2 text-md text-gray-500 max-w-md">{profile.store_description || 'Catálogo de productos'}</p>
+            </div>
+             <div className="w-full md:w-1/3 h-48 md:h-full ml-auto relative">
+                {profile.store_banner_url ? (
+                    <Image src={profile.store_banner_url} alt="Banner de la tienda" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" data-ai-hint="product lifestyle" />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-r from-gray-200 to-gray-300" />
+                )}
+            </div>
         </header>
 
         <div className="sticky top-0 z-10 py-4 store-bg flex flex-col sm:flex-row gap-4 mb-8">
                 <div className="relative flex-grow">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input 
-                    placeholder="Buscar producto..." 
-                    className="pl-10 w-full store-font bg-white/80 dark:bg-black/20" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input 
+                        placeholder="Buscar producto..." 
+                        className="pl-10 w-full store-font store-card border-gray-200/50" 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                 </div>
                 <Select value={activeCatalogId} onValueChange={setActiveCatalogId} disabled={initialCatalogsWithProducts.length === 0}>
-                <SelectTrigger className="w-full sm:w-[250px] store-font bg-white/80 dark:bg-black/20">
-                    <SelectValue placeholder="Seleccionar un catálogo" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all" className="store-font">Todos los Productos</SelectItem>
-                    {initialCatalogsWithProducts.map(catalog => (
-                        <SelectItem key={catalog.id} value={catalog.id} className="store-font">{catalog.name}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+                    <SelectTrigger className="w-full sm:w-[250px] store-font store-card border-gray-200/50">
+                        <SelectValue placeholder="Seleccionar un catálogo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all" className="store-font">Todos los Productos</SelectItem>
+                        {initialCatalogsWithProducts.map(catalog => (
+                            <SelectItem key={catalog.id} value={catalog.id} className="store-font">{catalog.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
         </div>
 
         {showEmptyState ? (
-            <div className="py-16 text-center">
+            <div className="py-16 text-center store-card rounded-xl">
                 <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-4 text-xl font-semibold store-text">
                     Esta tienda aún no tiene productos públicos.
@@ -151,40 +164,26 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filteredProducts.map((product) => product && (
-                <div key={product.id} className="group flex transform flex-col overflow-hidden rounded-xl border border-gray-200/50 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
-                    <Carousel className="w-full" opts={{ loop: product.image_urls.length > 1 }}>
-                        <CarouselContent>
-                            {(product.image_urls && product.image_urls.length > 0 ? product.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
-                                <CarouselItem key={index} onClick={() => openModal(product)} className="cursor-pointer">
-                                    <div className="aspect-square w-full overflow-hidden relative">
-                                        <Image
-                                            src={url}
-                                            alt={`${product.name} - imagen ${index + 1}`}
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, 50vw"
-                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                            data-ai-hint="product image"
-                                        />
-                                    </div>
-                                </CarouselItem>
-                            ))}
-                        </CarouselContent>
-                            {product.image_urls && product.image_urls.length > 1 && (
-                            <>
-                                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 transform text-white bg-black/30 hover:bg-black/50 border-none" />
-                                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 transform text-white bg-black/30 hover:bg-black/50 border-none" />
-                            </>
-                        )}
-                    </Carousel>
+                <div key={product.id} onClick={() => openModal(product)} className="group flex cursor-pointer transform flex-col overflow-hidden rounded-xl border border-gray-200/50 shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl store-card">
+                    <div className="aspect-square w-full overflow-hidden relative">
+                        <Image
+                            src={product.image_urls[0]}
+                            alt={product.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            data-ai-hint="product image"
+                        />
+                    </div>
                     <div className="flex flex-1 flex-col p-4">
-                        <div className="flex-1" onClick={() => openModal(product)} >
-                            <h2 className="text-lg font-bold store-text truncate cursor-pointer">{product.name}</h2>
+                        <div className="flex-1">
+                            <h2 className="text-lg font-bold store-text truncate">{product.name}</h2>
                             {product.description && <p className="mt-1 text-sm line-clamp-2 store-secondary-text">{product.description}</p>}
                         </div>
                         <div className="mt-4 flex w-full items-end justify-between gap-2">
-                            <p className="text-2xl font-extrabold store-primary-text whitespace-nowrap">${product.price.toFixed(2)}</p>
-                            <Button asChild size="sm" className="shrink-0 store-primary-bg hover:opacity-90" disabled={!profile?.phone}>
-                                <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                            <p className="text-2xl font-extrabold store-primary-text whitespace-nowrap">${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                            <Button asChild size="sm" className="shrink-0 store-primary-bg hover:opacity-90" disabled={!profile?.phone} onClick={(e) => e.stopPropagation()}>
+                                <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
                                     <MessageCircle className="mr-2 h-4 w-4" />
                                     Consultar
                                 </a>
@@ -240,7 +239,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                             <p>{selectedProduct.description}</p>
                             </div>
                             <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <p className="text-3xl font-extrabold text-blue-600">${selectedProduct.price.toFixed(2)}</p>
+                                <p className="text-3xl font-extrabold text-blue-600">${selectedProduct.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
                                 <Button asChild size="lg" className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700" disabled={!profile?.phone}>
                                 <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
                                     <MessageCircle className="mr-2 h-5 w-5" />

@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { User, Save, UploadCloud, Palette, Eye, Type, X, Loader2 } from 'lucide-react';
+import { User, Save, UploadCloud, Palette, Eye, Type, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 const templates = [
   { id: 'blanco-moderno', name: 'Blanco Moderno', colors: { bg: '#FFFFFF', primary: '#111827', accent: '#F3F4F6' } },
@@ -61,6 +62,8 @@ function ProfilePage() {
       phone: '', 
       avatar_url: '', 
       email: '',
+      store_description: '',
+      store_banner_url: '',
       store_bg_color: '#FFFFFF',
       store_primary_color: '#1E40AF',
       store_accent_color: '#F3F4F6',
@@ -68,6 +71,8 @@ function ProfilePage() {
     });
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [bannerFile, setBannerFile] = useState<File | null>(null);
+    const [bannerPreview, setBannerPreview] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [isPreparingPreview, setIsPreparingPreview] = useState(false);
@@ -108,14 +113,15 @@ function ProfilePage() {
                 phone: data.phone, 
                 avatar_url: data.avatar_url, 
                 email: user.email || '',
+                store_description: data.store_description,
+                store_banner_url: data.store_banner_url,
                 store_bg_color: data.store_bg_color || '#FFFFFF',
                 store_primary_color: data.store_primary_color || '#1E40AF',
                 store_accent_color: data.store_accent_color || '#F3F4F6',
                 store_font_family: data.store_font_family || 'PT Sans',
             });
-            if (data.avatar_url) {
-                setAvatarPreview(data.avatar_url);
-            }
+            if (data.avatar_url) setAvatarPreview(data.avatar_url);
+            if (data.store_banner_url) setBannerPreview(data.store_banner_url);
         }
         setLoading(false);
     }, [router]);
@@ -124,15 +130,16 @@ function ProfilePage() {
         fetchProfile();
     }, [fetchProfile]);
 
-    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'banner') => {
       const file = e.target.files?.[0];
       if (file) {
-        setAvatarFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setAvatarPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        if (type === 'avatar') {
+            setAvatarFile(file);
+            setAvatarPreview(URL.createObjectURL(file));
+        } else {
+            setBannerFile(file);
+            setBannerPreview(URL.createObjectURL(file));
+        }
       }
     };
 
@@ -141,11 +148,12 @@ function ProfilePage() {
       setSaving(true);
       
       let newAvatarUrl = profile.avatar_url;
+      let newBannerUrl = profile.store_banner_url;
       const supabase = getSupabase();
 
       if (avatarFile) {
           const fileName = `${userId}/avatar-${Date.now()}`;
-          const { error: uploadError } = await supabase.storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
               .from('product_images')
               .upload(fileName, avatarFile, { upsert: true });
 
@@ -154,9 +162,21 @@ function ProfilePage() {
               setSaving(false);
               return;
           }
+          newAvatarUrl = supabase.storage.from('product_images').getPublicUrl(fileName).data.publicUrl;
+      }
 
-          const { data: { publicUrl } } = supabase.storage.from('product_images').getPublicUrl(fileName);
-          newAvatarUrl = publicUrl;
+      if (bannerFile) {
+          const fileName = `${userId}/banner-${Date.now()}`;
+          const { error: uploadError } = await supabase.storage
+              .from('product_images')
+              .upload(fileName, bannerFile, { upsert: true });
+
+          if (uploadError) {
+              toast.error('Error al subir banner', { description: uploadError.message });
+              setSaving(false);
+              return;
+          }
+           newBannerUrl = supabase.storage.from('product_images').getPublicUrl(fileName).data.publicUrl;
       }
 
       const { error } = await supabase
@@ -165,6 +185,8 @@ function ProfilePage() {
               name: profile.name, 
               phone: profile.phone,
               avatar_url: newAvatarUrl,
+              store_description: profile.store_description,
+              store_banner_url: newBannerUrl,
               store_bg_color: profile.store_bg_color,
               store_primary_color: profile.store_primary_color,
               store_accent_color: profile.store_accent_color,
@@ -176,13 +198,12 @@ function ProfilePage() {
           toast.error('Error al guardar', { description: error.message });
       } else {
           toast.success('¡Éxito!', { description: 'Tu perfil ha sido actualizado.' });
-          setProfile(prev => ({...prev, avatar_url: newAvatarUrl}));
-          // No reload, just state update is enough
+          setProfile(prev => ({...prev, avatar_url: newAvatarUrl, store_banner_url: newBannerUrl}));
       }
       setSaving(false);
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
         setProfile(prev => ({ ...prev, [id]: value }));
     };
@@ -211,8 +232,6 @@ function ProfilePage() {
       setIsPreparingPreview(true);
       await handleSave(); // Save any pending changes first
       setIsPreviewOpen(true);
-      // The preview will now open, and the iframe will load the storeLink
-      // The loading of the preview content is handled by the iframe itself.
       setIsPreparingPreview(false);
     }
 
@@ -305,7 +324,7 @@ function ProfilePage() {
                                     <p className="text-sm text-center text-muted-foreground">Haz clic para cambiar</p>
                                 </div>
                             )}
-                            <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+                            <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'avatar')} />
                         </label>
                     </div>
                 </div>
@@ -313,6 +332,10 @@ function ProfilePage() {
                 <div className="space-y-2">
                   <Label htmlFor="name">Nombre de la Tienda / Vendedor</Label>
                   <Input id="name" placeholder="Ej: Tienda de Ana" value={profile.name || ''} onChange={handleInputChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="store_description">Descripción de la Tienda</Label>
+                  <Textarea id="store_description" placeholder="Ej: Especialistas en productos de alta calidad." value={profile.store_description || ''} onChange={handleInputChange}/>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Número de WhatsApp (con código de país)</Label>
@@ -340,22 +363,40 @@ function ProfilePage() {
                         <CardTitle>Estilo de la Tienda</CardTitle>
                     </div>
                     <CardDescription>
-                        Elige una plantilla o personaliza los colores y la tipografía de tu tienda pública.
+                        Personaliza la apariencia de tu tienda pública.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div>
-                        <Label htmlFor="template-select">Elige una plantilla de colores</Label>
-                        <Select onValueChange={handleTemplateChange}>
-                            <SelectTrigger id="template-select" className="w-full md:w-1/2 mt-2">
-                                <SelectValue placeholder="Selecciona una plantilla" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {templates.map(template => (
-                                    <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                    <div className="space-y-2">
+                      <Label>Imagen de Banner</Label>
+                      <label htmlFor="banner-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-muted relative">
+                          {bannerPreview ? (
+                              <Image src={bannerPreview} alt="Vista previa del banner" fill sizes="100%" style={{objectFit: 'cover'}} className="rounded-lg" data-ai-hint="product lifestyle" />
+                          ) : (
+                              <div className="flex flex-col items-center justify-center">
+                                  <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground" />
+                                  <p className="text-sm text-center text-muted-foreground">Imagen para la cabecera de tu tienda</p>
+                              </div>
+                          )}
+                          <input id="banner-upload" type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'banner')} />
+                      </label>
+                       <p className="text-xs text-muted-foreground">
+                        Sube una imagen atractiva que represente tu tienda. Se mostrará en la parte superior.
+                      </p>
+                    </div>
+
+                    <div className="border-t pt-6">
+                      <Label htmlFor="template-select">Elige una plantilla de colores</Label>
+                      <Select onValueChange={handleTemplateChange}>
+                          <SelectTrigger id="template-select" className="w-full md:w-1/2 mt-2">
+                              <SelectValue placeholder="Selecciona una plantilla" />
+                          </SelectTrigger>
+                          <SelectContent>
+                              {templates.map(template => (
+                                  <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>
+                              ))}
+                          </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

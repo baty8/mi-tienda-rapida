@@ -31,6 +31,8 @@ export type Profile = {
   phone: string | null;
   avatar_url: string | null;
   email: string | null;
+  store_description?: string | null;
+  store_banner_url?: string | null;
   store_bg_color?: string | null;
   store_primary_color?: string | null;
   store_accent_color?: string | null;
