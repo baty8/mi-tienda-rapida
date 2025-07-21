@@ -20,5 +20,5 @@ function getSupabaseBrowserClient() {
   return supabase;
 }
 
-// Export a single instance of the client
+// Export a single instance of the client by calling the function
 export const supabase = getSupabaseBrowserClient();
