@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
-import { Loader2, ShoppingBag } from 'lucide-react';
+import { Loader2, ShoppingBag, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -59,26 +59,32 @@ export default function LoginPage() {
   const router = useRouter();
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isForgotDialogOpen, setForgotDialogOpen] = useState(false);
-  
+  const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(false);
+
   useEffect(() => {
     const supabase = getSupabase();
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push('/products');
-      }
-    };
-    checkSession();
+    if (supabase) {
+      setIsSupabaseConfigured(true);
+      const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          router.push('/products');
+        }
+      };
+      checkSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        router.push('/products');
-      }
-    });
+      const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+          router.push('/products');
+        }
+      });
 
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
+      return () => {
+        authListener?.subscription?.unsubscribe();
+      };
+    } else {
+      setIsSupabaseConfigured(false);
+    }
   }, [router]);
 
 
@@ -86,6 +92,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     const supabase = getSupabase();
+    if (!supabase) return;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       toast({ variant: 'destructive', title: 'Error al iniciar sesión', description: error.message });
@@ -101,6 +108,7 @@ export default function LoginPage() {
     }
     setLoading(true);
     const supabase = getSupabase();
+    if (!supabase) return;
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -122,6 +130,7 @@ export default function LoginPage() {
   const handleOAuthLogin = async () => {
     setLoading(true);
     const supabase = getSupabase();
+    if (!supabase) return;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
     });
@@ -134,6 +143,7 @@ export default function LoginPage() {
   const handleForgotPassword = async () => {
      setLoading(true);
      const supabase = getSupabase();
+     if (!supabase) return;
      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
        redirectTo: `${window.location.origin}/auth/reset-password`,
      });
@@ -157,6 +167,24 @@ export default function LoginPage() {
             </Button>
       </div>
   );
+  
+  const NotConfiguredWarning = () => (
+    <div className="space-y-4 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100">
+          <AlertTriangle className="h-6 w-6 text-yellow-600" />
+        </div>
+        <h2 className="text-xl font-bold">Configuración Requerida</h2>
+        <p className="text-muted-foreground text-sm">
+            La conexión con la base de datos no está configurada. Por favor, añade las variables 
+            <code className="bg-muted px-1.5 py-0.5 rounded-sm font-mono text-xs">NEXT_PUBLIC_SUPABASE_URL</code> y 
+            <code className="bg-muted px-1.5 py-0.5 rounded-sm font-mono text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> 
+            a tu archivo <code className="bg-muted px-1.5 py-0.5 rounded-sm font-mono text-xs">.env</code>.
+        </p>
+         <p className="text-muted-foreground text-sm font-semibold">
+            Después de guardar los cambios, puede que necesites reiniciar el servidor de desarrollo.
+        </p>
+    </div>
+  );
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 font-body light md:bg-white">
@@ -179,7 +207,10 @@ export default function LoginPage() {
                 {isLoginView ? 'Iniciar Sesión' : 'Crear Cuenta'}
             </h1>
           
-            <>
+            {!isSupabaseConfigured ? (
+              <NotConfiguredWarning />
+            ) : (
+              <>
               <form onSubmit={isLoginView ? handleLogin : handleSignUp} className="space-y-4">
                 {!isLoginView && (
                   <div>
@@ -244,7 +275,7 @@ export default function LoginPage() {
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <><GoogleIcon className="mr-2" /> Continuar con Google</>}
               </Button>
             </>
-          
+            )}
 
 
            <div className="mt-6 text-center text-sm md:hidden">
