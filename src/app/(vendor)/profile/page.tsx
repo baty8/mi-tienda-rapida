@@ -27,7 +27,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { toast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
-import type { Profile, Catalog, Product } from '@/types';
+import type { Profile } from '@/types';
 import {
   Select,
   SelectContent,

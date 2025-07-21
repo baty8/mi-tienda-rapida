@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
 export default function VendorPagesLayout({ children }: { children: ReactNode }) {
-  const supabase = createClient();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -21,6 +20,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
   const [initialCatalogs, setInitialCatalogs] = useState<Catalog[]>([]);
 
   useEffect(() => {
+    const supabase = createClient();
     const fetchInitialData = async () => {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -105,7 +105,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [supabase, router]);
+  }, [router]);
 
   if (loading) {
     return (

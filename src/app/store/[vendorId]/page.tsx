@@ -1,4 +1,5 @@
-import { createAdminClient } from '@/lib/utils';
+
+import { createClient, createAdminClient } from '@/lib/utils';
 import type { Profile, Product, Catalog } from '@/types';
 import { notFound } from 'next/navigation';
 import * as React from 'react';

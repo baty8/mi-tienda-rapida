@@ -62,7 +62,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     // This effect redirects the user if they are already logged in.
-    // It creates a client only when needed.
     const checkSession = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
