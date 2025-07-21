@@ -113,6 +113,8 @@ export default function AuthPage() {
   
   const handleOAuthLogin = async (provider: 'google') => {
     setLoading(true);
+    // By not providing 'redirectTo' in the options, Supabase will default to a popup flow
+    // which avoids the redirection issue in this specific development environment.
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
     });
@@ -125,6 +127,7 @@ export default function AuthPage() {
       });
       setLoading(false);
     }
+    // No need to set loading to false here, as the page will be busy until the popup closes.
   };
   
   const handlePasswordReset = async () => {
@@ -249,5 +252,3 @@ export default function AuthPage() {
     </div>
   );
 }
-
-    
