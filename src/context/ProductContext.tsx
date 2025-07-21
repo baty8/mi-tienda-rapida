@@ -5,7 +5,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import type { Product, Catalog } from '@/types';
 import { getSupabase } from '@/lib/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 interface ProductContextType {
@@ -83,7 +83,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       .order('created_at', { ascending: false });
 
     if (error) {
-      toast({ variant: 'destructive', title: 'Error', description: `No se pudieron recargar los productos: ${error.message}` });
+      toast.error('Error', { description: `No se pudieron recargar los productos: ${error.message}` });
       setProducts([]);
     } else {
       const formattedProducts: Product[] = (data || []).map(formatProduct);
@@ -110,7 +110,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para añadir productos.' });
+        toast.error('Error', { description: 'Debes iniciar sesión para añadir productos.' });
         setLoading(false);
         return;
     }
@@ -120,7 +120,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       try {
         imageUrls = await Promise.all(imageFiles.map(file => uploadImage(file, user.id)));
       } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Error de Carga', description: error.message });
+        toast.error('Error de Carga', { description: error.message });
         setLoading(false);
         return;
       }
@@ -136,9 +136,9 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
     }).select().single();
 
     if (error) {
-      toast({ variant: 'destructive', title: 'Error', description: `No se pudo añadir el producto: ${error.message}` });
+      toast.error('Error', { description: `No se pudo añadir el producto: ${error.message}` });
     } else {
-      toast({ title: 'Éxito', description: 'Producto añadido correctamente.' });
+      toast.success('Éxito', { description: 'Producto añadido correctamente.' });
       setProducts(prev => [formatProduct(newProductData), ...prev]);
     }
     setLoading(false);
@@ -157,7 +157,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
          try {
             newImageUrls = await Promise.all(imageFiles.map(file => uploadImage(file, user.id)));
          } catch(error: any) {
-            toast({ variant: 'destructive', title: 'Error de Carga', description: error.message });
+            toast.error('Error de Carga', { description: error.message });
             setLoading(false);
             return;
          }
@@ -175,9 +175,9 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       const { data, error } = await supabase.from('products').update(updateData).eq('id', productId).eq('user_id', user.id).select().single();
 
       if (error) {
-        toast({ variant: 'destructive', title: 'Error', description: `No se pudo actualizar el producto: ${error.message}` });
+        toast.error('Error', { description: `No se pudo actualizar el producto: ${error.message}` });
       } else {
-        toast({ title: 'Éxito', description: 'Producto actualizado.' });
+        toast.success('Éxito', { description: 'Producto actualizado.' });
         setProducts(prevProducts => prevProducts.map(p => p.id === productId ? formatProduct(data) : p));
       }
       setLoading(false);
@@ -187,9 +187,9 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
     setLoading(true);
     const { error } = await supabase.from('products').delete().eq('id', productId);
     if (error) {
-       toast({ variant: 'destructive', title: 'Error', description: `No se pudo eliminar el producto: ${error.message}` });
+       toast.error('Error', { description: `No se pudo eliminar el producto: ${error.message}` });
     } else {
-       toast({ title: 'Éxito', description: 'Producto eliminado.' });
+       toast.success('Éxito', { description: 'Producto eliminado.' });
        setProducts(prev => prev.filter(p => p.id !== productId));
     }
     setLoading(false);
@@ -206,7 +206,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
             .order('name', { ascending: true });
         
         if (catalogError) {
-            toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron recargar los catálogos.' });
+            toast.error('Error', { description: 'No se pudieron recargar los catálogos.' });
             return;
         }
 
@@ -217,7 +217,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
             .in('catalog_id', catalogIds);
         
         if (catalogProductsError) {
-            toast({ variant: 'destructive', title: 'Error', description: 'No se pudo recargar la relación de productos y catálogos.' });
+            toast.error('Error', { description: 'No se pudo recargar la relación de productos y catálogos.' });
             return;
         }
 
@@ -242,12 +242,12 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
     }
     const { data, error } = await supabase.from('catalogs').insert({ name, user_id: user.id, is_public: true }).select().single();
     if (error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo crear el catálogo.' });
+        toast.error('Error', { description: 'No se pudo crear el catálogo.' });
     } else {
         const newCatalog = { ...data, product_ids: [] };
         setCatalogs(prev => [...prev, newCatalog] as Catalog[]);
         setActiveCatalog(newCatalog as Catalog);
-        toast({ title: 'Éxito', description: 'Catálogo creado.' });
+        toast.success('Éxito', { description: 'Catálogo creado.' });
     }
     setLoading(false);
   };
@@ -256,9 +256,9 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       setLoading(true);
       const { error } = await supabase.from('catalogs').delete().eq('id', catalogId);
       if (error) {
-          toast({ variant: 'destructive', title: 'Error', description: 'No se pudo eliminar el catálogo.' });
+          toast.error('Error', { description: 'No se pudo eliminar el catálogo.' });
       } else {
-          toast({ title: 'Éxito', description: 'Catálogo eliminado.' });
+          toast.success('Éxito', { description: 'Catálogo eliminado.' });
           const remainingCatalogs = catalogs.filter(c => c.id !== catalogId);
           setCatalogs(remainingCatalogs);
           setActiveCatalog(remainingCatalogs.length > 0 ? remainingCatalogs[0] : null);
@@ -271,7 +271,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
     const { name, product_ids, is_public } = catalogData;
     const { error: updateError } = await supabase.from('catalogs').update({ name, is_public }).eq('id', catalogId);
     if (updateError) {
-        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo guardar el catálogo.' });
+        toast.error('Error', { description: 'No se pudo guardar el catálogo.' });
         setLoading(false);
         return;
     }
@@ -282,7 +282,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
             product_ids.map(pid => ({ catalog_id: catalogId, product_id: pid }))
         );
         if (insertError) {
-            toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron guardar los productos del catálogo.' });
+            toast.error('Error', { description: 'No se pudieron guardar los productos del catálogo.' });
             setLoading(false);
             return;
         }
@@ -293,7 +293,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       const updatedCurrentCatalog = updatedCatalogs.find(c => c.id === catalogId);
       if(updatedCurrentCatalog) setActiveCatalog(updatedCurrentCatalog as Catalog);
     }
-    toast({ title: 'Éxito', description: 'Catálogo guardado.' });
+    toast.success('Éxito', { description: 'Catálogo guardado.' });
     setLoading(false);
   };
 

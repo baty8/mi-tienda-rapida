@@ -7,7 +7,7 @@ import { getSupabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Loader2, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 
@@ -52,11 +52,11 @@ export default function ResetPasswordPage() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Las contraseñas no coinciden.' });
+      toast.error('Error', { description: 'Las contraseñas no coinciden.' });
       return;
     }
     if (password.length < 6) {
-      toast({ variant: 'destructive', title: 'Error', description: 'La contraseña debe tener al menos 6 caracteres.' });
+      toast.error('Error', { description: 'La contraseña debe tener al menos 6 caracteres.' });
       return;
     }
 
@@ -66,9 +66,9 @@ export default function ResetPasswordPage() {
     setLoading(false);
 
     if (error) {
-      toast({ variant: 'destructive', title: 'Error', description: error.message });
+      toast.error('Error', { description: error.message });
     } else {
-      toast({ title: '¡Éxito!', description: 'Tu contraseña ha sido actualizada. Inicia sesión con tu nueva contraseña.' });
+      toast.success('¡Éxito!', { description: 'Tu contraseña ha sido actualizada. Inicia sesión con tu nueva contraseña.' });
       await supabase.auth.signOut(); // Force sign out to require new login
       router.push('/');
     }

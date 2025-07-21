@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { UploadCloud, X } from 'lucide-react';
 import { Switch } from './ui/switch';
 import type { Product } from '@/types';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import Image from 'next/image';
 import { useProduct } from '@/context/ProductContext';
 import { useDropzone } from 'react-dropzone';
@@ -80,9 +80,7 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
 
   const handleSave = async () => {
     if (!name || price <= 0) {
-       toast({
-        variant: 'destructive',
-        title: 'Campos incompletos',
+       toast.error('Campos incompletos', {
         description: 'Por favor, completa el nombre y el precio.',
       });
       return;

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getSupabase } from '@/lib/supabase/client';
@@ -95,7 +95,7 @@ export default function LoginPage() {
     if (!supabase) return;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      toast({ variant: 'destructive', title: 'Error al iniciar sesión', description: error.message });
+      toast.error('Error al iniciar sesión', { description: error.message });
     }
     setLoading(false);
   };
@@ -103,7 +103,7 @@ export default function LoginPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Las contraseñas no coinciden.' });
+      toast.error('Error', { description: 'Las contraseñas no coinciden.' });
       return;
     }
     setLoading(true);
@@ -119,9 +119,9 @@ export default function LoginPage() {
     });
 
     if (error) {
-      toast({ variant: 'destructive', title: 'Error al registrarse', description: error.message });
+      toast.error('Error al registrarse', { description: error.message });
     } else {
-      toast({ title: '¡Registro exitoso!', description: 'Por favor, revisa tu correo electrónico para verificar tu cuenta.' });
+      toast.success('¡Registro exitoso!', { description: 'Por favor, revisa tu correo electrónico para verificar tu cuenta.' });
       setIsLoginView(true); 
     }
     setLoading(false);
@@ -135,7 +135,7 @@ export default function LoginPage() {
       provider: 'google',
     });
     if (error) {
-      toast({ variant: 'destructive', title: 'Error', description: `No se pudo iniciar sesión con Google: ${error.message}`});
+      toast.error('Error', { description: `No se pudo iniciar sesión con Google: ${error.message}`});
       setLoading(false);
     }
   };
@@ -150,9 +150,9 @@ export default function LoginPage() {
      setLoading(false);
      setForgotDialogOpen(false);
      if (error) {
-       toast({ variant: 'destructive', title: 'Error', description: error.message });
+       toast.error('Error', { description: error.message });
      } else {
-       toast({ title: 'Correo enviado', description: 'Revisa tu bandeja de entrada para restablecer tu contraseña.' });
+       toast.info('Correo enviado', { description: 'Revisa tu bandeja de entrada para restablecer tu contraseña.' });
      }
   };
   

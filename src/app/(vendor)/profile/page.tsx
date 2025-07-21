@@ -24,7 +24,7 @@ import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
 import { getSupabase } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import type { Profile } from '@/types';
@@ -97,7 +97,7 @@ function ProfilePage() {
             .single();
         
         if (error) {
-             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar el perfil. Por favor, recarga la página.'});
+             toast.error('Error', { description: 'No se pudo cargar el perfil. Por favor, recarga la página.'});
              setLoading(false);
              return;
         }
@@ -150,7 +150,7 @@ function ProfilePage() {
               .upload(fileName, avatarFile, { upsert: true });
 
           if (uploadError) {
-              toast({ variant: 'destructive', title: 'Error al subir imagen', description: uploadError.message });
+              toast.error('Error al subir imagen', { description: uploadError.message });
               setSaving(false);
               return;
           }
@@ -173,9 +173,9 @@ function ProfilePage() {
           .eq('id', userId);
 
       if (error) {
-          toast({ variant: 'destructive', title: 'Error al guardar', description: error.message });
+          toast.error('Error al guardar', { description: error.message });
       } else {
-          toast({ title: '¡Éxito!', description: 'Tu perfil ha sido actualizado.' });
+          toast.success('¡Éxito!', { description: 'Tu perfil ha sido actualizado.' });
           setProfile(prev => ({...prev, avatar_url: newAvatarUrl}));
           // No reload, just state update is enough
       }

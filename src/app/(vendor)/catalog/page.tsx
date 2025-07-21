@@ -38,7 +38,7 @@ import { Product } from '@/types';
 import * as React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import Image from 'next/image';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -103,12 +103,12 @@ function CatalogPage() {
   const handleSaveCatalog = async () => {
     if (!activeCatalog) return;
     await saveCatalog(activeCatalog.id, activeCatalog);
-    toast({ title: '¡Catálogo guardado!', description: 'Tus cambios han sido guardados.' });
+    toast.success('¡Catálogo guardado!', { description: 'Tus cambios han sido guardados.' });
   };
 
   const handleCreateCatalog = async () => {
     if (!newCatalogName.trim()) {
-        toast({ variant: 'destructive', title: 'Error', description: 'El nombre del catálogo no puede estar vacío.' });
+        toast.error('Error', { description: 'El nombre del catálogo no puede estar vacío.' });
         return;
     }
     await createCatalog(newCatalogName);
@@ -158,7 +158,7 @@ function CatalogPage() {
                 </div>
                 <Button type="submit" size="icon" onClick={() => {
                   navigator.clipboard.writeText(storeLink);
-                  toast({ title: '¡Copiado!' });
+                  toast.success('¡Copiado!');
                 }}>
                   <Copy className="h-4 w-4" />
                 </Button>

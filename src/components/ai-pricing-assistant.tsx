@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -8,7 +9,7 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { suggestPrice, type SuggestPriceOutput } from '@/ai/flows/pricing-assistant-flow';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 // Check if the environment variable is set, but don't expose it to the client.
 const isConfigured = process.env.NEXT_PUBLIC_GEMINI_API_KEY === 'true';
@@ -28,7 +29,7 @@ export function AiPricingAssistant() {
     try {
       const cost = parseFloat(productCost);
       if (isNaN(cost)) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, introduce un costo válido.' });
+        toast.error('Error', { description: 'Por favor, introduce un costo válido.' });
         return;
       }
       const response = await suggestPrice({
@@ -39,7 +40,7 @@ export function AiPricingAssistant() {
       setResult(response);
     } catch (error) {
       console.error(error);
-      toast({ variant: 'destructive', title: 'Error', description: 'No se pudo obtener una sugerencia. Inténtalo de nuevo.' });
+      toast.error('Error', { description: 'No se pudo obtener una sugerencia. Inténtalo de nuevo.' });
     } finally {
       setLoading(false);
     }
