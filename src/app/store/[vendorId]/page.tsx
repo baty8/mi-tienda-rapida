@@ -68,43 +68,48 @@ export default function StorePage() {
       setError(null);
 
       try {
-        // 1. Fetch vendor info (including style colors)
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', vendorId)
-          .single();
-
+        // Fetch profile and public catalogs in parallel
+        const [profileResult, catalogResult] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', vendorId).single(),
+          supabase.from('catalogs').select('id, name').eq('user_id', vendorId).eq('is_public', true)
+        ]);
+        
+        const { data: profileData, error: profileError } = profileResult;
         if (profileError || !profileData) {
           throw new Error('No se pudo encontrar la tienda de este vendedor.');
         }
         setVendor(profileData as VendorFullProfile);
         
-        // 2. Fetch all public catalogs for this vendor
-        const { data: catalogData, error: catalogError } = await supabase
-          .from('catalogs')
-          .select('id, name')
-          .eq('user_id', vendorId)
-          .eq('is_public', true);
-        
-        if (catalogError) throw new Error('Error al cargar los catálogos.');
-        
+        const { data: catalogData, error: catalogError } = catalogResult;
+        if (catalogError) {
+          throw new Error('Error al cargar los catálogos.');
+        }
+
+        if (!catalogData || catalogData.length === 0) {
+            setProducts([]);
+            setCatalogs([]);
+            return;
+        }
+
         const catalogIds = catalogData.map(c => c.id);
+
         const { data: catalogProductsData, error: catalogProductsError } = await supabase
             .from('catalog_products')
             .select('catalog_id, product_id')
             .in('catalog_id', catalogIds);
         
-        if(catalogProductsError) throw new Error('Error al cargar los productos de los catálogos.');
+        if (catalogProductsError) {
+          throw new Error('Error al cargar los productos de los catálogos.');
+        }
         
         const publicCatalogs = catalogData.map(c => {
             const product_ids = catalogProductsData
                 ?.filter(cp => cp.catalog_id === c.id)
                 .map(cp => cp.product_id) || [];
-            return { ...c, product_ids, is_public: true, user_id: vendorId, created_at: '' }; // Add dummy fields to satisfy Catalog type
+            return { ...c, product_ids, is_public: true, user_id: vendorId, created_at: '' };
         });
 
-        setCatalogs(publicCatalogs);
+        setCatalogs(publicCatalogs as Catalog[]);
 
         const allProductIdsInPublicCatalogs = [...new Set(publicCatalogs.flatMap(c => c.product_ids))];
 
@@ -115,11 +120,13 @@ export default function StorePage() {
                 .in('id', allProductIdsInPublicCatalogs)
                 .eq('visible', true);
 
-            if (productError) throw new Error('No se pudieron cargar los productos.');
+            if (productError) {
+              throw new Error('No se pudieron cargar los productos.');
+            }
 
             const formattedProducts = productData.map((p: any) => {
                 const containingCatalogs = publicCatalogs
-                    .filter(c => c.product_ids.includes(p.id))
+                    .filter(c => (c as Catalog).product_ids.includes(p.id))
                     .map(c => c.id);
                 
                 return {
@@ -382,3 +389,5 @@ export default function StorePage() {
     </div>
   );
 }
+
+    
