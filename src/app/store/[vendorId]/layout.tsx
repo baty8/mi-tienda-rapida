@@ -44,7 +44,8 @@ export default async function StoreLayout({
     .eq('id', params.vendorId)
     .single();
 
-  const fontUrl = profile?.store_font_family ? fontMap[profile.store_font_family] : fontMap['PT Sans'];
+  const selectedFont = profile?.store_font_family && fontMap[profile.store_font_family] ? profile.store_font_family : 'PT Sans';
+  const fontUrl = fontMap[selectedFont];
 
   return (
     <html lang="es">

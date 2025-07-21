@@ -22,7 +22,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 type VendorFullProfile = Profile & {
     store_bg_color?: string;
@@ -215,6 +215,10 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
                  <DialogContent className="max-w-lg w-full p-0">
                     {selectedProduct && (
                        <div className="relative w-full rounded-xl bg-white p-6 shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+                            <DialogHeader>
+                               <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
+                               <DialogDescription className="sr-only">{selectedProduct.description}</DialogDescription>
+                            </DialogHeader>
                             <button onClick={closeModal} className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 z-10">
                                 <X className="h-5 w-5" />
                                 <span className="sr-only">Cerrar</span>

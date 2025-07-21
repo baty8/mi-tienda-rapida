@@ -17,29 +17,30 @@ type CatalogWithProducts = Catalog & {
 async function getStoreData(vendorId: string) {
     const supabase = createClient();
 
-    const { data: vendor, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', vendorId)
-        .single();
+    // 1. Fetch vendor profile and public products in parallel
+    const [profileResult, productsResult] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', vendorId).single(),
+        supabase
+            .from('products')
+            .select('*, catalogs!inner(id, name)')
+            .eq('user_id', vendorId)
+            .eq('visible', true)
+            .eq('catalogs.is_public', true)
+    ]);
     
+    const { data: vendor, error: profileError } = profileResult;
     if (profileError || !vendor) {
-         return { error: 'No se pudo encontrar la tienda de este vendedor.' };
+        console.error("Profile fetch error:", profileError);
+        return { error: 'No se pudo encontrar la tienda de este vendedor.' };
     }
 
-    const { data: publicProducts, error: productsError } = await supabase
-        .from('products')
-        .select('*, catalogs!inner(id, name)')
-        .eq('user_id', vendorId)
-        .eq('visible', true)
-        .not('catalogs', 'is', null) // Ensure product is in at least one catalog
-        .eq('catalogs.is_public', true); // Ensure that catalog is public
-        
+    const { data: publicProducts, error: productsError } = productsResult;
     if (productsError) {
-        console.error("Error fetching public products:", productsError);
+        console.error("Products fetch error:", productsError);
         return { error: 'Hubo un problema al cargar los productos.' };
     }
 
+    // 2. Process the fetched data
     const allProducts: Product[] = publicProducts.map((p: any) => ({
         id: p.id,
         name: p.name,
@@ -59,24 +60,42 @@ async function getStoreData(vendorId: string) {
     const catalogsMap = new Map<string, CatalogWithProducts>();
 
     for (const product of publicProducts) {
+        // Handle cases where a product is in multiple catalogs
         if (Array.isArray(product.catalogs)) {
-            for (const catalog of product.catalogs) {
+             for (const catalog of product.catalogs) {
                 if (!catalogsMap.has(catalog.id)) {
                     catalogsMap.set(catalog.id, {
                         id: catalog.id,
                         name: catalog.name,
                         user_id: vendorId,
-                        created_at: '', // Not needed on storefront
+                        created_at: '', // Not needed
                         is_public: true,
-                        product_ids: [], // Not needed on storefront
+                        product_ids: [], // Not needed
                         products: [],
                     });
                 }
                 const formattedProduct = allProducts.find(p => p.id === product.id);
-                if(formattedProduct) {
+                if(formattedProduct && !catalogsMap.get(catalog.id)!.products.some(p => p.id === formattedProduct.id)) {
                     catalogsMap.get(catalog.id)!.products.push(formattedProduct);
                 }
             }
+        } else if (product.catalogs) { // Handle case where product.catalogs is a single object
+             const catalog = product.catalogs;
+             if (!catalogsMap.has(catalog.id)) {
+                    catalogsMap.set(catalog.id, {
+                        id: catalog.id,
+                        name: catalog.name,
+                        user_id: vendorId,
+                        created_at: '', // Not needed
+                        is_public: true,
+                        product_ids: [], // Not needed
+                        products: [],
+                    });
+                }
+                const formattedProduct = allProducts.find(p => p.id === product.id);
+                 if(formattedProduct && !catalogsMap.get(catalog.id)!.products.some(p => p.id === formattedProduct.id)) {
+                    catalogsMap.get(catalog.id)!.products.push(formattedProduct);
+                }
         }
     }
     
@@ -105,3 +124,4 @@ export default async function StorePage({ params }: { params: { vendorId: string
     />
   );
 }
+
