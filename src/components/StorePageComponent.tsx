@@ -1,8 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Product, Catalog, Profile } from '@/types';
+import { createClient } from '@/lib/utils';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, MessageCircle, AlertCircle, Search, X } from 'lucide-react';
@@ -37,11 +38,9 @@ type CatalogWithProducts = Catalog & {
 
 type StorePageComponentProps = {
     error?: string;
-    vendor?: VendorFullProfile | null;
-    catalogs?: CatalogWithProducts[] | null;
-    allProducts?: Product[] | null;
+    initialVendor?: VendorFullProfile | null;
+    vendorId: string;
 }
-
 
 const getFontFamily = (fontName: string | null | undefined): string => {
     if (!fontName) return '"PT Sans", sans-serif';
@@ -54,10 +53,90 @@ const getFontFamily = (fontName: string | null | undefined): string => {
     }
 };
 
-export function StorePageComponent({ error, vendor, catalogs, allProducts }: StorePageComponentProps) {
+export function StorePageComponent({ error: initialError, initialVendor, vendorId }: StorePageComponentProps) {
+  const [loading, setLoading] = useState(true);
+  const [vendor, setVendor] = useState(initialVendor);
+  const [error, setError] = useState(initialError);
+
+  const [catalogs, setCatalogs] = useState<CatalogWithProducts[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCatalogId, setActiveCatalogId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    const fetchStoreData = async () => {
+      setLoading(true);
+      const supabase = createClient();
+
+      // 1. Fetch all public products for the vendor that are in a public catalog
+      const { data: publicProducts, error: productsError } = await supabase
+        .from('products')
+        .select('*, catalogs!inner(id, name, is_public)')
+        .eq('user_id', vendorId)
+        .eq('visible', true)
+        .eq('catalogs.is_public', true);
+        
+      if (productsError) {
+        console.error("Products fetch error:", productsError);
+        setError("No se pudieron cargar los productos de la tienda.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Process the fetched data into products and catalogs
+      const allProductsData: Product[] = (publicProducts || []).map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description || '',
+        price: p.price,
+        cost: p.cost || 0,
+        stock: p.stock || 0,
+        visible: p.visible,
+        image_urls: (p.image_urls && Array.isArray(p.image_urls) && p.image_urls.length > 0) ? p.image_urls : ['https://placehold.co/600x400.png'],
+        createdAt: p.created_at,
+        tags: p.stock > 0 ? [] : ['Out of Stock'],
+        category: 'General',
+        in_catalog: true,
+        user_id: p.user_id,
+      }));
+      setAllProducts(allProductsData);
+      
+      const catalogsMap = new Map<string, CatalogWithProducts>();
+      for (const product of publicProducts) {
+          const productCatalogs = Array.isArray(product.catalogs) ? product.catalogs : [product.catalogs];
+          for (const catalog of productCatalogs) {
+              if (!catalog) continue;
+
+              if (!catalogsMap.has(catalog.id)) {
+                  catalogsMap.set(catalog.id, {
+                      id: catalog.id,
+                      name: catalog.name,
+                      user_id: vendorId,
+                      created_at: '', // Not needed
+                      is_public: true,
+                      product_ids: [], // Not needed
+                      products: [],
+                  });
+              }
+              const formattedProduct = allProductsData.find(p => p.id === product.id);
+              if(formattedProduct && !catalogsMap.get(catalog.id)!.products.some(p => p.id === formattedProduct.id)) {
+                  catalogsMap.get(catalog.id)!.products.push(formattedProduct);
+              }
+          }
+      }
+      setCatalogs(Array.from(catalogsMap.values()));
+      setLoading(false);
+    };
+
+    if (vendorId && !initialError) {
+      fetchStoreData();
+    } else {
+      setLoading(false);
+    }
+  }, [vendorId, initialError]);
+
 
   if (error) {
     return (
@@ -70,7 +149,7 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
     );
   }
 
-  if (!vendor || !catalogs || !allProducts) {
+  if (loading || !vendor) {
      return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gray-50">
         <ShoppingBag className="h-16 w-16 animate-bounce text-primary" />
@@ -79,13 +158,8 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
     );
   }
 
-  const openModal = (product: Product) => {
-    setSelectedProduct(product);
-  };
-
-  const closeModal = () => {
-    setSelectedProduct(null);
-  };
+  const openModal = (product: Product) => setSelectedProduct(product);
+  const closeModal = () => setSelectedProduct(null);
 
   const getWhatsAppLink = (product: Product) => {
     const sellerPhoneNumber = vendor?.phone || '';
@@ -96,7 +170,7 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
   
   const filteredProducts = (activeCatalogId === 'all' 
     ? allProducts 
-    : catalogs?.find(c => c.id === activeCatalogId)?.products || []
+    : catalogs.find(c => c.id === activeCatalogId)?.products || []
   ).filter(product => {
       return product.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
@@ -104,12 +178,10 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
   const showEmptyState = filteredProducts.length === 0;
 
   const storeStyle = {
-    '--store-bg': vendor?.store_bg_color || '#FFFFFF',
-    '--store-primary': vendor?.store_primary_color || '#111827',
-    '--store-accent': vendor?.store_accent_color || '#F3F4F6',
-    '--store-text-on-primary': '#FFFFFF',
-    '--store-text-on-bg': vendor?.store_primary_color || '#111827',
-    '--store-font-family': getFontFamily(vendor?.store_font_family),
+    '--store-bg': vendor.store_bg_color || '#FFFFFF',
+    '--store-primary': vendor.store_primary_color || '#111827',
+    '--store-accent': vendor.store_accent_color || '#F3F4F6',
+    '--store-font-family': getFontFamily(vendor.store_font_family),
   } as React.CSSProperties;
 
   return (
@@ -119,18 +191,17 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
             .store-bg { background-color: var(--store-bg); }
             .store-text { color: var(--store-text-on-bg); font-family: var(--store-font-family); }
             .store-primary-text { color: var(--store-primary); font-family: var(--store-font-family); }
-            .store-primary-bg { background-color: var(--store-primary); color: var(--store-text-on-primary); font-family: var(--store-font-family); }
+            .store-primary-bg { background-color: var(--store-primary); color: #FFFFFF; font-family: var(--store-font-family); }
             .store-accent-bg { background-color: var(--store-accent); }
-            .store-border-primary { border-color: var(--store-primary); }
             .store-font { font-family: var(--store-font-family); }
         `}</style>
         <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
             <header className="mb-8 text-center">
                 <Avatar className="mx-auto h-24 w-24 border-4 border-white shadow-lg">
-                    <AvatarImage src={vendor?.avatar_url || 'https://placehold.co/100x100.png'} alt={vendor?.name || 'Vendedor'} data-ai-hint="logo business" />
-                    <AvatarFallback>{vendor?.name?.charAt(0) || 'V'}</AvatarFallback>
+                    <AvatarImage src={vendor.avatar_url || undefined} alt={vendor.name || 'Vendedor'} data-ai-hint="logo business" />
+                    <AvatarFallback>{vendor.name?.charAt(0) || 'V'}</AvatarFallback>
                 </Avatar>
-                <h1 className="mt-4 text-3xl sm:text-4xl font-bold store-primary-text">{vendor?.name || 'Nuestra Tienda'}</h1>
+                <h1 className="mt-4 text-3xl sm:text-4xl font-bold store-primary-text">{vendor.name || 'Nuestra Tienda'}</h1>
             </header>
 
             <div className="sticky top-0 z-10 py-4 store-bg flex flex-col sm:flex-row gap-4 mb-8">
@@ -156,7 +227,6 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
                 </Select>
             </div>
 
-
             {!showEmptyState ? (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {filteredProducts.map((product) => (
@@ -170,7 +240,7 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
                                                 src={url}
                                                 alt={`${product.name} - imagen ${index + 1}`}
                                                 fill
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                sizes="(max-width: 768px) 100vw, 50vw"
                                                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                                                 data-ai-hint="product image"
                                             />
@@ -217,7 +287,7 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
                        <div className="relative w-full rounded-xl bg-white p-6 shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
                             <DialogHeader>
                                <DialogTitle className="sr-only">{selectedProduct.name}</DialogTitle>
-                               <DialogDescription className="sr-only">{selectedProduct.description}</DialogDescription>
+                               <DialogDescription className="sr-only">{selectedProduct.description || 'Detalles del producto'}</DialogDescription>
                             </DialogHeader>
                             <button onClick={closeModal} className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 z-10">
                                 <X className="h-5 w-5" />
@@ -232,7 +302,7 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
                                                     src={url}
                                                     alt={`${selectedProduct.name} - imagen ${index + 1}`}
                                                     fill
-                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                    sizes="(max-width: 768px) 100vw, 50vw"
                                                     className="object-contain"
                                                     data-ai-hint="product image"
                                                 />
@@ -266,7 +336,6 @@ export function StorePageComponent({ error, vendor, catalogs, allProducts }: Sto
                     )}
                  </DialogContent>
             </Dialog>
-
 
             <footer className="mt-12 text-center text-sm text-gray-500 store-font">
                 <p>Potenciado por VentaRapida</p>
