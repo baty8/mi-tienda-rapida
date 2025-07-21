@@ -10,12 +10,11 @@ import { ProductProvider } from '@/context/ProductContext';
 import { format } from 'date-fns';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-
-// This layout is now protected by the AuthProvider in the root layout.
-// Its only responsibility is to fetch data for the vendor pages.
+import { useRouter } from 'next/navigation';
 
 export default function VendorPagesLayout({ children }: { children: ReactNode }) {
   const supabase = createClient();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [initialProducts, setInitialProducts] = useState<Product[]>([]);
@@ -27,7 +26,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        // The AuthProvider will handle redirection, but we can stop fetching.
+        router.push('/');
         setLoading(false);
         return;
       }
@@ -93,8 +92,20 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
       }
     };
 
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        router.push('/');
+      } else if (event === 'SIGNED_IN') {
+        fetchInitialData();
+      }
+    });
+
     fetchInitialData();
-  }, [supabase]);
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase, router]);
 
   if (loading) {
     return (

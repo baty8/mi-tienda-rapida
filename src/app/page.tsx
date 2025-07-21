@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
 import { Loader2, ShoppingBag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -56,8 +57,21 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
+  const router = useRouter();
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isForgotDialogOpen, setForgotDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        router.push('/products');
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase, router]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -66,8 +80,9 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       toast({ variant: 'destructive', title: 'Error al iniciar sesión', description: error.message });
+      setLoading(false);
     }
-    setLoading(false);
+    // No explicit redirect needed, onAuthStateChange will handle it.
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -233,5 +248,3 @@ export default function LoginPage() {
     </main>
   );
 }
-
-    

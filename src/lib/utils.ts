@@ -9,8 +9,9 @@ export function cn(...inputs: ClassValue[]) {
 let supabaseInstance: SupabaseClient | null = null;
 let supabaseAdminInstance: SupabaseClient | null = null;
 
-// Client for the browser and server (uses public keys)
-export function createClient() {
+// This function provides a singleton instance of the Supabase client.
+// It's safe to be used in both client and server components.
+export function createClient(): SupabaseClient {
   if (supabaseInstance) {
     return supabaseInstance;
   }
@@ -19,14 +20,15 @@ export function createClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('CRITICAL ERROR: Missing Supabase URL or Anon Key. Make sure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your .env file.');
+    throw new Error('Supabase credentials are not set. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env file.');
   }
 
   supabaseInstance = createSupabaseClient(supabaseUrl, supabaseAnonKey);
   return supabaseInstance;
 }
 
-// Admin client for server-side use only (uses the secret service key)
+// This function is for server-side use ONLY, like in API Routes or Server Actions.
+// It provides a singleton instance of the Supabase admin client.
 export const createAdminClient = () => {
     if (supabaseAdminInstance) {
         return supabaseAdminInstance;
@@ -36,7 +38,7 @@ export const createAdminClient = () => {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
     
     if (!supabaseUrl || !supabaseServiceKey) {
-        throw new Error('CRITICAL ERROR: Missing Supabase URL or Service Key. Make sure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_KEY are set in your .env file for admin operations.');
+        throw new Error('CRITICAL ERROR: Missing Supabase Admin credentials. Make sure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_KEY are set in your .env file for admin operations.');
     }
 
     supabaseAdminInstance = createSupabaseClient(
