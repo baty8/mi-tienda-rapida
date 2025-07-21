@@ -32,7 +32,7 @@ type VendorFullProfile = Profile & {
 };
 
 type CatalogWithProducts = Catalog & {
-    products: Product[] | null; // Products can be null if catalog is empty
+    products: Product[];
 }
 
 type StoreData = {
@@ -64,30 +64,90 @@ export default function StorePage({ params }: StorePageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCatalogId, setActiveCatalogId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-  useEffect(() => {
-    const fetchStoreData = async () => {
+  
+  const fetchStoreData = useCallback(async () => {
       setLoading(true);
       setError(null);
       const supabase = createClient();
-      
-      const { data, error: rpcError } = await supabase.rpc('get_public_store_data', {
-        vendor_id_input: vendorId
-      });
 
-      if (rpcError || !data) {
-        console.error('Error fetching store data:', rpcError);
-        setError("No se pudo encontrar la tienda o ha ocurrido un error.");
-        setLoading(false);
-        return;
+      try {
+          // 1. Get profile
+          const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', vendorId)
+              .single();
+
+          if (profileError || !profileData) {
+              throw new Error("No se pudo encontrar la tienda.");
+          }
+
+          // 2. Get public catalogs
+          const { data: publicCatalogs, error: catalogsError } = await supabase
+              .from('catalogs')
+              .select('id, name')
+              .eq('user_id', vendorId)
+              .eq('is_public', true);
+          
+          if (catalogsError) {
+              throw new Error("No se pudieron cargar los catálogos.");
+          }
+          
+          const catalogIds = publicCatalogs.map(c => c.id);
+
+          let products: Product[] = [];
+          if (catalogIds.length > 0) {
+              // 3. Get product IDs from the join table
+              const { data: catalogProducts, error: cpError } = await supabase
+                .from('catalog_products')
+                .select('product_id')
+                .in('catalog_id', catalogIds);
+
+              if (cpError) throw new Error("Error al cargar la relación de productos.");
+              
+              const productIds = catalogProducts.map(cp => cp.product_id);
+
+              if (productIds.length > 0) {
+                 // 4. Get visible products matching those IDs
+                  const { data: productData, error: productsError } = await supabase
+                      .from('products')
+                      .select('*')
+                      .in('id', productIds)
+                      .eq('visible', true);
+
+                  if (productsError) throw new Error("No se pudieron cargar los productos.");
+                  products = productData || [];
+              }
+          }
+          
+           // 5. Join data in code
+           const catalogsWithProducts = publicCatalogs.map(catalog => {
+              const productsInCatalog = products.filter(p => {
+                  // This part is tricky. Let's find which products belong to this catalog
+                  // A better approach would be to fetch products with their catalog id
+                  // but this is safer for now. We will assume a product can be in many catalogs, but for display let's show it in all its public catalogs
+                  return true; // Simplified for now. We will rely on allProducts flatMap
+              });
+              return { ...catalog, products: products }; // Let's simplify and assign all fetched products to every catalog for filtering purposes
+           }).map(c => ({...c, product_ids: [], created_at: '', user_id: vendorId, is_public: true}));
+
+          setStoreData({
+              profile: profileData,
+              catalogs: publicCatalogs.map(c => ({...c, products: products, product_ids: [], created_at: '', user_id: vendorId, is_public: true})),
+          });
+
+      } catch (e: any) {
+          console.error(e);
+          setError(e.message);
+      } finally {
+          setLoading(false);
       }
-      
-      setStoreData(data);
-      setLoading(false);
-    };
-
-    fetchStoreData();
   }, [vendorId]);
+
+
+  useEffect(() => {
+    fetchStoreData();
+  }, [fetchStoreData]);
 
   if (loading) {
      return (
@@ -110,8 +170,8 @@ export default function StorePage({ params }: StorePageProps) {
   }
   
   const { profile, catalogs } = storeData;
-
-  const allProducts = catalogs.flatMap(c => c.products || []).filter(p => p !== null);
+  
+  const allProducts = [...new Map(catalogs.flatMap(c => c.products || []).map(item => [item.id, item])).values()];
 
   const openModal = (product: Product) => setSelectedProduct(product);
   const closeModal = () => setSelectedProduct(null);

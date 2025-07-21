@@ -218,7 +218,7 @@ function ProfilePage() {
                         Visualizar
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-sm w-full p-2 h-[80vh] flex flex-col items-center justify-center">
+                <DialogContent className="max-w-sm sm:max-w-sm w-full p-2 h-[80vh] sm:h-[85vh] flex flex-col items-center justify-center">
                    <DialogHeader className="w-full">
                         <DialogTitle className="text-center text-sm font-normal text-muted-foreground pb-2">Previsualización Móvil</DialogTitle>
                         <DialogDescription className="sr-only">Previsualización de la tienda en un marco de teléfono móvil.</DialogDescription>
