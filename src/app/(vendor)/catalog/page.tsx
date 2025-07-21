@@ -299,7 +299,9 @@ function CatalogPage() {
                             checked={activeCatalog.product_ids.includes(product.id)}
                             onCheckedChange={() => handleToggleProductInCatalog(product.id)}
                           />
-                          <Image src={product.image_urls[0]} alt={product.name} width={40} height={40} className="rounded-md" data-ai-hint="product image" />
+                          <div className="relative w-10 h-10">
+                            <Image src={product.image_urls[0]} alt={product.name} fill style={{objectFit: "cover"}} className="rounded-md" data-ai-hint="product image" />
+                          </div>
                           <label htmlFor={`product-${product.id}`} className="flex-1 font-medium cursor-pointer">{product.name}</label>
                           <div className="text-sm text-muted-foreground">${product.price.toFixed(2)}</div>
                         </div>
@@ -327,3 +329,5 @@ function CatalogPage() {
 }
 
 export default CatalogPage;
+
+    

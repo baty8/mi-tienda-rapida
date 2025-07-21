@@ -162,14 +162,16 @@ export function ProductTable() {
                     </TableCell>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
-                        <Image
-                          src={product.image_urls[0]}
-                          alt={product.name}
-                          width={64}
-                          height={64}
-                          className="rounded-md object-cover"
-                          data-ai-hint="product image"
-                        />
+                        <div className="relative h-16 w-16">
+                            <Image
+                            src={product.image_urls[0]}
+                            alt={product.name}
+                            fill
+                            sizes="64px"
+                            className="rounded-md object-cover"
+                            data-ai-hint="product image"
+                            />
+                        </div>
                         <div className="flex flex-col">
                           <span className="font-semibold">{product.name}</span>
                           <span className="text-sm text-muted-foreground">
@@ -331,3 +333,5 @@ export function ProductTable() {
     </>
   );
 }
+
+    

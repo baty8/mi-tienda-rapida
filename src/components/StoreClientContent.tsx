@@ -75,7 +75,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
     return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
   
-  const showEmptyState = allProducts.length === 0;
+  const showEmptyState = initialCatalogsWithProducts.length === 0 && allProducts.length === 0;
 
   return (
     <>
@@ -110,7 +110,17 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
           </Select>
       </div>
 
-      {!showEmptyState ? (
+      {showEmptyState ? (
+          <div className="py-16 text-center">
+              <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-4 text-xl font-semibold store-text">
+                  Esta tienda aún no tiene productos públicos.
+              </h3>
+              <p className="mt-2 text-gray-500 store-font">
+                  Añade productos a un catálogo público para que aparezcan aquí.
+              </p>
+          </div>
+      ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {filteredProducts.map((product) => product && (
               <div key={product.id} className="group flex transform flex-col overflow-hidden rounded-xl border border-gray-200/50 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
@@ -155,16 +165,6 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                   </div>
               </div>
           ))}
-          </div>
-      ) : (
-          <div className="py-16 text-center">
-              <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-xl font-semibold store-text">
-                  Esta tienda aún no tiene productos públicos.
-              </h3>
-              <p className="mt-2 text-gray-500 store-font">
-                  Añade productos a un catálogo público para que aparezcan aquí.
-              </p>
           </div>
       )}
       
@@ -228,3 +228,5 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
     </>
   );
 }
+
+    

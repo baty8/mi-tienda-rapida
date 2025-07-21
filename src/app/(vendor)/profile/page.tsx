@@ -72,7 +72,7 @@ function ProfilePage() {
     const [userId, setUserId] = useState<string | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-    const storeLink = userId && typeof window !== 'undefined' ? `${window.location.origin}/store/${userId}` : '';
+    const [storeLink, setStoreLink] = useState('');
 
     const fetchProfile = useCallback(async () => {
         setLoading(true);
@@ -85,6 +85,10 @@ function ProfilePage() {
         const user = session.user;
         setUserId(user.id);
         
+        if (typeof window !== 'undefined') {
+            setStoreLink(`${window.location.origin}/store/${user.id}`);
+        }
+
         let { data, error } = await supabase
             .from('profiles')
             .select('*')
@@ -171,8 +175,6 @@ function ProfilePage() {
       } else {
           toast({ title: '¡Éxito!', description: 'Tu perfil ha sido actualizado.' });
           setProfile(prev => ({...prev, avatar_url: newAvatarUrl}));
-          // This soft-refreshes data for the current route,
-          // avoiding a full page reload.
           router.refresh(); 
       }
       setSaving(false);
@@ -219,7 +221,7 @@ function ProfilePage() {
                         Visualizar
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[328px] sm:max-w-[340px] w-full p-0 bg-transparent border-none shadow-none">
+                <DialogContent className="w-full max-w-[340px] p-0 bg-transparent border-none shadow-none">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Previsualización Móvil</DialogTitle>
                         <DialogDescription>Previsualización de tu tienda pública en un marco de teléfono.</DialogDescription>
@@ -392,3 +394,5 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
+
+    
