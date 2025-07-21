@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,7 @@ export default function ResetPasswordPage() {
   const [errorState, setErrorState] = useState<string | null>(null);
 
   useEffect(() => {
+    const supabase = getSupabase();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsSessionReady(true);
@@ -60,6 +61,7 @@ export default function ResetPasswordPage() {
     }
 
     setLoading(true);
+    const supabase = getSupabase();
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
 

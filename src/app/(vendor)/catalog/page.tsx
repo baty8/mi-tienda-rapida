@@ -52,7 +52,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProduct } from '@/context/ProductContext';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabase } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import {
@@ -75,6 +75,7 @@ function CatalogPage() {
   const [storeLink, setStoreLink] = useState('');
 
   useEffect(() => {
+    const supabase = getSupabase();
     const checkSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {

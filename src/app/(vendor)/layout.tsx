@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabase } from '@/lib/supabase/client';
 import { Sidebar } from '@/components/ui/sidebar';
 import type { Profile, Product, Catalog } from '@/types';
 import { Menu, ShoppingBag } from 'lucide-react';
@@ -20,6 +20,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
   const [initialCatalogs, setInitialCatalogs] = useState<Catalog[]>([]);
 
   useEffect(() => {
+    const supabase = getSupabase();
     const fetchInitialData = async () => {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();

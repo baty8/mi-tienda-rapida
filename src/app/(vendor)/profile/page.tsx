@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabase } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { toast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -76,6 +76,7 @@ function ProfilePage() {
 
     const fetchProfile = useCallback(async () => {
         setLoading(true);
+        const supabase = getSupabase();
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             router.push('/');
@@ -140,6 +141,7 @@ function ProfilePage() {
       setSaving(true);
       
       let newAvatarUrl = profile.avatar_url;
+      const supabase = getSupabase();
 
       if (avatarFile) {
           const fileName = `${userId}/avatar-${Date.now()}`;

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabase } from '@/lib/supabase/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
-import { Loader2, ShoppingBag } from 'lucide-react';
+import { Loader2, ShoppingBag, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -59,9 +59,20 @@ export default function LoginPage() {
   const router = useRouter();
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isForgotDialogOpen, setForgotDialogOpen] = useState(false);
+  const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true); // Assume configured until checked
 
   useEffect(() => {
-    // This effect redirects the user if they are already logged in.
+    // Comprobar si las variables de entorno están presentes
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error("Supabase environment variables are not set.");
+      setIsSupabaseConfigured(false);
+      return; // Detener la ejecución si no está configurado
+    }
+    
+    setIsSupabaseConfigured(true);
+    const supabase = getSupabase();
+
+    // El resto de los efectos solo se ejecutan si Supabase está configurado
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -70,7 +81,6 @@ export default function LoginPage() {
     };
     checkSession();
 
-    // Listen for auth state changes (e.g., successful login)
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         router.push('/products');
@@ -78,29 +88,32 @@ export default function LoginPage() {
     });
 
     return () => {
-      authListener.subscription.unsubscribe();
+      authListener?.subscription?.unsubscribe();
     };
   }, [router]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isSupabaseConfigured) return;
     setLoading(true);
+    const supabase = getSupabase();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       toast({ variant: 'destructive', title: 'Error al iniciar sesión', description: error.message });
     }
     setLoading(false);
-    // No explicit redirect needed, onAuthStateChange will handle it.
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isSupabaseConfigured) return;
     if (password !== confirmPassword) {
       toast({ variant: 'destructive', title: 'Error', description: 'Las contraseñas no coinciden.' });
       return;
     }
     setLoading(true);
+    const supabase = getSupabase();
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -114,13 +127,15 @@ export default function LoginPage() {
       toast({ variant: 'destructive', title: 'Error al registrarse', description: error.message });
     } else {
       toast({ title: '¡Registro exitoso!', description: 'Por favor, revisa tu correo electrónico para verificar tu cuenta.' });
-      setIsLoginView(true); // Switch to login view after successful sign-up prompt
+      setIsLoginView(true); 
     }
     setLoading(false);
   };
 
   const handleOAuthLogin = async () => {
+    if (!isSupabaseConfigured) return;
     setLoading(true);
+    const supabase = getSupabase();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
     });
@@ -131,7 +146,9 @@ export default function LoginPage() {
   };
   
   const handleForgotPassword = async () => {
+     if (!isSupabaseConfigured) return;
      setLoading(true);
+     const supabase = getSupabase();
      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
        redirectTo: `${window.location.origin}/auth/reset-password`,
      });
@@ -143,6 +160,19 @@ export default function LoginPage() {
        toast({ title: 'Correo enviado', description: 'Revisa tu bandeja de entrada para restablecer tu contraseña.' });
      }
   };
+  
+   const NotConfiguredWarning = () => (
+      <div className="space-y-4 text-center p-4 border border-yellow-400 bg-yellow-50 rounded-lg">
+          <AlertTriangle className="mx-auto h-8 w-8 text-yellow-500" />
+          <h3 className="font-bold text-yellow-800">Configuración Requerida</h3>
+          <p className="text-sm text-yellow-700">
+              La conexión con la base de datos no está configurada. Por favor, añade las variables de entorno 
+              <code className="bg-yellow-200 p-1 rounded">NEXT_PUBLIC_SUPABASE_URL</code> y 
+              <code className="bg-yellow-200 p-1 rounded">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> 
+              a tu archivo <code className="bg-yellow-200 p-1 rounded">.env</code> para continuar.
+          </p>
+      </div>
+  );
 
   const DesktopWelcomePanel = () => (
       <div className="hidden md:flex flex-col items-center justify-center p-12 text-center text-white bg-gradient-to-br from-blue-500 to-cyan-400 h-full">
@@ -158,12 +188,9 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 font-body light md:bg-white">
-      {/* Container for Desktop */}
       <div className="w-full max-w-4xl bg-white text-black shadow-2xl md:grid md:grid-cols-2 md:rounded-2xl md:overflow-hidden">
         
-        {/* Form Column (Left on Desktop, Main on Mobile) */}
         <div className="flex flex-col justify-center p-6 sm:p-12 w-full h-full bg-white">
-            {/* Mobile Header */}
             <div className="md:hidden text-center mb-8">
                  <div className="inline-block p-4 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full">
                     <ShoppingBag className="h-8 w-8 text-white"/>
@@ -180,69 +207,74 @@ export default function LoginPage() {
                 {isLoginView ? 'Iniciar Sesión' : 'Crear Cuenta'}
             </h1>
           
-          <form onSubmit={isLoginView ? handleLogin : handleSignUp} className="space-y-4">
-            {!isLoginView && (
-              <div>
-                <Label htmlFor="name">Nombre</Label>
-                <Input id="name" type="text" placeholder="Tu nombre" value={name} onChange={(e) => setName(e.target.value)} required />
-              </div>
-            )}
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div>
-              <Label htmlFor="password">Contraseña</Label>
-              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </div>
-             {!isLoginView && (
-              <div>
-                <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
-                <Input id="confirmPassword" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-              </div>
-            )}
+           {!isSupabaseConfigured ? <NotConfiguredWarning /> : (
+            <>
+              <form onSubmit={isLoginView ? handleLogin : handleSignUp} className="space-y-4">
+                {!isLoginView && (
+                  <div>
+                    <Label htmlFor="name">Nombre</Label>
+                    <Input id="name" type="text" placeholder="Tu nombre" value={name} onChange={(e) => setName(e.target.value)} required />
+                  </div>
+                )}
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                </div>
+                <div>
+                  <Label htmlFor="password">Contraseña</Label>
+                  <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                </div>
+                {!isLoginView && (
+                  <div>
+                    <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                    <Input id="confirmPassword" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                  </div>
+                )}
 
-            {isLoginView && (
-              <div className="text-right">
-                <AlertDialog open={isForgotDialogOpen} onOpenChange={setForgotDialogOpen}>
-                  <AlertDialogTrigger asChild>
-                    <button type="button" className="text-sm text-blue-600 hover:underline">¿Olvidaste tu contraseña?</button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <Label htmlFor="forgot-email">Correo Electrónico</Label>
-                      <Input id="forgot-email" type="email" placeholder="tu@email.com" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} />
-                    </div>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleForgotPassword}>Enviar Enlace</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                {isLoginView && (
+                  <div className="text-right">
+                    <AlertDialog open={isForgotDialogOpen} onOpenChange={setForgotDialogOpen}>
+                      <AlertDialogTrigger asChild>
+                        <button type="button" className="text-sm text-blue-600 hover:underline">¿Olvidaste tu contraseña?</button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <Label htmlFor="forgot-email">Correo Electrónico</Label>
+                          <Input id="forgot-email" type="email" placeholder="tu@email.com" value={forgotPasswordEmail} onChange={(e) => setForgotPasswordEmail(e.target.value)} />
+                        </div>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleForgotPassword}>Enviar Enlace</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
+                
+                <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 h-11 rounded-lg text-base">
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isLoginView ? 'INICIAR SESIÓN' : 'CREAR CUENTA'}
+                </Button>
+              </form>
+
+              <div className="my-6 flex items-center">
+                <div className="flex-grow border-t border-gray-300"></div>
+                <span className="mx-4 text-xs text-gray-500">O</span>
+                <div className="flex-grow border-t border-gray-300"></div>
               </div>
-            )}
-            
-            <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 h-11 rounded-lg text-base">
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoginView ? 'INICIAR SESIÓN' : 'CREAR CUENTA'}
-            </Button>
-          </form>
 
-          <div className="my-6 flex items-center">
-            <div className="flex-grow border-t border-gray-300"></div>
-            <span className="mx-4 text-xs text-gray-500">O</span>
-            <div className="flex-grow border-t border-gray-300"></div>
-          </div>
+              <Button variant="outline" onClick={handleOAuthLogin} disabled={loading} className="w-full h-11 rounded-lg border-gray-300">
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <><GoogleIcon className="mr-2" /> Continuar con Google</>}
+              </Button>
+            </>
+          )}
 
-          <Button variant="outline" onClick={handleOAuthLogin} disabled={loading} className="w-full h-11 rounded-lg border-gray-300">
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <><GoogleIcon className="mr-2" /> Continuar con Google</>}
-          </Button>
 
            <div className="mt-6 text-center text-sm md:hidden">
               <button onClick={() => setIsLoginView(!isLoginView)} className="text-blue-600 hover:underline">
@@ -251,7 +283,6 @@ export default function LoginPage() {
            </div>
         </div>
 
-        {/* Welcome Column (Right on Desktop) */}
         <DesktopWelcomePanel />
       </div>
     </main>

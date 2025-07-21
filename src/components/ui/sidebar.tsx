@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabase } from '@/lib/supabase/client';
 import type { Profile } from '@/types';
 
 const menuItems = [
@@ -36,6 +36,7 @@ export function Sidebar({ profile, className }: SidebarProps) {
     // La única responsabilidad del botón es cerrar la sesión.
     // El layout se encargará de la redirección al detectar el cambio de estado.
     // Esto evita conflictos y demoras.
+    const supabase = getSupabase();
     await supabase.auth.signOut();
   };
 
