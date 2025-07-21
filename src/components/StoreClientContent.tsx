@@ -44,6 +44,18 @@ const getFontFamily = (fontName: string | null | undefined): string => {
     }
 };
 
+// Simple helper to determine if a color is light or dark
+const isColorLight = (hex: string) => {
+    const color = hex.substring(1); // remove #
+    const rgb = parseInt(color, 16);
+    const r = (rgb >> 16) & 0xff;
+    const g = (rgb >> 8) & 0xff;
+    const b = (rgb >> 0) & 0xff;
+    const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
+    return luma > 128;
+}
+
+
 export function StoreClientContent({ profile, initialCatalogsWithProducts }: StoreClientContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCatalogId, setActiveCatalogId] = useState('all');
@@ -87,12 +99,14 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
   
   const showEmptyState = initialCatalogsWithProducts.length === 0 && allProducts.length === 0;
 
+  const storeAccentColor = profile.store_accent_color || '#F3F4F6';
+  const cardTextColor = isColorLight(storeAccentColor) ? '#111827' : '#FFFFFF';
+
   const storeStyle = {
     '--store-bg': profile.store_bg_color || '#FFFFFF',
     '--store-primary': profile.store_primary_color || '#111827',
-    '--store-accent': profile.store_accent_color || '#F3F4F6',
-    '--store-card-bg': profile.store_bg_color === '#111827' ? '#1F2937' : '#FFFFFF', // dark or light card
-    '--store-card-text': profile.store_bg_color === '#111827' ? '#FFFFFF' : '#111827',
+    '--store-accent': storeAccentColor,
+    '--store-card-text': cardTextColor,
     '--store-font-family': getFontFamily(profile.store_font_family),
   } as React.CSSProperties;
   
@@ -103,14 +117,13 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
   return (
     <div style={storeStyle} className="min-h-screen store-font">
        <style jsx global>{`
-            body { background-color: var(--store-bg); color: var(--store-card-text); }
+            body { background-color: var(--store-bg); color: var(--store-primary); }
             .store-bg { background-color: var(--store-bg); }
             .store-text { color: var(--store-card-text); }
             .store-primary-text { color: var(--store-primary); }
-            .store-secondary-text { color: #6b7280; }
+            .store-secondary-text { color: ${isColorLight(storeAccentColor) ? '#6b7280' : '#d1d5db'}; }
             .store-primary-bg { background-color: var(--store-primary); color: white; }
-            .store-accent-bg { background-color: var(--store-accent); }
-            .store-card { background-color: var(--store-card-bg); color: var(--store-card-text); }
+            .store-card { background-color: var(--store-accent); color: var(--store-card-text); }
             .store-font { font-family: var(--store-font-family); }
         `}</style>
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
@@ -168,7 +181,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filteredProducts.map((product) => product && (
-                <div key={product.id} onClick={() => openModal(product)} className="group flex cursor-pointer transform flex-col overflow-hidden rounded-xl border border-gray-200/50 shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl store-card">
+                <div key={product.id} onClick={() => openModal(product)} className="group flex cursor-pointer transform flex-col overflow-hidden rounded-xl border border-black/10 shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl store-card">
                     <div className="aspect-[4/3] w-full overflow-hidden relative">
                         <Image
                             src={product.image_urls[0]}
@@ -185,7 +198,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                             {product.description && <p className="mt-1 text-sm line-clamp-2 store-secondary-text">{product.description}</p>}
                         </div>
                         <div className="mt-4 space-y-2">
-                            <p className="text-2xl font-extrabold store-primary-text">${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                             <p className="text-2xl font-extrabold store-primary-text">${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
                             <Button asChild className="w-full store-primary-bg hover:opacity-90" disabled={!profile?.phone} onClick={(e) => e.stopPropagation()}>
                                 <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
                                     <MessageCircle className="mr-2 h-4 w-4" />
@@ -238,9 +251,9 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                                 <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">
                                 <p>{selectedProduct.description}</p>
                                 </div>
-                                <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="mt-6 flex flex-col items-start gap-4">
                                     <p className="text-3xl font-extrabold text-blue-600">${selectedProduct.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                                    <Button asChild size="lg" className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700" disabled={!profile?.phone}>
+                                    <Button asChild size="lg" className="w-full bg-blue-600 text-white hover:bg-blue-700" disabled={!profile?.phone}>
                                     <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
                                         <MessageCircle className="mr-2 h-5 w-5" />
                                         Consultar por WhatsApp
