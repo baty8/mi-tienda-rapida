@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { User, Save, UploadCloud, Palette, Eye, Type, X } from 'lucide-react';
+import { User, Save, UploadCloud, Palette, Eye, Type, X, Loader2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -27,7 +27,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { toast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
-import type { Profile } from '@/types';
+import type { Profile, Catalog, Product } from '@/types';
 import {
   Select,
   SelectContent,
@@ -71,6 +71,7 @@ function ProfilePage() {
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [isPreparingPreview, setIsPreparingPreview] = useState(false);
 
     const [storeLink, setStoreLink] = useState('');
 
@@ -175,7 +176,7 @@ function ProfilePage() {
       } else {
           toast({ title: '¡Éxito!', description: 'Tu perfil ha sido actualizado.' });
           setProfile(prev => ({...prev, avatar_url: newAvatarUrl}));
-          router.refresh(); 
+          // No reload, just state update is enough
       }
       setSaving(false);
     };
@@ -205,6 +206,14 @@ function ProfilePage() {
         setProfile(prev => ({ ...prev, store_font_family: fontId }));
     };
 
+    const handlePreparePreview = async () => {
+      setIsPreparingPreview(true);
+      await handleSave(); // Save any pending changes first
+      setIsPreviewOpen(true);
+      // The preview will now open, and the iframe will load the storeLink
+      // The loading of the preview content is handled by the iframe itself.
+      setIsPreparingPreview(false);
+    }
 
   return (
     <div className="flex flex-col flex-1">
@@ -216,37 +225,37 @@ function ProfilePage() {
           <ThemeToggle />
            <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline">
-                        <Eye className="mr-2 h-4 w-4" />
-                        Visualizar
+                    <Button variant="outline" onClick={handlePreparePreview} disabled={isPreparingPreview}>
+                        {isPreparingPreview ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Eye className="mr-2 h-4 w-4" />}
+                        {isPreparingPreview ? 'Cargando...' : 'Visualizar'}
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="w-full max-w-[340px] p-0 bg-transparent border-none shadow-none">
+                <DialogContent className="w-full max-w-[340px] p-0 bg-transparent border-none shadow-none sm:max-w-[370px]">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Previsualización Móvil</DialogTitle>
                         <DialogDescription>Previsualización de tu tienda pública en un marco de teléfono.</DialogDescription>
                     </DialogHeader>
-                    <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-xl">
+                    <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-xl sm:h-[640px] sm:w-[320px]">
                         <div className="w-[140px] h-[18px] bg-gray-800 top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute"></div>
                         <div className="h-[46px] w-[3px] bg-gray-800 absolute -start-[17px] top-[124px] rounded-s-lg"></div>
                         <div className="h-[46px] w-[3px] bg-gray-800 absolute -start-[17px] top-[178px] rounded-s-lg"></div>
                         <div className="h-[64px] w-[3px] bg-gray-800 absolute -end-[17px] top-[142px] rounded-e-lg"></div>
                         <div className="rounded-[2rem] overflow-hidden w-full h-full bg-white dark:bg-gray-800">
-                             {storeLink ? (
+                             {storeLink && isPreviewOpen ? (
                                 <iframe
                                     src={storeLink}
                                     className="h-full w-full border-0"
                                     title="Previsualización de la tienda móvil"
                                 />
                             ) : (
-                                <div className="flex h-full items-center justify-center">
-                                    <p className="text-sm text-gray-500">Cargando...</p>
+                                <div className="flex h-full items-center justify-center bg-white">
+                                    <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
                                 </div>
                             )}
                         </div>
                     </div>
                      <DialogClose asChild>
-                      <button className="absolute top-0 right-0 mt-[-10px] mr-[-10px] sm:mt-0 sm:mr-0 rounded-full bg-background p-1.5 text-foreground opacity-80 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10 shadow-lg">
+                      <button className="absolute top-0 right-0 mt-[-10px] mr-[-20px] sm:mt-0 sm:mr-0 rounded-full bg-background p-1.5 text-foreground opacity-80 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 z-10 shadow-lg">
                           <X className="h-5 w-5" />
                           <span className="sr-only">Cerrar</span>
                       </button>
@@ -394,5 +403,3 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
-
-    
