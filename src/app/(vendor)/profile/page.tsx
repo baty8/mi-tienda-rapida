@@ -12,6 +12,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -217,12 +218,13 @@ function ProfilePage() {
                         Visualizar
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-[360px] p-2 sm:max-w-[380px] h-[750px] flex items-center justify-center">
-                   <DialogHeader>
-                        <DialogTitle className="sr-only">Previsualización de la Tienda</DialogTitle>
+                <DialogContent className="max-w-sm w-full p-2 h-[80vh] flex flex-col items-center justify-center">
+                   <DialogHeader className="w-full">
+                        <DialogTitle className="text-center text-sm font-normal text-muted-foreground pb-2">Previsualización Móvil</DialogTitle>
+                        <DialogDescription className="sr-only">Previsualización de la tienda en un marco de teléfono móvil.</DialogDescription>
                     </DialogHeader>
-                    <div className="relative mx-auto h-[640px] w-[320px] rounded-[2.5rem] border-8 border-gray-800 bg-gray-800 dark:border-gray-600">
-                        <div className="h-full w-full overflow-hidden rounded-[2rem] bg-white">
+                    <div className="relative mx-auto w-full h-full rounded-[2rem] border-8 border-gray-800 bg-gray-800 dark:border-gray-600 overflow-hidden">
+                        <div className="h-full w-full bg-white">
                             {storeLink ? (
                                 <iframe
                                     src={storeLink}
