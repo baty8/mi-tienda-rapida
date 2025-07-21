@@ -34,6 +34,7 @@ export type Profile = {
   store_bg_color?: string | null;
   store_primary_color?: string | null;
   store_accent_color?: string | null;
+  store_font_family?: string | null;
 };
 
     

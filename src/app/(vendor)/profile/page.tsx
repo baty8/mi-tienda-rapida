@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { User, Save, UploadCloud, Palette, Eye } from 'lucide-react';
+import { User, Save, UploadCloud, Palette, Eye, Type } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -41,6 +41,14 @@ const templates = [
   { id: 'crema-vintage', name: 'Crema Vintage', colors: { bg: '#F5F3EF', primary: '#4A2E2E', accent: '#EAE5E0' } },
 ];
 
+const fonts = [
+    { id: 'PT Sans', name: 'PT Sans (Por defecto)', family: 'PT Sans, sans-serif' },
+    { id: 'Roboto', name: 'Roboto', family: 'Roboto, sans-serif' },
+    { id: 'Lato', name: 'Lato', family: 'Lato, sans-serif' },
+    { id: 'Merriweather', name: 'Merriweather (Serif)', family: 'Merriweather, serif' },
+    { id: 'Inconsolata', name: 'Inconsolata (Mono)', family: 'Inconsolata, monospace' },
+];
+
 
 function ProfilePage() {
     const router = useRouter();
@@ -55,6 +63,7 @@ function ProfilePage() {
       store_bg_color: '#FFFFFF',
       store_primary_color: '#1E40AF',
       store_accent_color: '#F3F4F6',
+      store_font_family: 'PT Sans',
     });
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -95,6 +104,7 @@ function ProfilePage() {
                 store_bg_color: data.store_bg_color || '#FFFFFF',
                 store_primary_color: data.store_primary_color || '#1E40AF',
                 store_accent_color: data.store_accent_color || '#F3F4F6',
+                store_font_family: data.store_font_family || 'PT Sans',
             });
             if (data.avatar_url) {
                 setAvatarPreview(data.avatar_url);
@@ -150,6 +160,7 @@ function ProfilePage() {
               store_bg_color: profile.store_bg_color,
               store_primary_color: profile.store_primary_color,
               store_accent_color: profile.store_accent_color,
+              store_font_family: profile.store_font_family,
           })
           .eq('id', userId);
 
@@ -184,6 +195,10 @@ function ProfilePage() {
                 store_accent_color: template.colors.accent,
             }))
         }
+    };
+    
+    const handleFontChange = (fontId: string) => {
+        setProfile(prev => ({ ...prev, store_font_family: fontId }));
     };
 
 
@@ -300,12 +315,12 @@ function ProfilePage() {
                         <CardTitle>Estilo de la Tienda</CardTitle>
                     </div>
                     <CardDescription>
-                        Elige una plantilla o personaliza los colores de tu tienda pública.
+                        Elige una plantilla o personaliza los colores y la tipografía de tu tienda pública.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div>
-                        <Label htmlFor="template-select">Elige una plantilla para empezar</Label>
+                        <Label htmlFor="template-select">Elige una plantilla de colores</Label>
                         <Select onValueChange={handleTemplateChange}>
                             <SelectTrigger id="template-select" className="w-full md:w-1/2 mt-2">
                                 <SelectValue placeholder="Selecciona una plantilla" />
@@ -332,6 +347,29 @@ function ProfilePage() {
                             <Input id="store_accent_color" type="color" value={profile.store_accent_color || '#F3F4F6'} onChange={e => handleColorChange('store_accent_color', e.target.value)} className="h-10 p-1"/>
                         </div>
                     </div>
+                    
+                    <div className="border-t pt-6">
+                         <div className="flex items-center gap-2 mb-2">
+                            <Type className="h-5 w-5" />
+                            <Label>Tipografía de la Tienda</Label>
+                        </div>
+                        <Select value={profile.store_font_family || 'PT Sans'} onValueChange={handleFontChange}>
+                            <SelectTrigger className="w-full md:w-1/2">
+                                <SelectValue placeholder="Selecciona una tipografía" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {fonts.map(font => (
+                                    <SelectItem key={font.id} value={font.id}>{font.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                         <div className='mt-4 p-4 rounded-lg bg-muted' style={{ fontFamily: fonts.find(f => f.id === profile.store_font_family)?.family }}>
+                            <h3 className="text-lg font-bold">Así se verá el texto</h3>
+                            <p className="text-sm">Esta es una descripción de ejemplo.</p>
+                            <p className="font-bold mt-2">$99.99</p>
+                        </div>
+                    </div>
+
                 </CardContent>
             </Card>
         </div>

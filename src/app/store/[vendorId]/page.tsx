@@ -25,11 +25,21 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import Head from 'next/head';
 
 type VendorFullProfile = Profile & {
     store_bg_color?: string;
     store_primary_color?: string;
     store_accent_color?: string;
+    store_font_family?: string;
+};
+
+const fontMap: { [key: string]: string } = {
+  'Roboto': 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap',
+  'Lato': 'https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap',
+  'Merriweather': 'https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap',
+  'Inconsolata': 'https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap',
+  'PT Sans': 'https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap',
 };
 
 export default function StorePage() {
@@ -165,6 +175,8 @@ export default function StorePage() {
       return matchesSearch && matchesCatalog;
   });
 
+  const fontUrl = vendor?.store_font_family ? fontMap[vendor.store_font_family] : null;
+
   if (loading) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gray-50">
@@ -187,24 +199,43 @@ export default function StorePage() {
 
   const showEmptyState = filteredProducts.length === 0;
 
+  const getFontFamily = (fontName: string | null | undefined): string => {
+    if (!fontName) return '"PT Sans", sans-serif';
+    switch (fontName) {
+        case 'Roboto': return '"Roboto", sans-serif';
+        case 'Lato': return '"Lato", sans-serif';
+        case 'Merriweather': return '"Merriweather", serif';
+        case 'Inconsolata': return '"Inconsolata", monospace';
+        default: return '"PT Sans", sans-serif';
+    }
+  };
+
+
   const storeStyle = {
     '--store-bg': vendor?.store_bg_color || '#FFFFFF',
     '--store-primary': vendor?.store_primary_color || '#111827',
     '--store-accent': vendor?.store_accent_color || '#F3F4F6',
     '--store-text-on-primary': '#FFFFFF', // Assuming white text on primary color for contrast
-    '--store-text-on-bg': vendor?.store_primary_color || '#111827'
+    '--store-text-on-bg': vendor?.store_primary_color || '#111827',
+    '--store-font-family': getFontFamily(vendor?.store_font_family),
   } as React.CSSProperties;
 
 
   return (
-    <div style={storeStyle} className="min-h-screen font-sans" >
+    <div style={storeStyle} className="min-h-screen" >
+        <Head>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            {fontUrl && <link href={fontUrl} rel="stylesheet" />}
+        </Head>
         <style jsx global>{`
             .store-bg { background-color: var(--store-bg); }
-            .store-text { color: var(--store-text-on-bg); }
-            .store-primary-text { color: var(--store-primary); }
-            .store-primary-bg { background-color: var(--store-primary); color: var(--store-text-on-primary) }
+            .store-text { color: var(--store-text-on-bg); font-family: var(--store-font-family); }
+            .store-primary-text { color: var(--store-primary); font-family: var(--store-font-family); }
+            .store-primary-bg { background-color: var(--store-primary); color: var(--store-text-on-primary); font-family: var(--store-font-family); }
             .store-accent-bg { background-color: var(--store-accent); }
             .store-border-primary { border-color: var(--store-primary); }
+            .store-font { font-family: var(--store-font-family); }
         `}</style>
         <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
             <header className="mb-8 text-center">
@@ -220,19 +251,19 @@ export default function StorePage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input 
                         placeholder="Buscar producto..." 
-                        className="pl-10 w-full" 
+                        className="pl-10 w-full store-font" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                  </div>
                  <Select value={activeCatalogId} onValueChange={setActiveCatalogId}>
-                    <SelectTrigger className="w-full sm:w-[250px]">
+                    <SelectTrigger className="w-full sm:w-[250px] store-font">
                         <SelectValue placeholder="Seleccionar un catálogo" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">Todos los Productos</SelectItem>
+                        <SelectItem value="all" className="store-font">Todos los Productos</SelectItem>
                         {catalogs.map(catalog => (
-                            <SelectItem key={catalog.id} value={catalog.id}>{catalog.name}</SelectItem>
+                            <SelectItem key={catalog.id} value={catalog.id} className="store-font">{catalog.name}</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
@@ -270,7 +301,7 @@ export default function StorePage() {
                         <div className="flex flex-1 flex-col p-4">
                             <div className="flex-1" onClick={() => openModal(product)} >
                                 <h2 className="text-lg font-bold store-text truncate cursor-pointer">{product.name}</h2>
-                                {product.description && <p className="mt-1 text-sm text-gray-600 line-clamp-2">{product.description}</p>}
+                                {product.description && <p className="mt-1 text-sm text-gray-600 line-clamp-2 store-font">{product.description}</p>}
                             </div>
                             <div className="mt-4 flex w-full items-end justify-between gap-2">
                                 <p className="text-2xl font-extrabold store-primary-text whitespace-nowrap">${product.price.toFixed(2)}</p>
@@ -289,7 +320,7 @@ export default function StorePage() {
                 <div className="py-16 text-center">
                     <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-4 text-xl font-semibold store-text">No se encontraron productos</h3>
-                    <p className="mt-2 text-gray-500">Intenta cambiar los filtros o el término de búsqueda.</p>
+                    <p className="mt-2 text-gray-500 store-font">Intenta cambiar los filtros o el término de búsqueda.</p>
                 </div>
             )}
             
@@ -327,7 +358,7 @@ export default function StorePage() {
                     <div className="flex flex-col flex-grow">
                         <h2 className="text-2xl font-bold store-text">{selectedProduct.name}</h2>
                         <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">
-                          <p>{selectedProduct.description}</p>
+                          <p className="store-font">{selectedProduct.description}</p>
                         </div>
                         <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-3xl font-extrabold store-primary-text">${selectedProduct.price.toFixed(2)}</p>
@@ -344,7 +375,7 @@ export default function StorePage() {
             )}
 
 
-            <footer className="mt-12 text-center text-sm text-gray-500">
+            <footer className="mt-12 text-center text-sm text-gray-500 store-font">
                 <p>Potenciado por VentaRapida</p>
             </footer>
         </main>
