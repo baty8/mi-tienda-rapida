@@ -21,7 +21,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at' | 'is_public'> & {
@@ -200,9 +200,12 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         )}
         
         <Dialog open={!!selectedProduct} onOpenChange={(isOpen) => !isOpen && closeModal()}>
-                <DialogContent className="max-w-lg w-full p-0 bg-white" onClick={(e) => e.stopPropagation()}>
+                <DialogContent className="max-w-lg w-full p-0" onClick={(e) => e.stopPropagation()}>
                     {selectedProduct && (
                         <div className="relative w-full p-6 flex flex-col">
+                            <DialogHeader className="sr-only">
+                              <DialogTitle>{selectedProduct.name}</DialogTitle>
+                            </DialogHeader>
                             <Carousel className="w-full max-w-md mx-auto mb-4">
                                 <CarouselContent>
                                     {(selectedProduct.image_urls && selectedProduct.image_urls.length > 0 ? selectedProduct.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (
