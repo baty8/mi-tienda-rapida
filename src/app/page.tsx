@@ -120,9 +120,30 @@ export default function LoginPage() {
      }
   };
 
+  const WelcomePanel = () => (
+    <div className="flex flex-col items-center justify-center p-12 text-center text-white bg-gradient-to-br from-blue-500 to-cyan-400 h-full">
+        <div className="md:hidden mb-6">
+             <h2 className="text-3xl font-bold font-headline">¡Bienvenido!</h2>
+             <p className="max-w-sm text-sm">Tu tienda online, simple y rápida.</p>
+        </div>
+        <div className="hidden md:block">
+            <h2 className="mb-4 text-4xl font-bold font-headline">¡Bienvenido a Tu Tienda Rápida!</h2>
+            <p className="mb-8 max-w-sm">
+                Administra tu tienda online creando catálogos y administrando tus productos de manera sencilla.
+            </p>
+            <Button variant="outline" onClick={() => setIsLoginView(!isLoginView)} className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-blue-600 h-11 px-8 rounded-full">
+                {isLoginView ? 'REGÍSTRATE GRATIS' : 'INICIAR SESIÓN'}
+            </Button>
+        </div>
+    </div>
+  )
+
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body">
-      <div className="w-full max-w-4xl overflow-hidden rounded-2xl bg-white text-black shadow-2xl md:grid md:grid-cols-2">
+    <main className="flex min-h-screen flex-col md:flex-row items-center justify-center bg-gray-100 font-body">
+      <div className="w-full md:hidden">
+        <WelcomePanel />
+      </div>
+      <div className="w-full max-w-4xl bg-white text-black shadow-2xl md:grid md:grid-cols-2 md:rounded-2xl md:overflow-hidden">
         
         {/* Columna Izquierda: Formulario */}
         <div className="flex flex-col justify-center p-8 sm:p-12">
@@ -195,19 +216,17 @@ export default function LoginPage() {
             Google
           </Button>
 
+           <div className="mt-6 text-center text-sm md:hidden">
+              <button onClick={() => setIsLoginView(!isLoginView)} className="text-blue-600 hover:underline">
+                  {isLoginView ? '¿No tienes una cuenta? Regístrate' : '¿Ya tienes una cuenta? Inicia sesión'}
+              </button>
+           </div>
         </div>
 
         {/* Columna Derecha: Bienvenida */}
-        <div className="hidden md:flex flex-col items-center justify-center p-12 text-center text-white bg-gradient-to-br from-blue-500 to-cyan-400">
-           <h2 className="mb-4 text-4xl font-bold font-headline">¡Bienvenido a Tu Tienda Rápida!</h2>
-           <p className="mb-8 max-w-sm">
-             Administra tu tienda online creando catálogos y administrando tus productos de manera sencilla.
-           </p>
-           <Button variant="outline" onClick={() => setIsLoginView(!isLoginView)} className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-blue-600 h-11 px-8 rounded-full">
-            {isLoginView ? 'REGÍSTRATE GRATIS' : 'INICIAR SESIÓN'}
-           </Button>
+        <div className="hidden md:flex">
+          <WelcomePanel />
         </div>
-
       </div>
     </main>
   );
