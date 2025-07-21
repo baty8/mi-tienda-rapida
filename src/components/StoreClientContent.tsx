@@ -110,21 +110,20 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
             .store-font { font-family: var(--store-font-family); }
         `}</style>
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
-        <header className="mb-8 overflow-hidden rounded-xl shadow-lg store-card flex flex-col md:flex-row items-center">
-            <div className="p-6 flex flex-col items-center text-center md:items-start md:text-left">
-                 <Avatar className="h-20 w-20 border-4 border-[var(--store-bg)] shadow-md mb-2">
+        <header className="relative mb-8 h-48 md:h-64 w-full overflow-hidden rounded-xl shadow-lg flex items-center justify-center text-center">
+            {profile.store_banner_url ? (
+                <Image src={profile.store_banner_url} alt="Banner de la tienda" layout="fill" objectFit="cover" className="z-0" data-ai-hint="product lifestyle" />
+            ) : (
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-300 to-gray-400 z-0"></div>
+            )}
+            <div className="absolute inset-0 bg-black/50 z-10"></div>
+            <div className="relative z-20 p-6 flex flex-col items-center text-white">
+                <Avatar className="h-20 w-20 border-4 border-white/50 shadow-lg mb-2">
                     <AvatarImage src={profile.avatar_url || undefined} alt={profile.name || 'Vendedor'} data-ai-hint="logo business" />
                     <AvatarFallback>{profile.name?.charAt(0) || 'V'}</AvatarFallback>
                 </Avatar>
-                <h1 className="text-3xl sm:text-4xl font-bold store-text">{profile.name || 'Nuestra Tienda'}</h1>
-                <p className="mt-2 text-md text-gray-500 max-w-md">{profile.store_description || 'Catálogo de productos'}</p>
-            </div>
-             <div className="w-full md:w-1/3 h-48 md:h-full ml-auto relative">
-                {profile.store_banner_url ? (
-                    <Image src={profile.store_banner_url} alt="Banner de la tienda" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" data-ai-hint="product lifestyle" />
-                ) : (
-                    <div className="w-full h-full bg-gradient-to-r from-gray-200 to-gray-300" />
-                )}
+                <h1 className="text-3xl md:text-4xl font-bold">{profile.name || 'Nuestra Tienda'}</h1>
+                <p className="mt-2 text-md max-w-md text-white/90">{profile.store_description || 'Catálogo de productos'}</p>
             </div>
         </header>
 
