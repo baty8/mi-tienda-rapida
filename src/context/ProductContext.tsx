@@ -58,7 +58,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       cost: p.cost || 0,
       stock: p.stock || 0,
       visible: p.visible,
-      image_urls: p.image_urls || ['https://placehold.co/600x400.png'],
+      image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : ['https://placehold.co/600x400.png'],
       createdAt: format(new Date(p.created_at), 'yyyy-MM-dd'),
       tags: p.stock > 0 ? [] : ['Out of Stock'],
       category: 'General',
