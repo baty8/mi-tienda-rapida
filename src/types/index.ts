@@ -8,7 +8,7 @@ export interface Product {
   cost: number;
   stock: number;
   visible: boolean;
-  image: string;
+  image_urls: string[];
   createdAt: string;
   tags: string[];
   category: string;

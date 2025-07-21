@@ -14,12 +14,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { UploadCloud } from 'lucide-react';
+import { UploadCloud, X } from 'lucide-react';
 import { Switch } from './ui/switch';
 import type { Product } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { useProduct } from '@/context/ProductContext';
+import { useDropzone } from 'react-dropzone';
 
 type EditProductDialogProps = {
     product: Product;
@@ -39,8 +40,9 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
   const [visible, setVisible] = useState(product.visible);
   
   // Image handling state
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState(product.image);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>(product.image_urls);
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
+  const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
 
   useEffect(() => {
     setName(product.name);
@@ -49,21 +51,32 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
     setCost(product.cost);
     setStock(product.stock);
     setVisible(product.visible);
-    setImagePreview(product.image);
-    setImageFile(null);
+    setExistingImageUrls(product.image_urls);
+    setNewImageFiles([]);
+    setNewImagePreviews([]);
   }, [product]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const onDrop = (acceptedFiles: File[]) => {
+    setNewImageFiles(prev => [...prev, ...acceptedFiles]);
+    const newPreviews = acceptedFiles.map(file => URL.createObjectURL(file));
+    setNewImagePreviews(prev => [...prev, ...newPreviews]);
   };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { 'image/*': ['.jpeg', '.png', '.gif', '.jpg'] },
+    multiple: true,
+  });
+
+  const removeExistingImage = (indexToRemove: number) => {
+    setExistingImageUrls(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+  
+  const removeNewImage = (indexToRemove: number) => {
+    setNewImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+    setNewImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
 
   const handleSave = async () => {
     if (!name || price <= 0) {
@@ -82,7 +95,7 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
         cost,
         stock,
         visible,
-    }, imageFile || undefined);
+    }, newImageFiles, existingImageUrls);
 
     onClose();
   };
@@ -112,21 +125,36 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
                 <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
              <div className="space-y-2">
-                <Label>Foto del Producto</Label>
-                <div className="flex items-center justify-center w-full">
-                    <label htmlFor="dropzone-file-edit" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-muted relative">
-                        {imagePreview ? (
-                            <Image src={imagePreview} alt="Vista previa del producto" fill className="rounded-lg object-contain" />
-                        ) : (
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
-                                <p className="mb-2 text-sm text-center text-muted-foreground"><span className="font-semibold">Haz clic para subir</span><br/>o arrastra y suelta</p>
-                                <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
-                            </div>
-                        )}
-                        <input id="dropzone-file-edit" type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
-                    </label>
+                <Label>Fotos del Producto</Label>
+                <div {...getRootProps()} className="flex flex-col items-center justify-center w-full p-4 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-muted">
+                    <input {...getInputProps()} />
+                    <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
+                    {isDragActive ?
+                        <p className="text-sm text-center text-muted-foreground">Suelta las imágenes aquí...</p> :
+                        <p className="text-sm text-center text-muted-foreground"><span className="font-semibold">Haz clic para añadir</span> o arrastra y suelta</p>
+                    }
+                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
                 </div>
+                 {(existingImageUrls.length > 0 || newImagePreviews.length > 0) && (
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                        {existingImageUrls.map((url, index) => (
+                            <div key={`existing-${index}`} className="relative group">
+                                <Image src={url} alt={`Imagen existente ${index+1}`} width={100} height={100} className="rounded-md object-cover w-full aspect-square" />
+                                <button onClick={() => removeExistingImage(index)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </div>
+                        ))}
+                        {newImagePreviews.map((preview, index) => (
+                            <div key={`new-${index}`} className="relative group">
+                                <Image src={preview} alt={`Vista previa ${index+1}`} width={100} height={100} className="rounded-md object-cover w-full aspect-square" />
+                                <button onClick={() => removeNewImage(index)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

@@ -59,7 +59,7 @@ export function ProductTable() {
 
   const handleUpdate = (
     productId: string,
-    field: keyof Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'description' | 'user_id' | 'in_catalog'>,
+    field: keyof Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'description' | 'user_id' | 'in_catalog'>,
     value: any
   ) => {
     updateProduct(productId, { [field]: value });
@@ -163,7 +163,7 @@ export function ProductTable() {
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
                         <Image
-                          src={product.image}
+                          src={product.image_urls[0]}
                           alt={product.name}
                           width={64}
                           height={64}

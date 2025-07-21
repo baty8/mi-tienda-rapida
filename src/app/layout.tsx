@@ -1,7 +1,8 @@
 
 import type {Metadata} from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster as OldToaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider } from '@/context/AuthProvider';
 import { ThemeProvider } from '@/components/theme-provider';
 
@@ -31,6 +32,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             {children}
+            <OldToaster />
             <Toaster />
           </AuthProvider>
         </ThemeProvider>

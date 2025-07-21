@@ -55,7 +55,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
           cost: p.cost || 0,
           stock: p.stock || 0,
           visible: p.visible,
-          image: p.image_url || 'https://placehold.co/300x200.png',
+          image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : ['https://placehold.co/600x400.png'],
           createdAt: format(new Date(p.created_at), 'yyyy-MM-dd'),
           tags: p.stock > 0 ? [] : ['Out of Stock'],
           category: 'General',
@@ -110,7 +110,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
   return (
     <ProductProvider initialProducts={initialProducts} initialCatalogs={initialCatalogs}>
       <div className="flex min-h-screen w-full bg-muted/40">
-          <Sidebar profile={profile} className="hidden md:flex w-72" />
+          <Sidebar profile={profile} className="hidden md:flex" />
           <div className="flex flex-1 flex-col">
               <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
                 <Sheet>

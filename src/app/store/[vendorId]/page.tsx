@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation';
 import type { Product, Catalog, Profile } from '@/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, MessageCircle, AlertCircle, Search, X } from 'lucide-react';
+import { ShoppingBag, MessageCircle, AlertCircle, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
@@ -18,6 +18,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { createClient } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import { cn } from '@/lib/utils';
 
 
 type VendorFullProfile = Profile & {
@@ -114,7 +122,7 @@ export default function StorePage() {
                   cost: 0,
                   stock: p.stock || 0,
                   visible: p.visible,
-                  image: p.image_url || 'https://placehold.co/300x300.png',
+                  image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : ['https://placehold.co/600x400.png'],
                   createdAt: '',
                   tags: [],
                   category: 'General',
@@ -236,20 +244,34 @@ export default function StorePage() {
             {!showEmptyState ? (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {filteredProducts.map((product) => (
-                    <div key={product.id} onClick={() => openModal(product)} className="group flex cursor-pointer transform flex-col overflow-hidden rounded-xl border border-gray-200 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
-                        <div className="aspect-square w-full overflow-hidden">
-                            <Image
-                            src={product.image}
-                            alt={product.name}
-                            width={300}
-                            height={300}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            data-ai-hint="product image"
-                            />
-                        </div>
+                    <div key={product.id} className="group flex transform flex-col overflow-hidden rounded-xl border border-gray-200 shadow-lg transition-transform duration-300 hover:scale-[1.02] store-accent-bg">
+                        <Carousel className="w-full" opts={{ loop: true }}>
+                            <CarouselContent>
+                                {product.image_urls.map((url, index) => (
+                                    <CarouselItem key={index} onClick={() => openModal(product)} className="cursor-pointer">
+                                        <div className="aspect-square w-full overflow-hidden">
+                                            <Image
+                                                src={url}
+                                                alt={`${product.name} - imagen ${index + 1}`}
+                                                width={300}
+                                                height={300}
+                                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                data-ai-hint="product image"
+                                            />
+                                        </div>
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                             {product.image_urls.length > 1 && (
+                                <>
+                                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 transform text-white bg-black/30 hover:bg-black/50 border-none" />
+                                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 transform text-white bg-black/30 hover:bg-black/50 border-none" />
+                                </>
+                            )}
+                        </Carousel>
                         <div className="flex flex-1 flex-col p-4">
-                            <div className="flex-1">
-                                <h2 className="text-lg font-bold store-text truncate">{product.name}</h2>
+                            <div className="flex-1" onClick={() => openModal(product)} >
+                                <h2 className="text-lg font-bold store-text truncate cursor-pointer">{product.name}</h2>
                                 {product.description && <p className="mt-1 text-sm text-gray-600 line-clamp-2">{product.description}</p>}
                             </div>
                             <div className="mt-4 flex w-full items-end justify-between gap-2">
@@ -276,20 +298,34 @@ export default function StorePage() {
             {selectedProduct && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-in fade-in-0" onClick={closeModal}>
                 <div className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl animate-in zoom-in-95 flex flex-col" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={closeModal} className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+                    <button onClick={closeModal} className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 z-10">
                         <X className="h-5 w-5" />
                         <span className="sr-only">Cerrar</span>
                     </button>
-                    <div className="w-full max-h-80 overflow-hidden rounded-lg mb-4">
-                        <Image
-                        src={selectedProduct.image}
-                        alt={selectedProduct.name}
-                        width={500}
-                        height={500}
-                        className="h-full w-full object-contain"
-                        data-ai-hint="product image"
-                        />
-                    </div>
+                    <Carousel className="w-full max-w-md mx-auto mb-4">
+                        <CarouselContent>
+                             {selectedProduct.image_urls.map((url, index) => (
+                                <CarouselItem key={index}>
+                                    <div className="aspect-square w-full max-h-80 overflow-hidden rounded-lg">
+                                        <Image
+                                            src={url}
+                                            alt={`${selectedProduct.name} - imagen ${index + 1}`}
+                                            width={500}
+                                            height={500}
+                                            className="h-full w-full object-contain"
+                                            data-ai-hint="product image"
+                                        />
+                                    </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                         {selectedProduct.image_urls.length > 1 && (
+                            <>
+                              <CarouselPrevious />
+                              <CarouselNext />
+                            </>
+                        )}
+                    </Carousel>
                     <div className="flex flex-col flex-grow">
                         <h2 className="text-2xl font-bold store-text">{selectedProduct.name}</h2>
                         <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">

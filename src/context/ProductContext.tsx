@@ -13,8 +13,8 @@ interface ProductContextType {
   activeCatalog: Catalog | null;
   loading: boolean; // Kept for individual actions like add/delete
   fetchProducts: () => Promise<void>; // This can now refetch everything if needed
-  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog' | 'user_id'>, imageFile: File | null) => Promise<void>;
-  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFile?: File | null) => Promise<void>;
+  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id'>, imageFiles: File[]) => Promise<void>;
+  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   setActiveCatalog: (catalog: Catalog | null) => void;
   saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => Promise<void>;
@@ -58,7 +58,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       cost: p.cost || 0,
       stock: p.stock || 0,
       visible: p.visible,
-      image: p.image_url || 'https://placehold.co/300x200.png',
+      image_urls: p.image_urls || ['https://placehold.co/600x400.png'],
       createdAt: format(new Date(p.created_at), 'yyyy-MM-dd'),
       tags: p.stock > 0 ? [] : ['Out of Stock'],
       category: 'General',
@@ -91,20 +91,20 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
   }, [supabase]);
 
 
-  const uploadImage = async (file: File, userId: string): Promise<string | null> => {
+  const uploadImage = async (file: File, userId: string): Promise<string> => {
     const fileName = `${userId}/${Date.now()}-${file.name}`;
     const { error: uploadError } = await supabase.storage.from('product_images').upload(fileName, file);
 
     if (uploadError) {
       console.error('Error uploading image:', uploadError);
-      return null;
+      throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
     }
 
     const { data: { publicUrl } } = supabase.storage.from('product_images').getPublicUrl(fileName);
     return publicUrl;
   };
 
-  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image' | 'in_catalog' | 'user_id'>, imageFile: File | null) => {
+  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id'>, imageFiles: File[]) => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -113,21 +113,23 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
         return;
     }
 
-    let imageUrl = 'https://placehold.co/600x400.png';
-    if (imageFile) {
-        const uploadedUrl = await uploadImage(imageFile, user.id);
-        if (uploadedUrl) imageUrl = uploadedUrl;
-        else {
-            toast({ variant: 'destructive', title: 'Error de Carga', description: 'No se pudo subir la imagen.' });
-            setLoading(false);
-            return;
-        }
+    let imageUrls: string[] = [];
+    if (imageFiles.length > 0) {
+      try {
+        imageUrls = await Promise.all(imageFiles.map(file => uploadImage(file, user.id)));
+      } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Error de Carga', description: error.message });
+        setLoading(false);
+        return;
+      }
+    } else {
+      imageUrls = ['https://placehold.co/600x400.png'];
     }
 
     const { data: newProductData, error } = await supabase.from('products').insert({
       ...productData,
       user_id: user.id,
-      image_url: imageUrl,
+      image_urls: imageUrls,
     }).select().single();
 
     if (error) {
@@ -139,7 +141,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
     setLoading(false);
   };
 
-  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFile?: File) => {
+  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFiles: File[] = [], existingImageUrls: string[] = []) => {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -147,17 +149,20 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
         return;
       }
 
-      let updateData: any = { ...updatedFields };
+      let newImageUrls: string[] = [];
+       if (imageFiles.length > 0) {
+         try {
+            newImageUrls = await Promise.all(imageFiles.map(file => uploadImage(file, user.id)));
+         } catch(error: any) {
+            toast({ variant: 'destructive', title: 'Error de Carga', description: error.message });
+            setLoading(false);
+            return;
+         }
+       }
+      
+      const finalImageUrls = [...existingImageUrls, ...newImageUrls];
 
-      if (imageFile) {
-        const imageUrl = await uploadImage(imageFile, user.id);
-        if (imageUrl) updateData.image_url = imageUrl;
-        else {
-          toast({ variant: 'destructive', title: 'Error de Carga', description: 'No se pudo subir la nueva imagen.' });
-          setLoading(false);
-          return;
-        }
-      }
+      let updateData: any = { ...updatedFields, image_urls: finalImageUrls };
       
       const { data, error } = await supabase.from('products').update(updateData).eq('id', productId).eq('user_id', user.id).select().single();
 
