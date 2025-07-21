@@ -58,7 +58,8 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       cost: p.cost || 0,
       stock: p.stock || 0,
       visible: p.visible,
-      image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : ['https://placehold.co/600x400.png'],
+      // Ensure image_urls is always an array, providing a default if it's null/empty
+      image_urls: (p.image_urls && Array.isArray(p.image_urls) && p.image_urls.length > 0) ? p.image_urls : ['https://placehold.co/600x400.png'],
       createdAt: format(new Date(p.created_at), 'yyyy-MM-dd'),
       tags: p.stock > 0 ? [] : ['Out of Stock'],
       category: 'General',
@@ -123,6 +124,7 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
         return;
       }
     } else {
+      // Correctly wrap the default URL in an array
       imageUrls = ['https://placehold.co/600x400.png'];
     }
 
@@ -161,6 +163,11 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
        }
       
       const finalImageUrls = [...existingImageUrls, ...newImageUrls];
+      
+      // Ensure at least one image exists, if not, add placeholder
+      if (finalImageUrls.length === 0) {
+        finalImageUrls.push('https://placehold.co/600x400.png');
+      }
 
       let updateData: any = { ...updatedFields, image_urls: finalImageUrls };
       
