@@ -1,11 +1,12 @@
+
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Product, Catalog, Profile } from '@/types';
 import { createClient } from '@/lib/utils';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, MessageCircle, AlertCircle, Search, X } from 'lucide-react';
+import { ShoppingBag, MessageCircle, AlertCircle, Search } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
@@ -22,7 +23,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import { X } from 'lucide-react';
 
 type VendorFullProfile = Profile & {
     store_bg_color?: string;
@@ -33,11 +36,6 @@ type VendorFullProfile = Profile & {
 
 type CatalogWithProducts = Catalog & {
     products: Product[];
-}
-
-type StoreData = {
-  profile: VendorFullProfile;
-  catalogs: CatalogWithProducts[];
 }
 
 type StorePageProps = {
@@ -55,10 +53,37 @@ const getFontFamily = (fontName: string | null | undefined): string => {
     }
 };
 
+function StorePageSkeleton() {
+    return (
+        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+            <header className="mb-8 flex flex-col items-center">
+                <Skeleton className="h-24 w-24 rounded-full" />
+                <Skeleton className="mt-4 h-8 w-48" />
+            </header>
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <Skeleton className="h-10 flex-grow" />
+                <Skeleton className="h-10 w-full sm:w-[250px]" />
+            </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="flex flex-col gap-2">
+                        <Skeleton className="aspect-square w-full rounded-xl" />
+                        <Skeleton className="h-5 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-8 w-1/4 mt-2" />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 export default function StorePage({ params }: StorePageProps) {
   const { vendorId } = params;
   const [loading, setLoading] = useState(true);
-  const [storeData, setStoreData] = useState<StoreData | null>(null);
+  const [profile, setProfile] = useState<VendorFullProfile | null>(null);
+  const [catalogs, setCatalogs] = useState<CatalogWithProducts[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,7 +96,7 @@ export default function StorePage({ params }: StorePageProps) {
       const supabase = createClient();
 
       try {
-          // 1. Get profile
+          // 1. Fetch Profile
           const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
@@ -79,62 +104,71 @@ export default function StorePage({ params }: StorePageProps) {
               .single();
 
           if (profileError || !profileData) {
-              throw new Error("No se pudo encontrar la tienda.");
+              throw new Error("Tienda no encontrada o no disponible.");
           }
+          setProfile(profileData);
 
-          // 2. Get public catalogs
+          // 2. Fetch public catalogs
           const { data: publicCatalogs, error: catalogsError } = await supabase
               .from('catalogs')
               .select('id, name')
               .eq('user_id', vendorId)
               .eq('is_public', true);
           
-          if (catalogsError) {
-              throw new Error("No se pudieron cargar los catálogos.");
+          if (catalogsError) throw new Error("Error al cargar catálogos.");
+          if (!publicCatalogs || publicCatalogs.length === 0) {
+              setAllProducts([]);
+              setCatalogs([]);
+              setLoading(false);
+              return;
+          }
+
+          const publicCatalogIds = publicCatalogs.map(c => c.id);
+
+          // 3. Fetch products linked to those public catalogs
+          const { data: catalogProducts, error: cpError } = await supabase
+              .from('catalog_products')
+              .select('product_id, catalog_id')
+              .in('catalog_id', publicCatalogIds);
+
+          if (cpError) throw new Error("Error al cargar productos del catálogo.");
+          if (!catalogProducts || catalogProducts.length === 0) {
+              setAllProducts([]);
+              setCatalogs([]);
+              setLoading(false);
+              return;
+  
           }
           
-          const catalogIds = publicCatalogs.map(c => c.id);
+          const productIdsInPublicCatalogs = [...new Set(catalogProducts.map(cp => cp.product_id))];
 
-          let products: Product[] = [];
-          if (catalogIds.length > 0) {
-              // 3. Get product IDs from the join table
-              const { data: catalogProducts, error: cpError } = await supabase
-                .from('catalog_products')
-                .select('product_id')
-                .in('catalog_id', catalogIds);
+          // 4. Fetch details for those visible products
+          const { data: productData, error: productsError } = await supabase
+              .from('products')
+              .select('*')
+              .in('id', productIdsInPublicCatalogs)
+              .eq('visible', true);
 
-              if (cpError) throw new Error("Error al cargar la relación de productos.");
+          if (productsError) throw new Error("Error al cargar detalles de productos.");
+          
+          const visibleProducts = productData || [];
+          setAllProducts(visibleProducts);
+
+          const productsById = new Map(visibleProducts.map(p => [p.id, p]));
+
+          const catalogsWithProducts = publicCatalogs.map(catalog => {
+              const productIdsInThisCatalog = catalogProducts
+                  .filter(cp => cp.catalog_id === catalog.id)
+                  .map(cp => cp.product_id);
               
-              const productIds = catalogProducts.map(cp => cp.product_id);
+              const products = productIdsInThisCatalog
+                .map(id => productsById.get(id))
+                .filter((p): p is Product => !!p);
 
-              if (productIds.length > 0) {
-                 // 4. Get visible products matching those IDs
-                  const { data: productData, error: productsError } = await supabase
-                      .from('products')
-                      .select('*')
-                      .in('id', productIds)
-                      .eq('visible', true);
-
-                  if (productsError) throw new Error("No se pudieron cargar los productos.");
-                  products = productData || [];
-              }
-          }
+              return { ...catalog, products, product_ids: [], created_at: '', user_id: vendorId, is_public: true };
+          }).filter(c => c.products.length > 0);
           
-           // 5. Join data in code
-           const catalogsWithProducts = publicCatalogs.map(catalog => {
-              const productsInCatalog = products.filter(p => {
-                  // This part is tricky. Let's find which products belong to this catalog
-                  // A better approach would be to fetch products with their catalog id
-                  // but this is safer for now. We will assume a product can be in many catalogs, but for display let's show it in all its public catalogs
-                  return true; // Simplified for now. We will rely on allProducts flatMap
-              });
-              return { ...catalog, products: products }; // Let's simplify and assign all fetched products to every catalog for filtering purposes
-           }).map(c => ({...c, product_ids: [], created_at: '', user_id: vendorId, is_public: true}));
-
-          setStoreData({
-              profile: profileData,
-              catalogs: publicCatalogs.map(c => ({...c, products: products, product_ids: [], created_at: '', user_id: vendorId, is_public: true})),
-          });
+          setCatalogs(catalogsWithProducts);
 
       } catch (e: any) {
           console.error(e);
@@ -149,16 +183,28 @@ export default function StorePage({ params }: StorePageProps) {
     fetchStoreData();
   }, [fetchStoreData]);
 
+  const filteredProducts = useMemo(() => {
+    let productsToFilter = allProducts;
+
+    if (activeCatalogId !== 'all') {
+      productsToFilter = catalogs.find(c => c.id === activeCatalogId)?.products || [];
+    }
+    
+    if (searchQuery) {
+        return productsToFilter.filter(product => 
+            product.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }
+    
+    return productsToFilter;
+  }, [allProducts, catalogs, activeCatalogId, searchQuery]);
+
+
   if (loading) {
-     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gray-50">
-        <ShoppingBag className="h-16 w-16 animate-bounce text-primary" />
-        <p className="mt-4 text-lg text-muted-foreground">Cargando tienda...</p>
-      </div>
-    );
+     return <StorePageSkeleton />;
   }
 
-  if (error || !storeData) {
+  if (error || !profile) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-gray-50 p-4">
         <AlertCircle className="h-16 w-16 text-destructive" />
@@ -169,9 +215,7 @@ export default function StorePage({ params }: StorePageProps) {
     );
   }
   
-  const { profile, catalogs } = storeData;
-  
-  const allProducts = [...new Map(catalogs.flatMap(c => c.products || []).map(item => [item.id, item])).values()];
+  const showEmptyState = allProducts.length === 0;
 
   const openModal = (product: Product) => setSelectedProduct(product);
   const closeModal = () => setSelectedProduct(null);
@@ -183,16 +227,6 @@ export default function StorePage({ params }: StorePageProps) {
     return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
   
-  const filteredProducts = (activeCatalogId === 'all' 
-    ? allProducts 
-    : catalogs.find(c => c.id === activeCatalogId)?.products || []
-  ).filter(product => {
-      if (!product) return false;
-      return product.name.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-  
-  const showEmptyState = allProducts.length === 0;
-
   const storeStyle = {
     '--store-bg': profile.store_bg_color || '#FFFFFF',
     '--store-primary': profile.store_primary_color || '#111827',
@@ -207,7 +241,7 @@ export default function StorePage({ params }: StorePageProps) {
             .store-bg { background-color: var(--store-bg); }
             .store-text { color: var(--store-text-on-bg); font-family: var(--store-font-family); }
             .store-primary-text { color: var(--store-primary); font-family: var(--store-font-family); }
-            .store-primary-bg { background-color: var(--store-primary); color: #FFFFFF; font-family: var(--store-font-family); }
+            .store-primary-bg { background-color: var(--store-primary); color: var(--store-bg); font-family: var(--store-font-family); }
             .store-accent-bg { background-color: var(--store-accent); }
             .store-font { font-family: var(--store-font-family); }
         `}</style>
@@ -309,10 +343,12 @@ export default function StorePage({ params }: StorePageProps) {
                     </DialogHeader>
                     {selectedProduct && (
                        <div className="relative w-full rounded-xl bg-white p-6 shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
-                            <button onClick={closeModal} className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 z-10">
-                                <X className="h-5 w-5" />
-                                <span className="sr-only">Cerrar</span>
-                            </button>
+                            <DialogClose asChild>
+                                <button className="absolute top-3 right-3 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 z-10">
+                                    <X className="h-5 w-5" />
+                                    <span className="sr-only">Cerrar</span>
+                                </button>
+                            </DialogClose>
                             <Carousel className="w-full max-w-md mx-auto mb-4">
                                 <CarouselContent>
                                     {(selectedProduct.image_urls && selectedProduct.image_urls.length > 0 ? selectedProduct.image_urls : ['https://placehold.co/600x400.png']).map((url, index) => (

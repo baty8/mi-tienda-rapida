@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { User, Save, UploadCloud, Palette, Eye, Type } from 'lucide-react';
+import { User, Save, UploadCloud, Palette, Eye, Type, X } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -12,10 +12,10 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -170,8 +170,6 @@ function ProfilePage() {
       } else {
           toast({ title: '¡Éxito!', description: 'Tu perfil ha sido actualizado.' });
           setProfile(prev => ({...prev, avatar_url: newAvatarUrl}));
-          // Refresh the page or specific components if needed after save
-          // Forcing a reload for simplicity to update sidebar
           window.location.reload();
       }
       setSaving(false);
@@ -218,14 +216,17 @@ function ProfilePage() {
                         Visualizar
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-sm sm:max-w-sm w-full p-2 h-[80vh] sm:h-[85vh] flex flex-col items-center justify-center">
-                   <DialogHeader className="w-full">
-                        <DialogTitle className="text-center text-sm font-normal text-muted-foreground pb-2">Previsualización Móvil</DialogTitle>
-                        <DialogDescription className="sr-only">Previsualización de la tienda en un marco de teléfono móvil.</DialogDescription>
+                <DialogContent className="max-w-sm w-full p-0 sm:p-0 bg-transparent border-none shadow-none">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>Previsualización Móvil</DialogTitle>
                     </DialogHeader>
-                    <div className="relative mx-auto w-full h-full rounded-[2rem] border-8 border-gray-800 bg-gray-800 dark:border-gray-600 overflow-hidden">
-                        <div className="h-full w-full bg-white">
-                            {storeLink ? (
+                    <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-xl">
+                        <div className="w-[140px] h-[18px] bg-gray-800 top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute"></div>
+                        <div className="h-[46px] w-[3px] bg-gray-800 absolute -start-[17px] top-[124px] rounded-s-lg"></div>
+                        <div className="h-[46px] w-[3px] bg-gray-800 absolute -start-[17px] top-[178px] rounded-s-lg"></div>
+                        <div className="h-[64px] w-[3px] bg-gray-800 absolute -end-[17px] top-[142px] rounded-e-lg"></div>
+                        <div className="rounded-[2rem] overflow-hidden w-full h-full bg-white dark:bg-gray-800">
+                             {storeLink ? (
                                 <iframe
                                     src={storeLink}
                                     className="h-full w-full border-0"
@@ -238,6 +239,10 @@ function ProfilePage() {
                             )}
                         </div>
                     </div>
+                     <DialogClose className="absolute top-0 right-0 sm:-right-4 sm:-top-4 rounded-full bg-background p-1 text-foreground opacity-80 hover:opacity-100 z-10 shadow-lg">
+                        <X className="h-5 w-5" />
+                        <span className="sr-only">Cerrar</span>
+                    </DialogClose>
                 </DialogContent>
             </Dialog>
           <Button onClick={handleSave} disabled={saving || loading}>
