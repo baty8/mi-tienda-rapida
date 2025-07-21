@@ -95,6 +95,10 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
     '--store-card-text': profile.store_bg_color === '#111827' ? '#FFFFFF' : '#111827',
     '--store-font-family': getFontFamily(profile.store_font_family),
   } as React.CSSProperties;
+  
+  const headerStyle = profile.store_banner_url ? {} : {
+      background: `linear-gradient(45deg, ${profile.store_primary_color || '#60A5FA'}, ${profile.store_accent_color || '#E0E7FF'})`
+  };
 
   return (
     <div style={storeStyle} className="min-h-screen store-font">
@@ -112,11 +116,11 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
         <header 
           className="relative mb-8 h-48 md:h-64 w-full overflow-hidden rounded-xl shadow-lg flex items-center justify-center text-center"
-          style={{ background: `linear-gradient(45deg, ${profile.store_primary_color || '#60A5FA'}, ${profile.store_accent_color || '#E0E7FF'})`}}
+          style={headerStyle}
         >
-            {profile.store_banner_url ? (
+            {profile.store_banner_url && (
                 <Image src={profile.store_banner_url} alt="Banner de la tienda" layout="fill" objectFit="cover" className="z-0" data-ai-hint="product lifestyle" />
-            ) : null}
+            )}
             <div className="absolute inset-0 bg-black/50 z-10"></div>
             <div className="relative z-20 p-6 flex flex-col items-center text-white">
                 <Avatar className="h-20 w-20 border-4 border-white/50 shadow-lg mb-2">
