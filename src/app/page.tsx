@@ -76,6 +76,7 @@ export default function AuthPage() {
         description: error.message || 'Credenciales inválidas o correo no verificado.',
       });
     }
+    // Set loading to false, the AuthProvider will handle navigation
     setLoading(false);
   };
 
@@ -113,8 +114,8 @@ export default function AuthPage() {
   
   const handleOAuthLogin = async (provider: 'google') => {
     setLoading(true);
-    // By NOT providing a `redirectTo` option or any `options`, Supabase defaults to a popup flow,
-    // which avoids the redirection issue in some development environments like this one.
+    // By NOT providing a `redirectTo` option or any `options`, Supabase defaults to a popup flow.
+    // This is the most robust way to handle OAuth in complex environments or if redirects fail.
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
     });
@@ -126,7 +127,7 @@ export default function AuthPage() {
         description: `No se pudo iniciar la sesión: ${error.message}`,
       });
     }
-    // Set loading to false, as the AuthProvider will handle redirection on success.
+    // Set loading to false. The AuthProvider will handle redirection on success.
     // If there's an error, we want the user to be able to try again.
     setLoading(false);
   };
@@ -253,5 +254,4 @@ export default function AuthPage() {
     </div>
   );
 }
-
     
