@@ -36,7 +36,7 @@ export function StoreClientPage({ profile }: StoreClientPageProps) {
             const supabase = createClient();
 
             try {
-                // 1. Fetch public catalogs
+                // 1. Fetch public catalogs for the given user
                 const { data: publicCatalogs, error: catalogsError } = await supabase
                     .from('catalogs')
                     .select('id, name')
@@ -44,7 +44,9 @@ export function StoreClientPage({ profile }: StoreClientPageProps) {
                     .eq('is_public', true);
 
                 if (catalogsError) throw new Error(`Error fetching catalogs: ${catalogsError.message}`);
+                
                 if (!publicCatalogs || publicCatalogs.length === 0) {
+                    // No public catalogs, so we can stop here.
                     setCatalogsWithProducts([]);
                     setLoading(false);
                     return;
@@ -52,20 +54,22 @@ export function StoreClientPage({ profile }: StoreClientPageProps) {
 
                 const publicCatalogIds = publicCatalogs.map(c => c.id);
 
-                // 2. Fetch products associated with those public catalogs
+                // 2. Fetch all visible products that belong to any of the public catalogs
                 const { data: catalogProducts, error: productsError } = await supabase
                     .from('catalog_products')
                     .select('catalog_id, products(*)')
                     .in('catalog_id', publicCatalogIds)
+                    .not('products', 'is', null) // Ensure product relation exists
                     .eq('products.visible', true);
 
                 if (productsError) throw new Error(`Error fetching products: ${productsError.message}`);
-
-                // 3. Organize data
+                
+                // 3. Organize the data into the desired structure
                 const catalogProductMap = new Map<string, Product[]>();
-                catalogProducts?.forEach(cp => {
-                    if (cp.products) {
-                        const product = cp.products as unknown as Product;
+                (catalogProducts || []).forEach(cp => {
+                    // The 'products' field can be an object, not an array, from the query.
+                    const product = cp.products as unknown as Product; 
+                    if (product) {
                         if (!catalogProductMap.has(cp.catalog_id)) {
                             catalogProductMap.set(cp.catalog_id, []);
                         }
@@ -79,7 +83,7 @@ export function StoreClientPage({ profile }: StoreClientPageProps) {
                         name: catalog.name,
                         products: catalogProductMap.get(catalog.id) || []
                     }))
-                    .filter(c => c.products.length > 0);
+                    .filter(c => c.products.length > 0); // Only show catalogs that have visible products
 
                 setCatalogsWithProducts(finalData);
 
@@ -91,7 +95,9 @@ export function StoreClientPage({ profile }: StoreClientPageProps) {
             }
         };
 
-        fetchStoreData();
+        if (profile.id) {
+            fetchStoreData();
+        }
     }, [profile.id]);
 
     const storeStyle = {

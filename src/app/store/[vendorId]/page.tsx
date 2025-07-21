@@ -21,7 +21,7 @@ async function getStoreProfile(vendorId: string): Promise<Profile | null> {
         return null; // Return null if profile doesn't exist.
     }
 
-    return profile;
+    return profile as Profile;
 }
 
 export default async function StorePage({ params }: { params: { vendorId: string }}) {
@@ -33,6 +33,6 @@ export default async function StorePage({ params }: { params: { vendorId: string
   }
   
   // The profile is passed to the Client Component, which will then fetch
-  // the catalogs and products.
+  // the catalogs and products on the client side.
   return <StoreClientPage profile={profile} />;
 }
