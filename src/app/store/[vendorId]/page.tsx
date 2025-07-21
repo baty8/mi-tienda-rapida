@@ -40,5 +40,3 @@ export default async function StorePage({ params }: { params: { vendorId: string
     />
   );
 }
-
-    

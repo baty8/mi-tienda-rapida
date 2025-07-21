@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Product, Catalog, Profile } from '@/types';
 import { createClient } from '@/lib/utils';
 import Image from 'next/image';
@@ -55,7 +55,7 @@ const getFontFamily = (fontName: string | null | undefined): string => {
 
 export function StorePageComponent({ error: initialError, initialVendor, vendorId }: StorePageComponentProps) {
   const [loading, setLoading] = useState(true);
-  const [vendor, setVendor] = useState(initialVendor);
+  const [vendor] = useState(initialVendor);
   const [error, setError] = useState(initialError);
 
   const [catalogs, setCatalogs] = useState<CatalogWithProducts[]>([]);
@@ -65,77 +65,107 @@ export function StorePageComponent({ error: initialError, initialVendor, vendorI
   const [activeCatalogId, setActiveCatalogId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  useEffect(() => {
-    const fetchStoreData = async () => {
-      setLoading(true);
-      const supabase = createClient();
+  const fetchStoreData = useCallback(async () => {
+    setLoading(true);
+    const supabase = createClient();
 
-      // 1. Fetch all public products for the vendor that are in a public catalog
-      const { data: publicProducts, error: productsError } = await supabase
-        .from('products')
-        .select('*, catalogs!inner(id, name, is_public)')
-        .eq('user_id', vendorId)
-        .eq('visible', true)
-        .eq('catalogs.is_public', true);
+    try {
+        // 1. Obtener todos los catálogos públicos del vendedor.
+        const { data: publicCatalogs, error: catalogsError } = await supabase
+            .from('catalogs')
+            .select('id, name')
+            .eq('user_id', vendorId)
+            .eq('is_public', true);
+
+        if (catalogsError) throw catalogsError;
+
+        // 2. Obtener TODAS las relaciones de productos para ESOS catálogos.
+        const catalogIds = publicCatalogs.map(c => c.id);
+        if (catalogIds.length === 0) {
+             setAllProducts([]);
+             setCatalogs([]);
+             setLoading(false);
+             return;
+        }
+
+        const { data: catalogProducts, error: cpError } = await supabase
+            .from('catalog_products')
+            .select('catalog_id, product_id')
+            .in('catalog_id', catalogIds);
+            
+        if (cpError) throw cpError;
+
+        // 3. Obtener los detalles de los productos que son visibles.
+        const productIds = [...new Set(catalogProducts.map(cp => cp.product_id))];
+         if (productIds.length === 0) {
+             setAllProducts([]);
+             setCatalogs([]);
+             setLoading(false);
+             return;
+        }
+
+        const { data: productsDetails, error: productsError } = await supabase
+            .from('products')
+            .select('*')
+            .in('id', productIds)
+            .eq('visible', true);
+            
+        if (productsError) throw productsError;
+
+        const allProductsData: Product[] = (productsDetails || []).map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            description: p.description || '',
+            price: p.price,
+            cost: p.cost || 0,
+            stock: p.stock || 0,
+            visible: p.visible,
+            image_urls: (p.image_urls && Array.isArray(p.image_urls) && p.image_urls.length > 0) ? p.image_urls : ['https://placehold.co/600x400.png'],
+            createdAt: p.created_at,
+            tags: [],
+            category: 'General',
+            in_catalog: true,
+            user_id: p.user_id,
+        }));
+        setAllProducts(allProductsData);
         
-      if (productsError) {
-        console.error("Products fetch error:", productsError);
-        setError("No se pudieron cargar los productos de la tienda.");
+        // 4. Construir la estructura final de catálogos con productos.
+        const catalogsMap = new Map<string, CatalogWithProducts>();
+
+        publicCatalogs.forEach(c => {
+            catalogsMap.set(c.id, {
+                ...c,
+                user_id: vendorId, created_at: '', is_public: true, product_ids: [],
+                products: []
+            });
+        });
+
+        catalogProducts.forEach(cp => {
+            const product = allProductsData.find(p => p.id === cp.product_id);
+            const catalog = catalogsMap.get(cp.catalog_id);
+            if (product && catalog) {
+                catalog.products.push(product);
+            }
+        });
+        
+        setCatalogs(Array.from(catalogsMap.values()).filter(c => c.products.length > 0));
+
+    } catch (err: any) {
+        console.error("Error al cargar datos de la tienda:", err);
+        setError("No se pudieron cargar los datos de la tienda. Por favor, intenta de nuevo más tarde.");
+    } finally {
         setLoading(false);
-        return;
-      }
+    }
+  }, [vendorId]);
 
-      // 2. Process the fetched data into products and catalogs
-      const allProductsData: Product[] = (publicProducts || []).map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        description: p.description || '',
-        price: p.price,
-        cost: p.cost || 0,
-        stock: p.stock || 0,
-        visible: p.visible,
-        image_urls: (p.image_urls && Array.isArray(p.image_urls) && p.image_urls.length > 0) ? p.image_urls : ['https://placehold.co/600x400.png'],
-        createdAt: p.created_at,
-        tags: p.stock > 0 ? [] : ['Out of Stock'],
-        category: 'General',
-        in_catalog: true,
-        user_id: p.user_id,
-      }));
-      setAllProducts(allProductsData);
-      
-      const catalogsMap = new Map<string, CatalogWithProducts>();
-      for (const product of publicProducts) {
-          const productCatalogs = Array.isArray(product.catalogs) ? product.catalogs : [product.catalogs];
-          for (const catalog of productCatalogs) {
-              if (!catalog) continue;
 
-              if (!catalogsMap.has(catalog.id)) {
-                  catalogsMap.set(catalog.id, {
-                      id: catalog.id,
-                      name: catalog.name,
-                      user_id: vendorId,
-                      created_at: '', // Not needed
-                      is_public: true,
-                      product_ids: [], // Not needed
-                      products: [],
-                  });
-              }
-              const formattedProduct = allProductsData.find(p => p.id === product.id);
-              if(formattedProduct && !catalogsMap.get(catalog.id)!.products.some(p => p.id === formattedProduct.id)) {
-                  catalogsMap.get(catalog.id)!.products.push(formattedProduct);
-              }
-          }
-      }
-      setCatalogs(Array.from(catalogsMap.values()));
-      setLoading(false);
-    };
-
-    if (vendorId && !initialError) {
+  useEffect(() => {
+    if (vendorId) {
       fetchStoreData();
     } else {
-      setLoading(false);
+        setLoading(false);
     }
-  }, [vendorId, initialError]);
+  }, [vendorId, fetchStoreData]);
 
 
   if (error) {
@@ -175,7 +205,7 @@ export function StorePageComponent({ error: initialError, initialVendor, vendorI
       return product.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
   
-  const showEmptyState = filteredProducts.length === 0;
+  const showEmptyState = allProducts.length === 0 || filteredProducts.length === 0;
 
   const storeStyle = {
     '--store-bg': vendor.store_bg_color || '#FFFFFF',
@@ -276,8 +306,12 @@ export function StorePageComponent({ error: initialError, initialVendor, vendorI
             ) : (
                 <div className="py-16 text-center">
                     <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-4 text-xl font-semibold store-text">No se encontraron productos</h3>
-                    <p className="mt-2 text-gray-500 store-font">Intenta cambiar los filtros o el término de búsqueda.</p>
+                    <h3 className="mt-4 text-xl font-semibold store-text">
+                        {allProducts.length === 0 ? "Esta tienda aún no tiene productos públicos." : "No se encontraron productos"}
+                    </h3>
+                    <p className="mt-2 text-gray-500 store-font">
+                        {allProducts.length > 0 ? "Intenta cambiar los filtros o el término de búsqueda." : "Vuelve a consultar más tarde."}
+                    </p>
                 </div>
             )}
             
@@ -344,5 +378,3 @@ export function StorePageComponent({ error: initialError, initialVendor, vendorI
     </div>
   );
 }
-
-    
