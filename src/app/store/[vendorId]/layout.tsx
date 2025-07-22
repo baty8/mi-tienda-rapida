@@ -16,17 +16,20 @@ const fontMap: { [key: string]: string } = {
   'PT Sans': 'https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap',
 };
 
-// Genera metadatos dinámicos (título de la tienda)
+// Genera metadatos dinámicos (título de la tienda y favicon)
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = createClient();
   const { data: profile } = await supabase
     .from('profiles')
-    .select('name')
+    .select('name, avatar_url')
     .eq('id', params.vendorId)
     .single();
 
   return {
     title: profile?.name || 'Tienda',
+    icons: {
+      icon: profile?.avatar_url || undefined,
+    }
   };
 }
 
