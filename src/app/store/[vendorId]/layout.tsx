@@ -4,12 +4,6 @@ import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
 import type { ReactNode } from 'react';
 
-// Define explicit types for layout props to satisfy TypeScript in production builds.
-type LayoutProps = {
-  children: ReactNode;
-  params: { vendorId: string };
-};
-
 // Mapa de fuentes para cargar desde Google Fonts
 const fontMap: { [key: string]: string } = {
   'Roboto': 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap',
@@ -20,7 +14,7 @@ const fontMap: { [key: string]: string } = {
 };
 
 // Genera metadatos dinámicos (título de la tienda y favicon)
-export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { vendorId: string } }): Promise<Metadata> {
   const supabase = createClient();
   const { data: profile } = await supabase
     .from('profiles')
@@ -37,7 +31,7 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
 }
 
 // Layout simplificado para la tienda
-export default async function StoreLayout({ children, params }: LayoutProps) {
+export default async function StoreLayout({ children, params }: { children: ReactNode, params: { vendorId: string } }) {
   const supabase = createClient();
   const { data: profile } = await supabase
     .from('profiles')
