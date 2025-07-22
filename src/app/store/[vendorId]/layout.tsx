@@ -1,6 +1,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { Metadata } from 'next';
+import { ThemeProvider } from '@/components/theme-provider';
 
 type Props = {
   params: { vendorId: string };
@@ -54,8 +55,17 @@ export default async function StoreLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {fontUrl && <link href={fontUrl} rel="stylesheet" />}
       </head>
-      {/* Forzamos la clase 'light' para evitar que el tema del sistema afecte la tienda pública */}
-      <body className="font-body antialiased light">{children}</body>
+      <body className="font-body antialiased">
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            forcedTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
