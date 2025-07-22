@@ -10,11 +10,9 @@ import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { suggestPrice, type SuggestPriceOutput } from '@/ai/flows/pricing-assistant-flow';
 import { toast } from 'sonner';
-import getConfig from 'next/config';
 
-// Get the configuration from Next.js runtime config
-const { publicRuntimeConfig } = getConfig();
-const isConfigured = publicRuntimeConfig.isGeminiConfigured;
+// The 'NEXT_PUBLIC_' prefix makes this variable available in the browser
+const isConfigured = process.env.NEXT_PUBLIC_GEMINI_API_KEY === 'true';
 
 export function AiPricingAssistant() {
   const [productCost, setProductCost] = useState('');

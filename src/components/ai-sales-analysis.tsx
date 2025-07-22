@@ -8,11 +8,9 @@ import { useProduct } from '@/context/ProductContext';
 import { analyzeSales } from '@/ai/flows/sales-analysis-flow';
 import type { SalesAnalysisInput } from '@/ai/flows/sales-analysis-flow';
 import { Button } from './ui/button';
-import getConfig from 'next/config';
 
-// Get the configuration from Next.js runtime config
-const { publicRuntimeConfig } = getConfig();
-const isConfigured = publicRuntimeConfig.isGeminiConfigured;
+// The 'NEXT_PUBLIC_' prefix makes this variable available in the browser
+const isConfigured = process.env.NEXT_PUBLIC_GEMINI_API_KEY === 'true';
 
 // Helper function to create realistic mock sales data based on products
 const generateMockSales = (products: SalesAnalysisInput['products']): SalesAnalysisInput['sales'] => {
