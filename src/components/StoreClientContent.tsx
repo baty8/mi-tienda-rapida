@@ -99,19 +99,22 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
   
   const showEmptyState = initialCatalogsWithProducts.length === 0 && allProducts.length === 0;
 
+  const storePrimaryColor = profile.store_primary_color || '#111827';
   const storeAccentColor = profile.store_accent_color || '#F3F4F6';
   const cardTextColor = isColorLight(storeAccentColor) ? '#111827' : '#FFFFFF';
+  const buttonTextColor = isColorLight(storePrimaryColor) ? '#111827' : '#FFFFFF';
 
   const storeStyle = {
     '--store-bg': profile.store_bg_color || '#FFFFFF',
-    '--store-primary': profile.store_primary_color || '#111827',
+    '--store-primary': storePrimaryColor,
+    '--store-primary-foreground': buttonTextColor,
     '--store-accent': storeAccentColor,
     '--store-card-text': cardTextColor,
     '--store-font-family': getFontFamily(profile.store_font_family),
   } as React.CSSProperties;
   
   const headerStyle = profile.store_banner_url ? {} : {
-      background: `linear-gradient(45deg, ${profile.store_primary_color || '#60A5FA'}, ${profile.store_accent_color || '#E0E7FF'})`
+      background: `linear-gradient(45deg, ${storePrimaryColor}, ${storeAccentColor})`
   };
 
   return (
@@ -122,7 +125,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
             .store-text { color: var(--store-card-text); }
             .store-primary-text { color: var(--store-primary); }
             .store-secondary-text { color: ${isColorLight(storeAccentColor) ? '#6b7280' : '#d1d5db'}; }
-            .store-primary-bg { background-color: var(--store-primary); color: white; }
+            .store-primary-bg { background-color: var(--store-primary); color: var(--store-primary-foreground); }
             .store-card { background-color: var(--store-accent); color: var(--store-card-text); }
             .store-font { font-family: var(--store-font-family); }
         `}</style>
@@ -213,7 +216,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         )}
         
         <Dialog open={!!selectedProduct} onOpenChange={(isOpen) => !isOpen && closeModal()}>
-                <DialogContent className="max-w-lg w-full p-0" onClick={(e) => e.stopPropagation()}>
+                <DialogContent className="max-w-lg w-full p-0">
                     {selectedProduct && (
                         <div className="relative w-full p-6 flex flex-col">
                              <DialogHeader>
