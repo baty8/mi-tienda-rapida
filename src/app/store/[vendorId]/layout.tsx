@@ -54,8 +54,8 @@ export default async function StoreLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {fontUrl && <link href={fontUrl} rel="stylesheet" />}
       </head>
-      {/* Añadimos las clases del body del layout principal para evitar el error de hidratación */}
-      <body className="font-body antialiased">{children}</body>
+      {/* Forzamos la clase 'light' para evitar que el tema del sistema afecte la tienda pública */}
+      <body className="font-body antialiased light">{children}</body>
     </html>
   );
 }
