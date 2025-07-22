@@ -20,4 +20,9 @@ export default function VerifyPage() {
                 <Button asChild className="mt-6 w-full bg-blue-600 hover:bg-blue-700">
                    <Link href="/">
                      Ir a Iniciar Sesión
-                   
+                   </Link>
+                </Button>
+            </div>
+        </div>
+    );
+}
