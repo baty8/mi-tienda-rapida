@@ -31,8 +31,7 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
     
     if (catalogsError) {
       console.error('Error fetching public catalogs:', catalogsError.message);
-      // If catalogs fail to load, we can still show the store with an empty product list.
-      return { profile: profileData, catalogsWithProducts: [] };
+      // Even if catalogs fail, we can proceed with an empty list.
     }
 
     if (!publicCatalogs || publicCatalogs.length === 0) {
@@ -85,7 +84,7 @@ export default async function StorePage({ params }: { params: { vendorId: string
   const { vendorId } = params;
   const storeData = await getStoreData(vendorId);
 
-  if (!storeData || !storeData.profile) {
+  if (!storeData) {
       notFound();
   }
   
