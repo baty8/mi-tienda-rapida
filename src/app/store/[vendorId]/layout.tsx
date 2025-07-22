@@ -2,8 +2,11 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
+import type { ReactNode } from 'react';
 
-type Props = {
+// Define explicit types for layout props to satisfy TypeScript in production builds.
+type LayoutProps = {
+  children: ReactNode;
   params: { vendorId: string };
 };
 
@@ -17,7 +20,7 @@ const fontMap: { [key: string]: string } = {
 };
 
 // Genera metadatos dinámicos (título de la tienda y favicon)
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
   const supabase = createClient();
   const { data: profile } = await supabase
     .from('profiles')
@@ -34,13 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 // Layout simplificado para la tienda
-export default async function StoreLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode;
-  params: { vendorId: string };
-}) {
+export default async function StoreLayout({ children, params }: LayoutProps) {
   const supabase = createClient();
   const { data: profile } = await supabase
     .from('profiles')
