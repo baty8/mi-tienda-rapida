@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -7,9 +8,11 @@ import { useProduct } from '@/context/ProductContext';
 import { analyzeSales } from '@/ai/flows/sales-analysis-flow';
 import type { SalesAnalysisInput } from '@/ai/flows/sales-analysis-flow';
 import { Button } from './ui/button';
+import getConfig from 'next/config';
 
-// Check if the environment variable is set, but don't expose it to the client.
-const isConfigured = process.env.NEXT_PUBLIC_GEMINI_API_KEY === 'true';
+// Get the configuration from Next.js runtime config
+const { publicRuntimeConfig } = getConfig();
+const isConfigured = publicRuntimeConfig.isGeminiConfigured;
 
 // Helper function to create realistic mock sales data based on products
 const generateMockSales = (products: SalesAnalysisInput['products']): SalesAnalysisInput['sales'] => {

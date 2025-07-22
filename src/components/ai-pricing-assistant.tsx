@@ -10,9 +10,11 @@ import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { suggestPrice, type SuggestPriceOutput } from '@/ai/flows/pricing-assistant-flow';
 import { toast } from 'sonner';
+import getConfig from 'next/config';
 
-// Check if the environment variable is set, but don't expose it to the client.
-const isConfigured = process.env.NEXT_PUBLIC_GEMINI_API_KEY === 'true';
+// Get the configuration from Next.js runtime config
+const { publicRuntimeConfig } = getConfig();
+const isConfigured = publicRuntimeConfig.isGeminiConfigured;
 
 export function AiPricingAssistant() {
   const [productCost, setProductCost] = useState('');
