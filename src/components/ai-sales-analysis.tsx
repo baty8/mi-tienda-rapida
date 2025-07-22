@@ -9,8 +9,8 @@ import { analyzeSales } from '@/ai/flows/sales-analysis-flow';
 import type { SalesAnalysisInput } from '@/ai/flows/sales-analysis-flow';
 import { Button } from './ui/button';
 
-// The 'NEXT_PUBLIC_' prefix makes this variable available in the browser
-const isConfigured = process.env.NEXT_PUBLIC_GEMINI_API_KEY === 'true';
+// The AI features are considered configured if the Supabase keys are present.
+const isConfigured = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // Helper function to create realistic mock sales data based on products
 const generateMockSales = (products: SalesAnalysisInput['products']): SalesAnalysisInput['sales'] => {
@@ -75,7 +75,7 @@ export function AiSalesAnalysis() {
 
     const renderContent = () => {
         if (!isConfigured) {
-            return <p className="text-sm text-muted-foreground">Esta es una función de demostración. Configura una API Key para activar los análisis de ventas inteligentes.</p>
+            return <p className="text-sm text-muted-foreground">La funcionalidad de IA requiere la configuración de las variables de entorno de Supabase.</p>
         }
         if (products.length === 0) {
             return <p className="text-sm text-muted-foreground">Añade algunos productos para poder generar un análisis de ventas.</p>

@@ -11,8 +11,8 @@ import { Button } from './ui/button';
 import { suggestPrice, type SuggestPriceOutput } from '@/ai/flows/pricing-assistant-flow';
 import { toast } from 'sonner';
 
-// The 'NEXT_PUBLIC_' prefix makes this variable available in the browser
-const isConfigured = process.env.NEXT_PUBLIC_GEMINI_API_KEY === 'true';
+// The AI features are considered configured if the Supabase keys are present.
+const isConfigured = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export function AiPricingAssistant() {
   const [productCost, setProductCost] = useState('');
@@ -63,7 +63,7 @@ export function AiPricingAssistant() {
         <CardDescription>
           {isConfigured
             ? "Obtén una sugerencia de precio de venta basada en la descripción, costo y público de tu producto."
-            : "Esta es una función de demostración. Configura una API Key para activarla."
+            : "La funcionalidad de IA requiere la configuración de las variables de entorno de Supabase."
           }
         </CardDescription>
       </CardHeader>
@@ -71,9 +71,9 @@ export function AiPricingAssistant() {
         {!isConfigured ? (
           <div className="flex flex-col items-center justify-center h-full text-center bg-muted rounded-lg p-6">
             <Wand2 className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="font-semibold text-lg">Función de Demostración</h3>
+            <h3 className="font-semibold text-lg">Función no disponible</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Esta herramienta requiere una API Key para funcionar.
+              Esta herramienta requiere que la aplicación esté conectada a una base de datos.
             </p>
           </div>
         ) : result ? (
