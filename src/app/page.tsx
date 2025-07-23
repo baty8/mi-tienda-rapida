@@ -48,6 +48,24 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        {...props}
+    >
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+);
+
+
 const AuthPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -167,9 +185,13 @@ const AuthPage = () => {
       <div className="grid w-full max-w-4xl grid-cols-1 md:grid-cols-2 overflow-hidden rounded-2xl bg-white text-black shadow-2xl">
         {/* Columna del Formulario */}
         <div className="p-8 sm:p-12">
-          <h1 className="font-headline text-3xl font-bold text-gray-800">
+            <div className="md:hidden flex flex-col items-center text-center mb-6">
+                 <VentaRapidaLogo className="h-10 w-10 mb-2 text-blue-600" />
+                 <h1 className="font-headline text-2xl font-bold text-gray-800">Mi Tienda Rapida</h1>
+            </div>
+          <h2 className="font-headline text-3xl font-bold text-gray-800">
             {isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión'}
-          </h1>
+          </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {isSignUp ? 'Rellena los campos para empezar.' : 'Bienvenido/a de nuevo.'}
           </p>
@@ -259,12 +281,22 @@ const AuthPage = () => {
             Continuar con Google
           </Button>
 
+          <div className="md:hidden text-center mt-6">
+              <p className="text-sm">
+                  {isSignUp ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}
+                  <button onClick={() => setIsSignUp(!isSignUp)} className="font-semibold text-blue-600 hover:underline ml-1">
+                      {isSignUp ? 'Inicia Sesión' : 'Regístrate Gratis'}
+                  </button>
+              </p>
+          </div>
+
         </div>
 
         {/* Columna de Bienvenida */}
         <div className="hidden md:flex flex-col items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-400 p-12 text-white text-center">
+            <VentaRapidaLogo className="h-16 w-16 mb-4" />
            <h2 className="font-headline text-4xl font-bold">
-            {isSignUp ? '¡Hola!' : '¡Bienvenido a Mi Tienda Rápida!'}
+            {isSignUp ? '¡Hola!' : 'Bienvenido a Mi Tienda Rapida'}
           </h2>
           <p className="mt-4 max-w-sm">
              {isSignUp
@@ -287,5 +319,3 @@ const AuthPage = () => {
 };
 
 export default AuthPage;
-
-    
