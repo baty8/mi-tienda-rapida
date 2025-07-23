@@ -40,8 +40,8 @@
     --sidebar-ring: 207 90% 54%;
   }
 
-  /* Dark Theme Base */
-  .dark {
+  /* Dark Theme for Vendor Panel */
+  .vendor-dark {
     --background: 20 14% 4%;
     --foreground: 30 67% 95%;
     --card: 20 14% 4%;

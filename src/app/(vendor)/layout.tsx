@@ -111,6 +111,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
       defaultTheme="system"
       enableSystem
       disableTransitionOnChange
+      value={{ light: 'light', dark: 'vendor-dark' }}
     >
       <ProductProvider>
         <VendorApp>{children}</VendorApp>
