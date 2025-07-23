@@ -12,13 +12,8 @@ const fontMap: { [key: string]: string } = {
   'PT Sans': 'https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap',
 };
 
-type LayoutProps = {
-  params: { vendorId: string };
-  children: ReactNode;
-};
-
 // Genera metadatos dinámicos (título de la tienda y favicon)
-export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { vendorId: string } }): Promise<Metadata> {
   const supabase = createClient();
   const { data: profile } = await supabase
     .from('profiles')
@@ -41,7 +36,10 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
 }
 
 // Layout simplificado para la tienda
-export default async function StoreLayout({ children, params }: LayoutProps) {
+export default async function StoreLayout({ children, params }: {
+  children: ReactNode;
+  params: { vendorId: string };
+}) {
   const supabase = createClient();
   const { data: profile } = await supabase
     .from('profiles')
