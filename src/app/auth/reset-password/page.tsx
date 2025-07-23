@@ -21,6 +21,10 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = getSupabase();
+    if (!supabase) {
+      setErrorState("No se pudo inicializar Supabase.");
+      return;
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsSessionReady(true);
@@ -62,6 +66,11 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
     const supabase = getSupabase();
+     if (!supabase) {
+      toast.error('Error', { description: 'No se pudo inicializar Supabase.' });
+      setLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
 
@@ -102,7 +111,7 @@ export default function ResetPasswordPage() {
       
       if (!isSessionReady) {
           return (
-              <>
+              <div>
                   <CardHeader>
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
                             <KeyRound className="h-6 w-6 text-blue-600" />
@@ -117,7 +126,7 @@ export default function ResetPasswordPage() {
                   <CardContent>
                      <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-500" />
                   </CardContent>
-              </>
+              </div>
           );
       }
 

@@ -23,6 +23,11 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
     const supabase = getSupabase();
     const fetchInitialData = async () => {
       setLoading(true);
+      if (!supabase) {
+        setLoading(false);
+        router.push('/');
+        return;
+      }
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -92,7 +97,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
       }
     };
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const authListener = supabase?.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         router.push('/');
       } else if (event === 'SIGNED_IN') {
@@ -103,7 +108,7 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
     fetchInitialData();
 
     return () => {
-      authListener.subscription.unsubscribe();
+      authListener?.data.subscription.unsubscribe();
     };
   }, [router]);
 
@@ -112,7 +117,8 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <ShoppingBag className="h-12 w-12 animate-pulse text-primary" />
-          <p className="text-muted-foreground">Cargando tu tienda...</p>
+          <p className="text-muted-foreground">Cargando tu tienda...
+</p>
         </div>
       </div>
     );

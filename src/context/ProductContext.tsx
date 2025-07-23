@@ -70,6 +70,10 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         setLoading(false);
@@ -94,6 +98,8 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
 
 
   const uploadImage = async (file: File, userId: string): Promise<string> => {
+    if (!supabase) throw new Error('Supabase client not initialized.');
+
     const fileName = `${userId}/${Date.now()}-${file.name}`;
     // Use Supabase Image Transformations to resize the image on upload.
     // This reduces storage and improves loading times significantly.
@@ -103,11 +109,11 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
         // `transform` is available in Supabase Storage V3
         // If not available, upload normally and rely on client-side rendering.
         // For best practice, ensure your Supabase project is up to date.
-         transform: {
-          width: 1024,
-          height: 1024,
-          resize: 'inside', // 'inside' preserves aspect ratio
-        },
+        // transform: {
+        //   width: 1024,
+        //   height: 1024,
+        //   resize: 'inside', // 'inside' preserves aspect ratio
+        // },
       });
 
     if (uploadError) {
@@ -121,6 +127,12 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
 
   const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id'>, imageFiles: File[]) => {
     setLoading(true);
+    if (!supabase) {
+        toast.error('Error', { description: 'Supabase client not initialized.' });
+        setLoading(false);
+        return;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         toast.error('Error', { description: 'Debes iniciar sesión para añadir productos.' });
@@ -159,6 +171,11 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
 
   const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFiles: File[] = [], existingImageUrls: string[] = []) => {
       setLoading(true);
+       if (!supabase) {
+        toast.error('Error', { description: 'Supabase client not initialized.' });
+        setLoading(false);
+        return;
+      }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
@@ -198,6 +215,11 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
 
   const deleteProduct = async (productId: string) => {
     setLoading(true);
+     if (!supabase) {
+      toast.error('Error', { description: 'Supabase client not initialized.' });
+      setLoading(false);
+      return;
+    }
     const { error } = await supabase.from('products').delete().eq('id', productId);
     if (error) {
        toast.error('Error', { description: `No se pudo eliminar el producto: ${error.message}` });
@@ -209,8 +231,12 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
   };
   
    const fetchAllCatalogs = useCallback(async () => {
+        if (!supabase) {
+            toast.error('Error', { description: 'Supabase client not initialized.' });
+            return []; // Return empty array or null as appropriate
+        }
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) return [];
 
         const { data: catalogData, error: catalogError } = await supabase
             .from('catalogs')
@@ -220,8 +246,9 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
         
         if (catalogError) {
             toast.error('Error', { description: 'No se pudieron recargar los catálogos.' });
-            return;
+            return [];
         }
+        if (!catalogData) return [];
 
         const catalogIds = catalogData.map(c => c.id);
         const { data: catalogProductsData, error: catalogProductsError } = await supabase
@@ -231,7 +258,10 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
         
         if (catalogProductsError) {
             toast.error('Error', { description: 'No se pudo recargar la relación de productos y catálogos.' });
-            return;
+            return catalogData as Catalog[]; // Return catalogs without product relationships on error
+        }
+        if (!catalogProductsData) {
+             return catalogData as Catalog[]; // Return catalogs without product relationships if no data
         }
 
         const formattedCatalogs = catalogData.map(c => {
@@ -248,6 +278,11 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
 
   const createCatalog = async (name: string) => {
     setLoading(true);
+    if (!supabase) {
+      toast.error('Error', { description: 'Supabase client not initialized.' });
+      setLoading(false);
+      return;
+    }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setLoading(false);
@@ -267,6 +302,11 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
 
   const deleteCatalog = async (catalogId: string) => {
       setLoading(true);
+       if (!supabase) {
+        toast.error('Error', { description: 'Supabase client not initialized.' });
+        setLoading(false);
+        return;
+      }
       const { error } = await supabase.from('catalogs').delete().eq('id', catalogId);
       if (error) {
           toast.error('Error', { description: 'No se pudo eliminar el catálogo.' });
@@ -281,6 +321,11 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
 
   const saveCatalog = async (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean; }) => {
     setLoading(true);
+     if (!supabase) {
+      toast.error('Error', { description: 'Supabase client not initialized.' });
+      setLoading(false);
+      return;
+    }
     const { name, product_ids, is_public } = catalogData;
     const { error: updateError } = await supabase.from('catalogs').update({ name, is_public }).eq('id', catalogId);
     if (updateError) {

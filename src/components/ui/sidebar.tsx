@@ -37,7 +37,9 @@ export function Sidebar({ profile, className }: SidebarProps) {
     // El layout se encargará de la redirección al detectar el cambio de estado.
     // Esto evita conflictos y demoras.
     const supabase = getSupabase();
-    await supabase.auth.signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
   };
 
   const getInitials = (name?: string | null) => {
