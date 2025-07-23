@@ -77,6 +77,7 @@ function CatalogPage() {
   useEffect(() => {
     const supabase = getSupabase();
     const checkSession = async () => {
+      if (supabase) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
             setVendorId(session.user.id);
@@ -85,6 +86,7 @@ function CatalogPage() {
               setStoreLink(`${window.location.origin}/store/${session.user.id}`);
             }
         }
+      }
     };
     checkSession();
   }, [router, fetchProducts]);
