@@ -5,11 +5,28 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { getSupabase } from '@/lib/supabase/client';
 import { Sidebar } from '@/components/ui/sidebar';
 import type { Profile } from '@/types';
-import { Menu, ShoppingBag } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { ProductProvider, useProduct } from '@/context/ProductContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+
+const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        {...props}
+    >
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+);
 
 function VendorApp({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -53,7 +70,7 @@ function VendorApp({ children }: { children: ReactNode }) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <ShoppingBag className="h-12 w-12 animate-pulse text-primary" />
+          <VentaRapidaLogo className="h-12 w-12 animate-pulse text-primary" />
           <p className="text-muted-foreground">Cargando tu tienda...</p>
         </div>
       </div>
@@ -93,5 +110,3 @@ export default function VendorPagesLayout({ children }: { children: ReactNode })
     </ProductProvider>
   )
 }
-
-    

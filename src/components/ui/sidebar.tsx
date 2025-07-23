@@ -4,7 +4,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  ShoppingBag,
   Package,
   LineChart,
   User,
@@ -24,6 +23,24 @@ const menuItems = [
   { href: '/finance', label: 'Finanzas', icon: TrendingUp },
   { href: '/profile', label: 'Perfil', icon: User },
 ];
+
+const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        {...props}
+    >
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+);
+
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   profile: Profile | null;
@@ -56,7 +73,7 @@ export function Sidebar({ profile, className }: SidebarProps) {
     <aside className={cn("flex flex-col border-r bg-sidebar", className)}>
       <div className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-6">
         <Link href="/products" className="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
-          <ShoppingBag className="h-6 w-6 text-primary" />
+          <VentaRapidaLogo className="h-6 w-6 text-primary" />
           <span>VentaRapida</span>
         </Link>
       </div>

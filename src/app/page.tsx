@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
-import { Loader2, ShoppingBag, AlertTriangle } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -46,6 +46,23 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
       d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C41.386,35.637,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"
     />
   </svg>
+);
+
+const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        {...props}
+    >
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
 );
 
 
@@ -193,7 +210,7 @@ export default function LoginPage() {
         <div className="flex flex-col justify-center p-6 sm:p-12 w-full h-full bg-white">
             <div className="md:hidden text-center mb-8">
                  <div className="inline-block p-4 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full">
-                    <ShoppingBag className="h-8 w-8 text-white"/>
+                    <VentaRapidaLogo className="h-8 w-8 text-white"/>
                  </div>
                  <h1 className="mt-4 text-3xl font-bold font-headline text-gray-800">
                     VentaRapida
@@ -290,5 +307,3 @@ export default function LoginPage() {
     </main>
   );
 }
-
-    
