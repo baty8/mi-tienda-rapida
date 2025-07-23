@@ -50,9 +50,14 @@ export function Sidebar({ profile, className }: SidebarProps) {
   const pathname = usePathname();
 
   const handleLogout = async () => {
-    // La única responsabilidad del botón es cerrar la sesión.
+    // Primero, limpiamos el estado del tema del localStorage.
+    // next-themes usa la clave 'theme' por defecto.
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('theme');
+    }
+    
+    // Luego, cerramos la sesión en Supabase.
     // El layout se encargará de la redirección al detectar el cambio de estado.
-    // Esto evita conflictos y demoras.
     const supabase = getSupabase();
     if (supabase) {
       await supabase.auth.signOut();
