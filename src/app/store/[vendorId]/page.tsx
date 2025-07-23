@@ -4,10 +4,35 @@ import type { Profile, Product, Catalog } from '@/types';
 import { notFound } from 'next/navigation';
 import * as React from 'react';
 import { StoreClientContent } from '@/components/StoreClientContent';
+import type { Metadata } from 'next';
 
 type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at' | 'is_public'> & {
     products: Product[];
 };
+
+// Se mueve la generación de metadatos a la página, que sí puede ser asíncrona.
+export async function generateMetadata({ params }: { params: { vendorId: string } }): Promise<Metadata> {
+  const supabase = createClient();
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('name, avatar_url')
+    .eq('id', params.vendorId)
+    .single();
+
+  if (!profile) {
+    return {
+      title: 'Tienda no encontrada',
+    };
+  }
+
+  return {
+    title: profile.name || 'Tienda',
+    icons: {
+      icon: profile.avatar_url || undefined,
+    }
+  };
+}
+
 
 async function getStoreData(vendorId: string): Promise<{ profile: Profile; catalogsWithProducts: CatalogWithProducts[] } | null> {
     const supabase = createClient();
@@ -31,7 +56,8 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
     
     if (catalogsError) {
       console.error('Error fetching public catalogs:', catalogsError.message);
-      // Even if catalogs fail, we can proceed with an empty list.
+      // Proceed with an empty list of catalogs if this fails, but the profile is valid.
+      return { profile: profileData, catalogsWithProducts: [] };
     }
 
     if (!publicCatalogs || publicCatalogs.length === 0) {
