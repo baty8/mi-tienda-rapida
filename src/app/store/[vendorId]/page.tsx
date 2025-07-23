@@ -10,8 +10,13 @@ type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at
     products: Product[];
 };
 
-// Se mueve la generación de metadatos a la página, que sí puede ser asíncrona.
-export async function generateMetadata({ params }: { params: { vendorId: string } }): Promise<Metadata> {
+interface StorePageProps {
+  params: {
+    vendorId: string;
+  };
+}
+
+export async function generateMetadata({ params }: StorePageProps): Promise<Metadata> {
   const supabase = createClient();
   const { data: profile } = await supabase
     .from('profiles')
@@ -32,7 +37,6 @@ export async function generateMetadata({ params }: { params: { vendorId: string 
     }
   };
 }
-
 
 async function getStoreData(vendorId: string): Promise<{ profile: Profile; catalogsWithProducts: CatalogWithProducts[] } | null> {
     const supabase = createClient();
@@ -56,7 +60,6 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
     
     if (catalogsError) {
       console.error('Error fetching public catalogs:', catalogsError.message);
-      // Proceed with an empty list of catalogs if this fails, but the profile is valid.
       return { profile: profileData, catalogsWithProducts: [] };
     }
 
@@ -68,7 +71,7 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
 
     const { data: catalogProducts, error: productsError } = await supabase
         .from('catalog_products')
-        .select('catalog_id, products!inner(*)') // Corrected query
+        .select('catalog_id, products!inner(*)')
         .in('catalog_id', publicCatalogIds)
         .eq('products.visible', true);
     
@@ -78,9 +81,8 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
 
     const catalogProductMap = new Map<string, Product[]>();
     (catalogProducts || []).forEach(cp => {
-        // Ensure the related product is not null
         if (cp.products) {
-            const product = cp.products as Product;
+            const product = cp.products as unknown as Product; // Cast to unknown first
             if (!catalogProductMap.has(cp.catalog_id)) {
                 catalogProductMap.set(cp.catalog_id, []);
             }
@@ -101,12 +103,12 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
         .filter(c => c.products.length > 0);
 
     return {
-        profile: profileData,
+        profile: profileData as Profile,
         catalogsWithProducts: finalData
     };
 }
 
-export default async function StorePage({ params }: { params: { vendorId: string }}) {
+export default async function StorePage({ params }: StorePageProps) {
   const { vendorId } = params;
   const storeData = await getStoreData(vendorId);
 
