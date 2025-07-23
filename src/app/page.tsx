@@ -48,7 +48,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
+const MiTiendaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
     <svg 
         xmlns="http://www.w3.org/2000/svg" 
         viewBox="0 0 24 24" 
@@ -261,7 +261,7 @@ const AuthPage = () => {
             )}
         </div>
         <div className="flex flex-col items-center justify-center bg-blue-600 p-12 text-white">
-          <VentaRapidaLogo className="h-20 w-20" />
+          <MiTiendaRapidaLogo className="h-20 w-20" />
           <h2 className="mt-4 text-center font-headline text-3xl font-bold">
             Bienvenido a Mi Tienda Rapida
           </h2>
@@ -273,7 +273,7 @@ const AuthPage = () => {
       {/* Vista Móvil */}
       <div className="w-full max-w-md rounded-2xl bg-white p-8 text-black shadow-2xl md:hidden">
         <div className="text-center">
-            <VentaRapidaLogo className="mx-auto h-12 w-12 text-blue-600" />
+            <MiTiendaRapidaLogo className="mx-auto h-12 w-12 text-blue-600" />
             <h1 className="mt-4 text-2xl font-bold font-headline text-gray-800">
                 {isSignUp ? 'Crea tu Cuenta' : 'Bienvenido a Mi Tienda Rapida'}
             </h1>
@@ -363,5 +363,3 @@ const AuthPage = () => {
 };
 
 export default AuthPage;
-
-    
