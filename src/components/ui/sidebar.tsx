@@ -11,6 +11,7 @@ import {
   LogOut,
   TrendingUp,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { getSupabase } from '@/lib/supabase/client';
@@ -48,20 +49,21 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Sidebar({ profile, className }: SidebarProps) {
   const pathname = usePathname();
+  const { setTheme } = useTheme();
 
   const handleLogout = async () => {
-    // Primero, limpiamos el estado del tema del localStorage.
-    // next-themes usa la clave 'theme' por defecto.
-    if (typeof window !== 'undefined') {
-        localStorage.removeItem('theme');
-    }
+    // Forzamos el tema a 'light' antes de cerrar sesión para evitar que la UI
+    // se quede en modo oscuro en la página de login.
+    setTheme('light');
     
-    // Luego, cerramos la sesión en Supabase.
-    // El layout se encargará de la redirección al detectar el cambio de estado.
-    const supabase = getSupabase();
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
+    // Damos un pequeño margen para que el cambio de tema se procese antes de la redirección.
+    setTimeout(async () => {
+      const supabase = getSupabase();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+      // El onAuthStateChange en el layout se encargará de la redirección.
+    }, 50); 
   };
 
   const getInitials = (name?: string | null) => {
