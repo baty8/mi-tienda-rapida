@@ -72,16 +72,23 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
-
   const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
     const supabase = getSupabase();
     if (supabase) {
+      const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          router.push('/products');
+        }
+      };
+      checkSession();
+
       const { data: authListener } = supabase.auth.onAuthStateChange(
         (event, session) => {
-          if (session) {
+          if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
             router.push('/products');
           }
         }
@@ -102,29 +109,29 @@ const AuthPage = () => {
       return;
     }
 
-    let error;
     if (isSignUp) {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/verify`,
         }
       });
-      error = signUpError;
-       if (!error) {
+      if (error) {
+        toast.error('Error', { description: error.message });
+      } else {
         toast.info('Verifica tu correo', { description: 'Te hemos enviado un enlace para verificar tu correo electrónico.' });
       }
     } else {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      error = signInError;
-    }
-
-    if (error) {
-      toast.error('Error', { description: error.message });
+      if (error) {
+        toast.error('Error', { description: error.message });
+      } else {
+        // The onAuthStateChange listener will handle the redirect
+      }
     }
     setLoading(false);
   };
@@ -363,3 +370,5 @@ const AuthPage = () => {
 };
 
 export default AuthPage;
+
+    
