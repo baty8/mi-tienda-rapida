@@ -8,8 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, KeyRound } from 'lucide-react';
+import { Loader2, KeyRound, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
+
+const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
+  <div className={`flex items-center text-sm ${met ? 'text-green-600' : 'text-muted-foreground'}`}>
+    {met ? <CheckCircle className="mr-2 h-4 w-4" /> : <XCircle className="mr-2 h-4 w-4" />}
+    {text}
+  </div>
+);
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -18,6 +25,13 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [isSessionReady, setIsSessionReady] = useState(false);
   const [errorState, setErrorState] = useState<string | null>(null);
+
+  // Password validation state
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password);
+  const isLongEnough = password.length >= 8;
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -35,9 +49,8 @@ export default function ResetPasswordPage() {
     });
 
     // Handle initial state in case the page is loaded after the event
-    const hash = window.location.hash;
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
     if (hash.includes('type=recovery')) {
-      // This is a sign we are in the recovery flow
       setIsSessionReady(true);
     } else if (!isSessionReady){
        const timer = setTimeout(() => {
@@ -59,8 +72,8 @@ export default function ResetPasswordPage() {
       toast.error('Error', { description: 'Las contraseñas no coinciden.' });
       return;
     }
-    if (password.length < 6) {
-      toast.error('Error', { description: 'La contraseña debe tener al menos 6 caracteres.' });
+    if (!isLongEnough || !hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      toast.error('Contraseña débil', { description: 'Por favor, cumple con todos los requisitos de seguridad para la contraseña.'});
       return;
     }
 
@@ -71,6 +84,7 @@ export default function ResetPasswordPage() {
       setLoading(false);
       return;
     }
+    // This works for any user, including those created via OAuth with Google.
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
 
@@ -137,10 +151,10 @@ export default function ResetPasswordPage() {
                     <KeyRound className="h-6 w-6 text-blue-600" />
                 </div>
                 <CardTitle className="mt-4 text-2xl font-bold font-headline text-gray-800">
-                    Restablecer Contraseña
+                    Establecer Nueva Contraseña
                 </CardTitle>
                 <CardDescription className="text-gray-600">
-                    Introduce tu nueva contraseña a continuación.
+                    Introduce tu nueva contraseña. Esto funcionará incluso si te registraste con Google.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -161,6 +175,15 @@ export default function ResetPasswordPage() {
                         required
                         className="bg-gray-50"
                     />
+
+                    <div className="space-y-2 text-left p-4 bg-muted rounded-lg">
+                      <PasswordRequirement met={isLongEnough} text="Al menos 8 caracteres" />
+                      <PasswordRequirement met={hasUpperCase} text="Una letra mayúscula" />
+                      <PasswordRequirement met={hasLowerCase} text="Una letra minúscula" />
+                      <PasswordRequirement met={hasNumber} text="Un número" />
+                      <PasswordRequirement met={hasSpecialChar} text="Un carácter especial (!@#...)" />
+                    </div>
+
                     <Button type="submit" disabled={loading} className="w-full bg-blue-500 hover:bg-blue-600">
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {loading ? 'Guardando...' : 'Guardar Nueva Contraseña'}
@@ -179,5 +202,3 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
-
-    

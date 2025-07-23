@@ -172,7 +172,7 @@ export default function LoginPage() {
      if (error) {
        toast.error('Error', { description: error.message });
      } else {
-       toast.info('Correo enviado', { description: 'Revisa tu bandeja de entrada para restablecer tu contraseña.' });
+       toast.info('Correo enviado', { description: 'Revisa tu bandeja de entrada (y la carpeta de spam) para restablecer tu contraseña.' });
      }
   };
   
@@ -263,7 +263,7 @@ export default function LoginPage() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                            Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña. Revisa tu bandeja de spam si no lo ves.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <div className="grid gap-4 py-4">
