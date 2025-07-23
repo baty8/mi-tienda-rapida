@@ -130,7 +130,7 @@ const AuthPage = () => {
       if (error) {
         toast.error('Error', { description: error.message });
       } else {
-        // The onAuthStateChange listener will handle the redirect
+         router.push('/products');
       }
     }
     setLoading(false);
@@ -370,5 +370,3 @@ const AuthPage = () => {
 };
 
 export default AuthPage;
-
-    
