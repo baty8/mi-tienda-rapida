@@ -81,7 +81,7 @@ export function Sidebar({ profile, className }: SidebarProps) {
       <div className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-6">
         <Link href="/products" className="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
           <VentaRapidaLogo className="h-6 w-6 text-primary" />
-          <span>VentaRapida</span>
+          <span>Mi Tienda Rapida</span>
         </Link>
       </div>
       <nav className="flex-1 space-y-1 p-4">
