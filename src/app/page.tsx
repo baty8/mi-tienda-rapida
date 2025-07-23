@@ -178,7 +178,7 @@ export default function LoginPage() {
   
   const DesktopWelcomePanel = () => (
       <div className="hidden md:flex flex-col items-center justify-center p-12 text-center text-white bg-gradient-to-br from-blue-500 to-cyan-400 h-full">
-            <h2 className="mb-4 text-4xl font-bold font-headline">¡Bienvenido a Tu Tienda Rápida!</h2>
+            <h2 className="mb-4 text-4xl font-bold font-headline">¡Bienvenido a Mi Tienda Rápida!</h2>
             <p className="mb-8 max-w-sm">
                 Administra tu tienda online creando catálogos y administrando tus productos de manera sencilla.
             </p>
@@ -216,7 +216,7 @@ export default function LoginPage() {
                     <VentaRapidaLogo className="h-8 w-8 text-white"/>
                  </div>
                  <h1 className="mt-4 text-3xl font-bold font-headline text-gray-800">
-                    VentaRapida
+                    Mi Tienda Rapida
                  </h1>
                  <p className="text-muted-foreground">
                     {isLoginView ? 'Inicia sesión para continuar' : 'Crea tu cuenta gratis'}
@@ -310,3 +310,5 @@ export default function LoginPage() {
     </main>
   );
 }
+
+    
