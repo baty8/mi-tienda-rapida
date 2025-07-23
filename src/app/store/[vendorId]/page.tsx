@@ -10,11 +10,10 @@ type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at
     products: Product[];
 };
 
-interface StorePageProps {
-  params: {
-    vendorId: string;
-  };
-}
+// Let Next.js infer the props type for dynamic pages
+type StorePageProps = {
+  params: { vendorId: string };
+};
 
 export async function generateMetadata({ params }: StorePageProps): Promise<Metadata> {
   const supabase = createClient();
