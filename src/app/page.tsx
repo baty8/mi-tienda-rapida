@@ -150,6 +150,9 @@ export default function LoginPage() {
     if (!supabase) return;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
     });
     if (error) {
       toast.error('Error', { description: `No se pudo iniciar sesión con Google: ${error.message}`});
@@ -204,7 +207,7 @@ export default function LoginPage() {
   );
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 font-body light md:bg-white">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-100 font-body md:bg-white">
       <div className="w-full max-w-4xl bg-white text-black shadow-2xl md:grid md:grid-cols-2 md:rounded-2xl md:overflow-hidden">
         
         <div className="flex flex-col justify-center p-6 sm:p-12 w-full h-full bg-white">

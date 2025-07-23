@@ -10,6 +10,7 @@ import { ProductProvider, useProduct } from '@/context/ProductContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { ThemeProvider } from '@/components/theme-provider';
 
 const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
     <svg 
@@ -105,8 +106,15 @@ function VendorApp({ children }: { children: ReactNode }) {
 
 export default function VendorPagesLayout({ children }: { children: ReactNode }) {
   return (
-    <ProductProvider>
-      <VendorApp>{children}</VendorApp>
-    </ProductProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <ProductProvider>
+        <VendorApp>{children}</VendorApp>
+      </ProductProvider>
+    </ThemeProvider>
   )
 }
