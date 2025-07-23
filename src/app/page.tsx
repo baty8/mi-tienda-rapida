@@ -270,10 +270,10 @@ const AuthPage = () => {
         <div className="flex flex-col items-center justify-center bg-blue-600 p-12 text-white">
           <MiTiendaRapidaLogo className="h-20 w-20" />
           <h2 className="mt-4 text-center font-headline text-3xl font-bold">
-            Bienvenido a Mi Tienda Rapida
+            ¡Bienvenido a Mi Tienda Rápida!
           </h2>
           <p className="mt-2 text-center text-blue-200">
-            La forma más sencilla de gestionar tus productos y ventas.
+            Administra tu tienda online creando catálogos y administrando tus productos de manera sencilla.
           </p>
         </div>
       </div>
@@ -282,7 +282,7 @@ const AuthPage = () => {
         <div className="text-center">
             <MiTiendaRapidaLogo className="mx-auto h-12 w-12 text-blue-600" />
             <h1 className="mt-4 text-2xl font-bold font-headline text-gray-800">
-                {isSignUp ? 'Crea tu Cuenta' : 'Bienvenido a Mi Tienda Rapida'}
+                {isSignUp ? 'Crea tu Cuenta' : '¡Bienvenido a Mi Tienda Rápida!'}
             </h1>
         </div>
         <div className="mt-8 space-y-4">
