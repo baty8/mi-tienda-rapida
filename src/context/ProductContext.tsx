@@ -3,17 +3,22 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import type { Product, Catalog } from '@/types';
+import type { Product, Catalog, Profile } from '@/types';
 import { getSupabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { User } from '@supabase/supabase-js';
+
 
 interface ProductContextType {
   products: Product[];
   catalogs: Catalog[];
   activeCatalog: Catalog | null;
-  loading: boolean; // Kept for individual actions like add/delete
-  fetchProducts: () => Promise<void>; // This can now refetch everything if needed
+  profile: Profile | null;
+  loading: boolean; // For individual actions like add/delete
+  globalLoading: boolean; // For initial data load
+  fetchProducts: () => Promise<void>;
+  fetchInitialProfile: (user: User) => Promise<void>;
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id'>, imageFiles: File[]) => Promise<void>;
   updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
@@ -27,29 +32,16 @@ const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 interface ProductProviderProps {
   children: ReactNode;
-  initialProducts: Product[];
-  initialCatalogs: Catalog[];
 }
 
-export const ProductProvider = ({ children, initialProducts, initialCatalogs }: ProductProviderProps) => {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [catalogs, setCatalogs] = useState<Catalog[]>(initialCatalogs);
+export const ProductProvider = ({ children }: ProductProviderProps) => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [catalogs, setCatalogs] = useState<Catalog[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [activeCatalog, setActiveCatalog] = useState<Catalog | null>(null);
-  const [loading, setLoading] = useState(false); // No longer for initial load
+  const [loading, setLoading] = useState(false);
+  const [globalLoading, setGlobalLoading] = useState(true);
   const supabase = getSupabase();
-
-  useEffect(() => {
-    setProducts(initialProducts);
-    setCatalogs(initialCatalogs);
-    if (initialCatalogs.length > 0) {
-        // Preserve active catalog if it still exists, otherwise default to the first
-        const currentActive = activeCatalog ? initialCatalogs.find(c => c.id === activeCatalog.id) : undefined;
-        setActiveCatalog(currentActive || initialCatalogs[0]);
-    } else {
-        setActiveCatalog(null);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialProducts, initialCatalogs]);
 
   const formatProduct = (p: any): Product => ({
       id: p.id,
@@ -59,7 +51,6 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       cost: p.cost || 0,
       stock: p.stock || 0,
       visible: p.visible,
-      // Ensure image_urls is always an array, providing a default if it's null/empty
       image_urls: (p.image_urls && Array.isArray(p.image_urls) && p.image_urls.length > 0) ? p.image_urls : ['https://placehold.co/600x400.png'],
       createdAt: format(new Date(p.created_at), 'yyyy-MM-dd'),
       tags: p.stock > 0 ? [] : ['Out of Stock'],
@@ -69,16 +60,9 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
   });
 
   const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
+    if (!supabase) return;
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        setLoading(false);
-        return;
-    };
+    if (!user) return;
 
     const { data, error } = await supabase
       .from('products')
@@ -90,31 +74,104 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       toast.error('Error', { description: `No se pudieron recargar los productos: ${error.message}` });
       setProducts([]);
     } else {
-      const formattedProducts: Product[] = (data || []).map(formatProduct);
-      setProducts(formattedProducts);
+      setProducts((data || []).map(formatProduct));
     }
-    setLoading(false);
   }, [supabase]);
+  
+  const fetchAllCatalogs = useCallback(async () => {
+        if (!supabase) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: catalogData, error: catalogError } = await supabase
+            .from('catalogs')
+            .select(`id, name, created_at, is_public, user_id`)
+            .eq('user_id', user.id)
+            .order('name', { ascending: true });
+        
+        if (catalogError) {
+            toast.error('Error', { description: 'No se pudieron recargar los catálogos.' });
+            setCatalogs([]);
+            return [];
+        }
+        if (!catalogData) {
+            setCatalogs([]);
+            return [];
+        }
+
+        const catalogIds = catalogData.map(c => c.id);
+        if (catalogIds.length === 0) {
+            setCatalogs([]);
+            return [];
+        }
+
+        const { data: catalogProductsData, error: catalogProductsError } = await supabase
+            .from('catalog_products')
+            .select('catalog_id, product_id')
+            .in('catalog_id', catalogIds);
+        
+        if (catalogProductsError) {
+            toast.error('Error', { description: 'No se pudo recargar la relación de productos y catálogos.' });
+        }
+
+        const formattedCatalogs = catalogData.map(c => {
+            const product_ids = (catalogProductsData || [])
+                ?.filter(cp => cp.catalog_id === c.id)
+                .map(cp => cp.product_id) || [];
+            return { ...c, product_ids };
+        });
+
+        setCatalogs(formattedCatalogs as Catalog[]);
+        setActiveCatalog(prev => {
+            const currentActive = prev ? formattedCatalogs.find(c => c.id === prev.id) : undefined;
+            return currentActive || formattedCatalogs[0] || null;
+        });
+        return formattedCatalogs;
+    }, [supabase]);
+
+  const fetchInitialProfile = useCallback(async (user: User) => {
+    if (!supabase) return;
+    setGlobalLoading(true);
+
+    try {
+        const profilePromise = supabase.from('profiles').select('*').eq('id', user.id).single();
+        const productsPromise = fetchProducts();
+        const catalogsPromise = fetchAllCatalogs();
+
+        const [{ data: profileData, error: profileError }] = await Promise.all([profilePromise, productsPromise, catalogsPromise]);
+
+        if (profileError) console.error(`Error loading profile: ${profileError.message}`);
+
+        if(profileData) {
+            setProfile({ ...profileData, email: user.email || null });
+        }
+    } catch (error: any) {
+        toast.error("Error", { description: `Hubo un error cargando los datos iniciales: ${error.message}`});
+    } finally {
+        setGlobalLoading(false);
+    }
+  }, [supabase, fetchProducts, fetchAllCatalogs]);
+
+  useEffect(() => {
+    const supabase = getSupabase();
+    if(supabase) {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                fetchInitialProfile(session.user);
+            }
+        });
+        return () => subscription.unsubscribe();
+    }
+  }, [fetchInitialProfile]);
 
 
   const uploadImage = async (file: File, userId: string): Promise<string> => {
     if (!supabase) throw new Error('Supabase client not initialized.');
 
     const fileName = `${userId}/${Date.now()}-${file.name}`;
-    // Use Supabase Image Transformations to resize the image on upload.
-    // This reduces storage and improves loading times significantly.
     const { data, error: uploadError } = await supabase.storage
       .from('product_images')
-      .upload(fileName, file, {
-        // `transform` is available in Supabase Storage V3
-        // If not available, upload normally and rely on client-side rendering.
-        // For best practice, ensure your Supabase project is up to date.
-        // transform: {
-        //   width: 1024,
-        //   height: 1024,
-        //   resize: 'inside', // 'inside' preserves aspect ratio
-        // },
-      });
+      .upload(fileName, file);
 
     if (uploadError) {
       console.error('Error uploading image:', uploadError);
@@ -150,7 +207,6 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
         return;
       }
     } else {
-      // Correctly wrap the default URL in an array
       imageUrls = ['https://placehold.co/600x400.png'];
     }
 
@@ -195,7 +251,6 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
       
       const finalImageUrls = [...existingImageUrls, ...newImageUrls];
       
-      // Ensure at least one image exists, if not, add placeholder
       if (finalImageUrls.length === 0) {
         finalImageUrls.push('https://placehold.co/600x400.png');
       }
@@ -230,52 +285,6 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
     setLoading(false);
   };
   
-   const fetchAllCatalogs = useCallback(async () => {
-        if (!supabase) {
-            toast.error('Error', { description: 'Supabase client not initialized.' });
-            return []; // Return empty array or null as appropriate
-        }
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return [];
-
-        const { data: catalogData, error: catalogError } = await supabase
-            .from('catalogs')
-            .select(`id, name, created_at, is_public, user_id`)
-            .eq('user_id', user.id)
-            .order('name', { ascending: true });
-        
-        if (catalogError) {
-            toast.error('Error', { description: 'No se pudieron recargar los catálogos.' });
-            return [];
-        }
-        if (!catalogData) return [];
-
-        const catalogIds = catalogData.map(c => c.id);
-        const { data: catalogProductsData, error: catalogProductsError } = await supabase
-            .from('catalog_products')
-            .select('catalog_id, product_id')
-            .in('catalog_id', catalogIds);
-        
-        if (catalogProductsError) {
-            toast.error('Error', { description: 'No se pudo recargar la relación de productos y catálogos.' });
-            return catalogData as Catalog[]; // Return catalogs without product relationships on error
-        }
-        if (!catalogProductsData) {
-             return catalogData as Catalog[]; // Return catalogs without product relationships if no data
-        }
-
-        const formattedCatalogs = catalogData.map(c => {
-            const product_ids = catalogProductsData
-                ?.filter(cp => cp.catalog_id === c.id)
-                .map(cp => cp.product_id) || [];
-            return { ...c, product_ids };
-        });
-
-        setCatalogs(formattedCatalogs as Catalog[]);
-        return formattedCatalogs;
-    }, [supabase]);
-
-
   const createCatalog = async (name: string) => {
     setLoading(true);
     if (!supabase) {
@@ -355,8 +364,26 @@ export const ProductProvider = ({ children, initialProducts, initialCatalogs }: 
     setLoading(false);
   };
 
+  const contextValue = {
+    products,
+    catalogs,
+    activeCatalog,
+    profile,
+    loading,
+    globalLoading,
+    fetchProducts,
+    fetchInitialProfile,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    setActiveCatalog,
+    saveCatalog,
+    createCatalog,
+    deleteCatalog
+  };
+
   return (
-    <ProductContext.Provider value={{ products, loading, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, addProduct, updateProduct, deleteProduct, fetchProducts, deleteCatalog }}>
+    <ProductContext.Provider value={contextValue}>
       {children}
     </ProductContext.Provider>
   );
