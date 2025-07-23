@@ -68,9 +68,8 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
 
     const { data: catalogProducts, error: productsError } = await supabase
         .from('catalog_products')
-        .select('catalog_id, products(*)')
+        .select('catalog_id, products!inner(*)') // Corrected query
         .in('catalog_id', publicCatalogIds)
-        .not('products', 'is', null)
         .eq('products.visible', true);
     
     if (productsError) {
@@ -79,8 +78,9 @@ async function getStoreData(vendorId: string): Promise<{ profile: Profile; catal
 
     const catalogProductMap = new Map<string, Product[]>();
     (catalogProducts || []).forEach(cp => {
-        const product = cp.products as unknown as Product;
-        if (product) {
+        // Ensure the related product is not null
+        if (cp.products) {
+            const product = cp.products as Product;
             if (!catalogProductMap.has(cp.catalog_id)) {
                 catalogProductMap.set(cp.catalog_id, []);
             }
