@@ -48,23 +48,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const MiTiendaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
-        {...props}
-    >
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <path d="M16 10a4 4 0 0 1-8 0"/>
-    </svg>
-);
-
 const AuthPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -118,7 +101,7 @@ const AuthPage = () => {
         }
       });
       if (error) {
-        toast.error('Error', { description: error.message });
+        toast.error('Error de Registro', { description: error.message });
       } else {
         toast.info('Verifica tu correo', { description: 'Te hemos enviado un enlace para verificar tu correo electrónico.' });
       }
@@ -128,7 +111,7 @@ const AuthPage = () => {
         password,
       });
       if (error) {
-        toast.error('Error', { description: error.message });
+        toast.error('Error de Inicio de Sesión', { description: error.message });
       } else {
          router.push('/products');
       }
@@ -180,42 +163,93 @@ const AuthPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 p-4 font-body">
-      {/* Vista de Escritorio */}
-      <div className="hidden w-full max-w-4xl grid-cols-2 overflow-hidden rounded-2xl bg-white text-black shadow-2xl md:grid">
-        <div className="flex flex-col justify-center p-12">
-          <h1 className="mb-4 font-headline text-3xl font-bold text-gray-800">
-            {isSignUp ? 'Crea tu Cuenta' : 'Iniciar Sesión'}
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4 font-body">
+      <div className="grid w-full max-w-4xl grid-cols-1 md:grid-cols-2 overflow-hidden rounded-2xl bg-white text-black shadow-2xl">
+        {/* Columna del Formulario */}
+        <div className="p-8 sm:p-12">
+          <h1 className="font-headline text-3xl font-bold text-gray-800">
+            {isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión'}
           </h1>
-          <div className="space-y-4">
-            <Input
-              type="email"
-              placeholder="Correo electrónico"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="bg-gray-50"
-            />
-            <Input
-              type="password"
-              placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="bg-gray-50"
-            />
+          <p className="mt-2 text-sm text-muted-foreground">
+            {isSignUp ? 'Rellena los campos para empezar.' : 'Bienvenido/a de nuevo.'}
+          </p>
+
+          <form className="mt-8 space-y-5" onSubmit={(e) => { e.preventDefault(); handleAuthAction(); }}>
+            <div>
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="tu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 bg-gray-50"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 bg-gray-50"
+                required
+              />
+            </div>
+
+            {!isSignUp && (
+              <div className="text-right text-sm">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button type="button" className="font-semibold text-blue-600 hover:underline">
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña. Revisa tu carpeta de spam si no lo ves.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <Label htmlFor="forgot-password-email">Correo Electrónico</Label>
+                      <Input
+                        id="forgot-password-email"
+                        type="email"
+                        placeholder="tu@email.com"
+                        value={forgotPasswordEmail}
+                        onChange={e => setForgotPasswordEmail(e.target.value)}
+                      />
+                    </div>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleForgotPassword}>Enviar Enlace</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
+            
             <Button
-              onClick={handleAuthAction}
+              type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-blue-600 py-3 text-base font-semibold text-white hover:bg-blue-700"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSignUp ? 'Registrarse' : 'Iniciar Sesión'}
             </Button>
-          </div>
+          </form>
+
           <div className="my-6 flex items-center">
             <div className="flex-grow border-t border-gray-300"></div>
             <span className="mx-4 text-sm text-gray-500">O</span>
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
+
           <Button
             variant="outline"
             className="w-full"
@@ -224,149 +258,34 @@ const AuthPage = () => {
             <GoogleIcon className="mr-2" />
             Continuar con Google
           </Button>
-          <p className="mt-6 text-center text-sm">
-            {isSignUp ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}
-            <button
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="ml-1 font-semibold text-blue-600 hover:underline"
-            >
-              {isSignUp ? 'Inicia Sesión' : 'Regístrate'}
-            </button>
-          </p>
-            {!isSignUp && (
-              <div className="text-center mt-4">
-                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button className="text-sm text-gray-500 hover:underline">
-                        ¿Olvidaste tu contraseña?
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña. Revisa tu carpeta de spam si no lo ves.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <Label htmlFor="forgot-password-email">Correo Electrónico</Label>
-                        <Input
-                          id="forgot-password-email"
-                          type="email"
-                          placeholder="tu@email.com"
-                          value={forgotPasswordEmail}
-                          onChange={e => setForgotPasswordEmail(e.target.value)}
-                        />
-                      </div>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleForgotPassword}>Enviar Enlace</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-              </div>
-            )}
+
         </div>
-        <div className="flex flex-col items-center justify-center bg-blue-600 p-12 text-white">
-          <MiTiendaRapidaLogo className="h-20 w-20" />
-          <h2 className="mt-4 text-center font-headline text-3xl font-bold">
-            ¡Bienvenido a Mi Tienda Rápida!
+
+        {/* Columna de Bienvenida */}
+        <div className="hidden md:flex flex-col items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-400 p-12 text-white text-center">
+           <h2 className="font-headline text-4xl font-bold">
+            {isSignUp ? '¡Hola!' : '¡Bienvenido a Mi Tienda Rápida!'}
           </h2>
-          <p className="mt-2 text-center text-blue-200">
-            Administra tu tienda online creando catálogos y administrando tus productos de manera sencilla.
+          <p className="mt-4 max-w-sm">
+             {isSignUp
+              ? 'Únete a nosotros y empieza a vender tus productos en minutos.'
+              : 'Administra tu tienda online creando catálogos y administrando tus productos de manera sencilla.'
+            }
           </p>
-        </div>
-      </div>
-      {/* Vista Móvil */}
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 text-black shadow-2xl md:hidden">
-        <div className="text-center">
-            <MiTiendaRapidaLogo className="mx-auto h-12 w-12 text-blue-600" />
-            <h1 className="mt-4 text-2xl font-bold font-headline text-gray-800">
-                {isSignUp ? 'Crea tu Cuenta' : '¡Bienvenido a Mi Tienda Rápida!'}
-            </h1>
-        </div>
-        <div className="mt-8 space-y-4">
-            <Input
-            type="email"
-            placeholder="Correo electrónico"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="bg-gray-50"
-            />
-            <Input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="bg-gray-50"
-            />
-            <Button
-            onClick={handleAuthAction}
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700"
-            >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSignUp ? 'Registrarse' : 'Iniciar Sesión'}
-            </Button>
-        </div>
-        <div className="my-6 flex items-center">
-            <div className="flex-grow border-t border-gray-300"></div>
-            <span className="mx-4 text-sm text-gray-500">O</span>
-            <div className="flex-grow border-t border-gray-300"></div>
-        </div>
-        <Button
+          <Button
             variant="outline"
-            className="w-full"
-            onClick={() => handleOAuthSignIn('google')}
-        >
-            <GoogleIcon className="mr-2" />
-            Continuar con Google
-        </Button>
-        <p className="mt-6 text-center text-sm">
-            {isSignUp ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}
-            <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="ml-1 font-semibold text-blue-600 hover:underline"
-            >
-            {isSignUp ? 'Inicia Sesión' : 'Regístrate'}
-            </button>
-        </p>
-         {!isSignUp && (
-              <div className="text-center mt-4">
-                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button className="text-sm text-gray-500 hover:underline">
-                        ¿Olvidaste tu contraseña?
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Restablecer Contraseña</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <Label htmlFor="forgot-password-email-mobile">Correo Electrónico</Label>
-                        <Input
-                           id="forgot-password-email-mobile"
-                          type="email"
-                          placeholder="tu@email.com"
-                          value={forgotPasswordEmail}
-                          onChange={e => setForgotPasswordEmail(e.target.value)}
-                        />
-                      </div>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleForgotPassword}>Enviar Enlace</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-              </div>
-            )}
+            className="mt-8 bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 transition-colors duration-300"
+          >
+            {isSignUp ? 'Ya tengo una cuenta' : 'Regístrate Gratis'}
+          </Button>
+        </div>
+
       </div>
     </div>
   );
 };
 
 export default AuthPage;
+
+    
