@@ -23,13 +23,7 @@ const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
         strokeLinejoin="round" 
         {...props}
     >
-        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-        <path d="M10 21h4"/>
-        <path d="M7 21h10"/>
-        <path d="m11 11-1 1 1 1-1 1 1 1-1 1 1 1"/>
-        <path d="m14 7-1 1 1 1-1 1 1 1"/>
-        <path d="M10 3.5v-2"/>
-        <path d="M14 3.5v-2"/>
+        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
     </svg>
 );
 
@@ -50,9 +44,7 @@ function VendorApp({ children }: { children: ReactNode }) {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      // Permitir el acceso a la página de restablecimiento de contraseña incluso si hay sesión
       const isResetPasswordPage = pathname.includes('/reset-password');
-
       if (!session && !isResetPasswordPage) {
         router.push('/');
       } else if (session) {
@@ -75,7 +67,7 @@ function VendorApp({ children }: { children: ReactNode }) {
       authListener.subscription.unsubscribe();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router, pathname]); // Añadimos pathname como dependencia
+  }, [router, pathname]); 
 
   if (!authChecked || globalLoading) {
     return (
