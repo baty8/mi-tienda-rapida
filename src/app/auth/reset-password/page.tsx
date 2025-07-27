@@ -42,7 +42,7 @@ export default function ResetPasswordPage() {
       if (event === "PASSWORD_RECOVERY") {
         setIsSessionReady(true);
       }
-      if(event === "SIGNED_IN") {
+      if(event === "SIGNED_IN" && !window.location.hash.includes('type=recovery')) {
         router.push('/products');
       }
     });
@@ -51,7 +51,7 @@ export default function ResetPasswordPage() {
     const hash = typeof window !== 'undefined' ? window.location.hash : '';
     if (hash.includes('type=recovery')) {
       setIsSessionReady(true);
-    } else if (!isSessionReady){
+    } else {
        const timer = setTimeout(() => {
             if(!isSessionReady) { // check again before setting error
                 setErrorState("No se detectó un token de recuperación de contraseña. Por favor, utiliza el enlace de tu correo electrónico.");

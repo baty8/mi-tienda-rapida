@@ -9,7 +9,7 @@ import { Menu } from 'lucide-react';
 import { ProductProvider, useProduct } from '@/context/ProductContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ThemeProvider } from '@/components/theme-provider';
 
 const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
@@ -31,6 +31,7 @@ const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
 
 function VendorApp({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { globalLoading, profile, fetchInitialProfile } = useProduct();
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -43,9 +44,13 @@ function VendorApp({ children }: { children: ReactNode }) {
 
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      
+      // Permitir el acceso a la página de restablecimiento de contraseña incluso si hay sesión
+      const isResetPasswordPage = pathname.includes('/reset-password');
+
+      if (!session && !isResetPasswordPage) {
         router.push('/');
-      } else {
+      } else if (session) {
         await fetchInitialProfile(session.user);
       }
       setAuthChecked(true);
@@ -65,7 +70,7 @@ function VendorApp({ children }: { children: ReactNode }) {
       authListener.subscription.unsubscribe();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router]);
+  }, [router, pathname]); // Añadimos pathname como dependencia
 
   if (!authChecked || globalLoading) {
     return (
