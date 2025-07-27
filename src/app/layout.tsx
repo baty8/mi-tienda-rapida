@@ -10,7 +10,6 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Mi Tienda Rapida',
   description: 'Sistema de Ventas para Vendedores',
-  // La declaración de iconos aquí es una buena práctica, la mantenemos.
   icons: {
     icon: '/logo.png', 
     shortcut: '/logo.png',
@@ -26,11 +25,6 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
-        {/* Añadimos estas líneas para forzar la actualización del favicon */}
-        <link rel="icon" href="/logo.png" type="image/png" />
-        <link rel="shortcut icon" href="/logo.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/logo.png" type="image/png" />
-
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
