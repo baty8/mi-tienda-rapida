@@ -173,7 +173,7 @@ const AuthPage = () => {
   if (!isClient) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-100">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
@@ -184,7 +184,7 @@ const AuthPage = () => {
         {/* Columna del Formulario */}
         <div className="p-8 sm:p-12">
             <div className="md:hidden flex flex-col items-center text-center mb-6">
-                 <VentaRapidaLogo className="h-10 w-10 mb-2 text-blue-600" />
+                 <VentaRapidaLogo className="h-10 w-10 mb-2 text-primary" />
                  <h1 className="font-headline text-2xl font-bold text-gray-800">Mi Tienda Rapida</h1>
             </div>
           <h2 className="font-headline text-3xl font-bold text-gray-800">
@@ -224,7 +224,7 @@ const AuthPage = () => {
               <div className="text-right text-sm">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <button type="button" className="font-semibold text-blue-600 hover:underline">
+                    <button type="button" className="font-semibold text-primary hover:underline">
                       ¿Olvidaste tu contraseña?
                     </button>
                   </AlertDialogTrigger>
@@ -257,7 +257,7 @@ const AuthPage = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 py-3 text-base font-semibold text-white hover:bg-blue-700"
+              className="w-full bg-primary py-3 text-base font-semibold text-white hover:bg-primary/90"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSignUp ? 'Registrarse' : 'Iniciar Sesión'}
@@ -282,7 +282,7 @@ const AuthPage = () => {
           <div className="md:hidden text-center mt-6">
               <p className="text-sm">
                   {isSignUp ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}
-                  <button onClick={() => setIsSignUp(!isSignUp)} className="font-semibold text-blue-600 hover:underline ml-1">
+                  <button onClick={() => setIsSignUp(!isSignUp)} className="font-semibold text-primary hover:underline ml-1">
                       {isSignUp ? 'Inicia Sesión' : 'Regístrate Gratis'}
                   </button>
               </p>
@@ -291,7 +291,7 @@ const AuthPage = () => {
         </div>
 
         {/* Columna de Bienvenida */}
-        <div className="hidden md:flex flex-col items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-400 p-12 text-white text-center">
+        <div className="hidden md:flex flex-col items-center justify-center bg-gradient-to-br from-blue-600 to-cyan-500 p-12 text-white text-center">
             <VentaRapidaLogo className="h-16 w-16 mb-4" />
            <h2 className="font-headline text-4xl font-bold">
             {isSignUp ? '¡Hola!' : 'Bienvenido a Mi Tienda Rapida'}
