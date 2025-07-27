@@ -29,10 +29,12 @@ export async function generateMetadata({ params }: StorePageProps): Promise<Meta
     };
   }
 
-  // El favicon se gestiona globalmente en /src/app/layout.tsx
-  // Aquí solo personalizamos el título de la página de la tienda.
   return {
     title: profile.name || 'Tienda',
+    icons: {
+        // Usa el avatar del vendedor como favicon, con un fallback si no existe.
+        icon: profile.avatar_url || "/favicon.ico",
+    }
   };
 }
 
