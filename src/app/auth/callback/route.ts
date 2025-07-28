@@ -5,20 +5,24 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  // if "next" is in param, use it as the redirect URL
-  const next = searchParams.get('next') ?? '/products'
+  const next = searchParams.get('next')
 
   if (code) {
     const supabase = createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    
+    // Si no hay error y la sesión es de tipo "recovery", redirigimos a la página de reset.
+    if (!error && data.session?.user.aud === 'authenticated' && data.session.user.recovery_sent_at) {
+        return NextResponse.redirect(`${origin}/auth/reset-password`)
+    }
+
+    // Si es un login normal, redirigimos a donde corresponda (usualmente /products)
     if (!error) {
-      // The redirect is now explicitly to the products page,
-      // which is the main entry point for logged-in users.
-      return NextResponse.redirect(`${origin}${next}`)
+      return NextResponse.redirect(`${origin}${next ?? '/products'}`)
     }
   }
 
-  // return the user to an error page with instructions
+  // Si hay un error o no hay código, redirigimos a la página de error.
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }
     

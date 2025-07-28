@@ -83,16 +83,17 @@ const AuthPage = () => {
     const supabase = getSupabase();
     if (!supabase) return;
 
-    // Simplified logic: If there's a session, redirect.
-    // The password recovery flow is now handled entirely by the reset-password page.
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.push('/products');
-      }
+    // This listener handles redirection AFTER a successful login or OAuth.
+    // It will NOT handle password recovery, as that flow is now separate.
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            router.push('/products');
+        }
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+    // On initial load, check if there's already a valid, non-recovery session.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
         router.push('/products');
       }
     });
@@ -163,8 +164,7 @@ const AuthPage = () => {
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        // IMPORTANT CHANGE: Redirect directly to the reset password page.
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: `${window.location.origin}/auth/callback`,
     });
     if (error) {
       toast.error('Error', { description: error.message });
