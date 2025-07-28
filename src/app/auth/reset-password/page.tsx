@@ -41,28 +41,32 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    let a = false;
-
     // This listener is the key. It waits for Supabase to confirm the recovery session.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
         setStatus('ready');
+      } else if (session === null) {
+        // If the session becomes null after a bit, it likely means the token was invalid or expired.
+        // This is a fallback.
+        setErrorMessage("Enlace inválido o expirado. Por favor, solicita uno nuevo desde la página de inicio.");
+        setStatus('error');
       }
     });
 
     // Set a timeout to handle cases where the recovery token is invalid or missing
+    // and the onAuthStateChange event doesn't fire as expected.
     const timer = setTimeout(() => {
         if (status === 'loading') {
-            setErrorMessage("Enlace inválido o expirado. Por favor, solicita uno nuevo desde la página de inicio.");
+            setErrorMessage("El enlace puede ser inválido o ha expirado. Por favor, solicita uno nuevo.");
             setStatus('error');
         }
-    }, 5000); // 5 seconds timeout
+    }, 7000); // 7 seconds timeout, giving Supabase ample time
 
     return () => {
       subscription.unsubscribe();
       clearTimeout(timer);
     };
-  }, [status]); // Only re-run if status changes
+  }, [status]); // Re-run if status changes, though it shouldn't be necessary.
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
