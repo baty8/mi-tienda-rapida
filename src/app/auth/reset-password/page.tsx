@@ -158,7 +158,7 @@ export default function ResetPasswordPage() {
                     Establecer Nueva Contraseña
                 </CardTitle>
                 <CardDescription className="text-gray-600">
-                    Crea una nueva contraseña para tu cuenta. Esto funciona tanto para restablecer una contraseña olvidada como para crear una si te registraste con Google.
+                    Crea una nueva contraseña para tu cuenta. Esto funciona tanto para restablecer una contraseña olvidada como para crear una por primera vez.
                 </CardDescription>
             </CardHeader>
             <CardContent>
