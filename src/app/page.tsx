@@ -21,49 +21,53 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 48 48"
-    width="24px"
-    height="24px"
-  >
-    <path
-      fill="#FFC107"
-      d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-    />
-    <path
-      fill="#FF3D00"
-      d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-    />
-    <path
-      fill="#4CAF50"
-      d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
-    />
-    <path
-      fill="#1976D2"
-      d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C39.902,36.036,44,30.425,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-    />
-  </svg>
-);
-
-const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
-        {...props}
+function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 48 48"
+      width="24px"
+      height="24px"
     >
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-        <line x1="3" x2="21" y1="6" y2="6"/>
-        <path d="M16 10a4 4 0 0 1-8 0"/>
+      <path
+        fill="#FFC107"
+        d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+      />
+      <path
+        fill="#FF3D00"
+        d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+      />
+      <path
+        fill="#4CAF50"
+        d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+      />
+      <path
+        fill="#1976D2"
+        d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C39.902,36.036,44,30.425,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+      />
     </svg>
-);
+  );
+}
+
+function VentaRapidaLogo(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+      <line x1="3" x2="21" y1="6" y2="6"/>
+      <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+  );
+}
 
 const AuthPage = () => {
   const [email, setEmail] = useState('');
@@ -79,33 +83,39 @@ const AuthPage = () => {
     const supabase = getSupabase();
     if (!supabase) return;
 
-    const checkSession = async () => {
-        const hash = window.location.hash;
-        if (hash.includes('type=recovery')) {
-            router.push('/auth/reset-password' + window.location.hash);
-            return;
-        }
+    // This is the definitive logic to prevent the redirect loop.
+    // Order of operations is critical.
 
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            router.push('/products');
-        }
-    };
-    checkSession();
+    // 1. Check for recovery hash FIRST. This is the highest priority.
+    // If the user is trying to reset their password, we must send them
+    // to the correct page immediately and stop any other logic.
+    if (window.location.hash.includes('type=recovery')) {
+      router.push('/auth/reset-password' + window.location.hash);
+      return; // <-- This return is crucial. It stops the effect here.
+    }
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-        (event, session) => {
-            if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
-                const hash = window.location.hash;
-                if (!hash.includes('type=recovery')) {
-                     router.push('/products');
-                }
-            }
+    // 2. If it's NOT a recovery flow, THEN we check for a normal session.
+    // This prevents an existing Google session from redirecting the user
+    // when their intent is to set a password.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push('/products');
+      }
+    });
+
+    // 3. The listener handles live events, like a user signing in on another tab.
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      // We only care about a fresh, normal sign-in.
+      if (event === 'SIGNED_IN' && session) {
+        // We check the hash again as a final safeguard against race conditions.
+        if (!window.location.hash.includes('type=recovery')) {
+          router.push('/products');
         }
-    );
+      }
+    });
 
     return () => {
-        authListener.subscription.unsubscribe();
+      authListener.subscription.unsubscribe();
     };
   }, [router]);
 
