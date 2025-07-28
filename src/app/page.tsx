@@ -59,12 +59,12 @@ const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
         strokeLinejoin="round" 
         {...props}
     >
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-        <line x1="3" x2="21" y1="6" y2="6"/>
-        <path d="M16 10a4 4 0 0 1-8 0"/>
+        <path d="M4 10h16M6 14h2M6 18h4m10-12L14 2 8 2v4h12V2zM7 6V2m10 4V2"/>
+        <path d="M12 18v-4m-4 4v-4m8 4v-4m0-4V6a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4"/>
+        <path d="M18 10a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4Z"/>
+        <path d="M4 18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4H4v4Z"/>
     </svg>
 );
-
 
 const AuthPage = () => {
   const [email, setEmail] = useState('');
@@ -83,8 +83,6 @@ const AuthPage = () => {
     const checkSession = async () => {
         const hash = window.location.hash;
         if (hash.includes('type=recovery')) {
-            // This is a password recovery link, let the reset password page handle it.
-            // No automatic redirection should happen here.
             router.push('/auth/reset-password' + window.location.hash);
             return;
         }
@@ -186,7 +184,10 @@ const AuthPage = () => {
   if (!isClient) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-100">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <VentaRapidaLogo className="h-12 w-12 animate-pulse text-primary" />
+          <p className="text-muted-foreground">Cargando tu tienda...</p>
+        </div>
       </div>
     );
   }
@@ -318,7 +319,7 @@ const AuthPage = () => {
           <Button
             variant="outline"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="mt-8 bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary-foreground transition-colors duration-300"
+            className="mt-8 bg-transparent border-2 border-white text-white shadow-md hover:bg-white hover:text-primary hover:scale-105 hover:shadow-lg transform transition-all duration-300"
           >
             {isSignUp ? 'Ya tengo una cuenta' : 'Regístrate Gratis'}
           </Button>
