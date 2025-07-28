@@ -41,6 +41,8 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    let a = false;
+
     // This listener is the key. It waits for Supabase to confirm the recovery session.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
