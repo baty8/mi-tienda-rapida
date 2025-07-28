@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   title: 'Mi Tienda Rapida',
   description: 'Sistema de Ventas para Vendedores',
   icons: {
-    icon: '/logo.svg',
-  },
+    icon: '/icon.svg',
+  }
 };
 
 export default function RootLayout({
