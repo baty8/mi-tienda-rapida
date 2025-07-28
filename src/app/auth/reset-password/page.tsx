@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -22,8 +23,8 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isSessionReady, setIsSessionReady] = useState(false);
-  const [errorState, setErrorState] = useState<string | null>(null);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Password validation state
   const hasUpperCase = /[A-Z]/.test(password);
@@ -35,35 +36,39 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const supabase = getSupabase();
     if (!supabase) {
-      setErrorState("No se pudo inicializar Supabase.");
+      setErrorMessage("No se pudo inicializar la conexión.");
+      setStatus('error');
       return;
     }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
-        setIsSessionReady(true);
+        setStatus('ready');
       }
-      if(event === "SIGNED_IN" && !window.location.hash.includes('type=recovery')) {
+      // If user is signed in but not in recovery mode, redirect them.
+      if (event === "SIGNED_IN" && !window.location.hash.includes('type=recovery')) {
         router.push('/products');
       }
     });
 
-    // Handle initial state in case the page is loaded after the event
-    const hash = typeof window !== 'undefined' ? window.location.hash : '';
-    if (hash.includes('type=recovery')) {
-      setIsSessionReady(true);
-    } else {
-       const timer = setTimeout(() => {
-            if(!isSessionReady) { // check again before setting error
-                setErrorState("No se detectó un token de recuperación de contraseña. Por favor, utiliza el enlace de tu correo electrónico.");
-            }
-       }, 3000);
-       return () => clearTimeout(timer);
+    // Check hash on mount, as the event might have already fired.
+    if (window.location.hash.includes('type=recovery')) {
+        setStatus('ready');
     }
+
+    // Set a timeout to prevent infinite loading state if no event is received.
+    const timer = setTimeout(() => {
+        if (status === 'loading') {
+            setErrorMessage("No se detectó un token de recuperación válido. Por favor, usa el enlace de tu correo electrónico.");
+            setStatus('error');
+        }
+    }, 5000); // Wait 5 seconds
 
     return () => {
       subscription.unsubscribe();
+      clearTimeout(timer);
     };
-  }, [router, isSessionReady]);
+  }, [router, status]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,21 +88,21 @@ export default function ResetPasswordPage() {
       setLoading(false);
       return;
     }
-    // This works for any user, including those created via OAuth with Google.
+    
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
 
     if (error) {
-      toast.error('Error', { description: error.message });
+      toast.error('Error al actualizar', { description: error.message });
     } else {
-      toast.success('¡Éxito!', { description: 'Tu contraseña ha sido actualizada. Inicia sesión con tu nueva contraseña.' });
+      toast.success('¡Contraseña actualizada!', { description: 'Tu contraseña ha sido cambiada. Por favor, inicia sesión.' });
       await supabase.auth.signOut(); // Force sign out to require new login
       router.push('/');
     }
   };
   
   const renderContent = () => {
-      if (errorState) {
+      if (status === 'error') {
           return (
               <>
                  <CardHeader>
@@ -108,11 +113,11 @@ export default function ResetPasswordPage() {
                        Enlace Inválido o Expirado
                     </CardTitle>
                     <CardDescription className="text-gray-600">
-                        {errorState}
+                        {errorMessage}
                     </CardDescription>
                   </CardHeader>
                    <CardContent>
-                      <Button asChild className="w-full bg-blue-500 hover:bg-blue-600">
+                      <Button asChild className="w-full bg-primary hover:bg-primary/90">
                         <Link href="/">
                           Volver al Inicio
                         </Link>
@@ -122,7 +127,7 @@ export default function ResetPasswordPage() {
           )
       }
       
-      if (!isSessionReady) {
+      if (status === 'loading') {
           return (
               <div>
                   <CardHeader>
@@ -130,14 +135,14 @@ export default function ResetPasswordPage() {
                             <KeyRound className="h-6 w-6 text-blue-600" />
                         </div>
                         <CardTitle className="mt-4 text-2xl font-bold font-headline text-gray-800">
-                           Esperando...
+                           Verificando Enlace...
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                           Verificando tu enlace de recuperación. El formulario aparecerá en breve.
+                           Estamos validando tu solicitud. El formulario aparecerá en breve.
                         </CardDescription>
                   </CardHeader>
                   <CardContent>
-                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-500" />
+                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
                   </CardContent>
               </div>
           );
@@ -153,7 +158,7 @@ export default function ResetPasswordPage() {
                     Establecer Nueva Contraseña
                 </CardTitle>
                 <CardDescription className="text-gray-600">
-                    Introduce tu nueva contraseña. Esto funcionará incluso si te registraste con Google.
+                    Crea una nueva contraseña para tu cuenta. Esto funciona tanto para restablecer una contraseña olvidada como para crear una si te registraste con Google.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -183,7 +188,7 @@ export default function ResetPasswordPage() {
                       <PasswordRequirement met={hasSpecialChar} text="Un carácter especial (!@#...)" />
                     </div>
 
-                    <Button type="submit" disabled={loading} className="w-full bg-blue-500 hover:bg-blue-600">
+                    <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90">
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {loading ? 'Guardando...' : 'Guardar Nueva Contraseña'}
                     </Button>
