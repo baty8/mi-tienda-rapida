@@ -13,10 +13,19 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ThemeProvider } from '@/components/theme-provider';
 
 const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M7.5 7.5C7.5 5.01472 9.51472 3 12 3C14.4853 3 16.5 5.01472 16.5 7.5" />
-      <path d="M20.641 12.3223L21 17C21 17.5523 20.5523 18 20 18H4C3.44772 18 3 17.5523 3 17L3.35903 12.3223C3.58294 9.49474 5.9754 7.5 8.8282 7.5H15.1718C18.0246 7.5 20.4171 9.49474 20.641 12.3223Z" />
-      <path d="M14.28 10.211a2.002 2.002 0 0 0-2.583-2.422L12.7 3.5" />
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        {...props}
+    >
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" x2="21" y1="6" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
     </svg>
 );
 
