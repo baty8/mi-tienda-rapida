@@ -13,19 +13,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ThemeProvider } from '@/components/theme-provider';
 
 const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
-        {...props}
-    >
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-        <line x1="3" x2="21" y1="6" y2="6"/>
-        <path d="M16 10a4 4 0 0 1-8 0"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M7.5 7.5C7.5 5.01472 9.51472 3 12 3C14.4853 3 16.5 5.01472 16.5 7.5" />
+      <path d="M20.641 12.3223L21 17C21 17.5523 20.5523 18 20 18H4C3.44772 18 3 17.5523 3 17L3.35903 12.3223C3.58294 9.49474 5.9754 7.5 8.8282 7.5H15.1718C18.0246 7.5 20.4171 9.49474 20.641 12.3223Z" />
+      <path d="M12 12L12 13" />
+      <path d="M15.5 12L16.5 13" />
+      <path d="M8.5 12L7.5 13" />
+      <path d="M11 21L13 21" />
     </svg>
 );
 
@@ -47,6 +41,7 @@ function VendorApp({ children }: { children: ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       
       const isResetPasswordPage = pathname.includes('/reset-password');
+      
       if (!session && !isResetPasswordPage) {
         router.push('/');
       } else if (session) {
@@ -61,7 +56,10 @@ function VendorApp({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_OUT') {
         router.push('/');
       } else if (event === 'SIGNED_IN' && session) {
-        fetchInitialProfile(session.user);
+        // Solo redirigir si no estamos ya en el flujo de reseteo de contraseña
+        if (!pathname.includes('/reset-password')) {
+            fetchInitialProfile(session.user);
+        }
       }
     });
 
