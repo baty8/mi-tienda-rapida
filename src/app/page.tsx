@@ -51,22 +51,22 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 function VentaRapidaLogo(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-      <line x1="3" x2="21" y1="6" y2="6"/>
-      <path d="M16 10a4 4 0 0 1-8 0"/>
-    </svg>
-  );
+    return (
+        <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            {...props}
+        >
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" x2="21" y1="6" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+    );
 }
 
 const AuthPage = () => {
@@ -83,34 +83,17 @@ const AuthPage = () => {
     const supabase = getSupabase();
     if (!supabase) return;
 
-    // This is the definitive logic to prevent the redirect loop.
-    // Order of operations is critical.
-
-    // 1. Check for recovery hash FIRST. This is the highest priority.
-    // If the user is trying to reset their password, we must send them
-    // to the correct page immediately and stop any other logic.
-    if (window.location.hash.includes('type=recovery')) {
-      router.push('/auth/reset-password' + window.location.hash);
-      return; // <-- This return is crucial. It stops the effect here.
-    }
-
-    // 2. If it's NOT a recovery flow, THEN we check for a normal session.
-    // This prevents an existing Google session from redirecting the user
-    // when their intent is to set a password.
+    // Simplified logic: If there's a session, redirect.
+    // The password recovery flow is now handled entirely by the reset-password page.
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.push('/products');
       }
     });
 
-    // 3. The listener handles live events, like a user signing in on another tab.
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      // We only care about a fresh, normal sign-in.
       if (event === 'SIGNED_IN' && session) {
-        // We check the hash again as a final safeguard against race conditions.
-        if (!window.location.hash.includes('type=recovery')) {
-          router.push('/products');
-        }
+        router.push('/products');
       }
     });
 
@@ -133,7 +116,7 @@ const AuthPage = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/verify`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
       });
       if (error) {
@@ -180,6 +163,7 @@ const AuthPage = () => {
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        // IMPORTANT CHANGE: Redirect directly to the reset password page.
         redirectTo: `${window.location.origin}/auth/reset-password`,
     });
     if (error) {

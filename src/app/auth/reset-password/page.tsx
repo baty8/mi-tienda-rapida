@@ -41,34 +41,26 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    // This listener is the key. It waits for Supabase to confirm the recovery session.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
         setStatus('ready');
       }
-      // If user is signed in but not in recovery mode, redirect them.
-      if (event === "SIGNED_IN" && !window.location.hash.includes('type=recovery')) {
-        router.push('/products');
-      }
     });
 
-    // Check hash on mount, as the event might have already fired.
-    if (window.location.hash.includes('type=recovery')) {
-        setStatus('ready');
-    }
-
-    // Set a timeout to prevent infinite loading state if no event is received.
+    // Set a timeout to handle cases where the recovery token is invalid or missing
     const timer = setTimeout(() => {
         if (status === 'loading') {
-            setErrorMessage("No se detectó un token de recuperación válido. Por favor, usa el enlace de tu correo electrónico.");
+            setErrorMessage("Enlace inválido o expirado. Por favor, solicita uno nuevo desde la página de inicio.");
             setStatus('error');
         }
-    }, 5000); // Wait 5 seconds
+    }, 5000); // 5 seconds timeout
 
     return () => {
       subscription.unsubscribe();
       clearTimeout(timer);
     };
-  }, [router, status]);
+  }, [status]); // Only re-run if status changes
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,7 +130,7 @@ export default function ResetPasswordPage() {
                            Verificando Enlace...
                         </CardTitle>
                         <CardDescription className="text-gray-600">
-                           Estamos validando tu solicitud. El formulario aparecerá en breve.
+                           Estamos validando tu solicitud. Por favor, espera.
                         </CardDescription>
                   </CardHeader>
                   <CardContent>
