@@ -59,10 +59,9 @@ const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
         strokeLinejoin="round" 
         {...props}
     >
-        <path d="M4 10h16M6 14h2M6 18h4m10-12L14 2 8 2v4h12V2zM7 6V2m10 4V2"/>
-        <path d="M12 18v-4m-4 4v-4m8 4v-4m0-4V6a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4"/>
-        <path d="M18 10a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4Z"/>
-        <path d="M4 18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4H4v4Z"/>
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" x2="21" y1="6" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
     </svg>
 );
 
