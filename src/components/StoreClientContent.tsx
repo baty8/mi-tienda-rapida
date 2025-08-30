@@ -49,19 +49,24 @@ const getFontFamily = (fontName: string | null | undefined): string => {
 };
 
 // Helper to determine if a color is light or dark
-const isColorLight = (hex: string) => {
-    if (!hex) return true;
-    const color = hex.startsWith('#') ? hex.substring(1) : hex;
-    const rgb = parseInt(color, 16);
-    const r = (rgb >> 16) & 0xff;
-    const g = (rgb >> 8) & 0xff;
-    const b = (rgb >> 0) & 0xff;
-    const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
-    return luma > 128;
-}
+const isColorLight = (hexColor: string | null | undefined): boolean => {
+  if (!hexColor) return true; // Default to light for undefined/null colors
+  const color = hexColor.startsWith('#') ? hexColor.substring(1) : hexColor;
+  if (color.length === 3) {
+    const [r, g, b] = color.split('').map(c => parseInt(c + c, 16));
+    return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+  }
+  if (color.length === 6) {
+    const r = parseInt(color.substring(0, 2), 16);
+    const g = parseInt(color.substring(2, 4), 16);
+    const b = parseInt(color.substring(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+  }
+  return true; // Default for invalid hex codes
+};
 
 // Helper to get contrasting text color (black or white)
-const getContrastingTextColor = (bgColor: string): '#FFFFFF' | '#000000' => {
+const getContrastingTextColor = (bgColor: string | null | undefined): '#FFFFFF' | '#000000' => {
   return isColorLight(bgColor) ? '#000000' : '#FFFFFF';
 };
 
@@ -135,14 +140,13 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
 
   const storePrimaryColor = profile.store_primary_color || '#111827';
   const storeAccentColor = profile.store_accent_color || '#F3F4F6';
-  const cardTextColor = isColorLight(storeAccentColor) ? '#000000' : '#FFFFFF';
   
   const storeStyle = {
     '--store-bg': profile.store_bg_color || '#FFFFFF',
     '--store-primary': storePrimaryColor,
     '--store-primary-foreground': getContrastingTextColor(storePrimaryColor),
     '--store-accent': storeAccentColor,
-    '--store-card-text': cardTextColor,
+    '--store-card-text': getContrastingTextColor(storeAccentColor),
     '--store-font-family': getFontFamily(profile.store_font_family),
   } as React.CSSProperties;
   
@@ -157,9 +161,9 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
             .store-bg { background-color: var(--store-bg); }
             .store-text { color: var(--store-card-text); }
             .store-primary-text { color: var(--store-primary); }
-            .store-secondary-text { color: ${isColorLight(storeAccentColor) ? '#6b7280' : '#d1d5db'}; }
+            .store-secondary-text { color: ${isColorLight(profile.store_bg_color) ? '#6b7280' : '#d1d5db'}; }
             .store-primary-bg { background-color: var(--store-primary); color: var(--store-primary-foreground); }
-            .store-card { background-color: var(--store-accent); color: var(--store-card-text); }
+            .store-card { background-color: var(--store-accent); }
             .store-font { font-family: var(--store-font-family); }
             .store-primary-bg:hover { opacity: 0.9; }
         `}</style>
@@ -187,13 +191,17 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input 
                         placeholder="Buscar producto..." 
-                        className="pl-10 w-full store-font store-card border-gray-200/50" 
+                        className="pl-10 w-full store-font border-gray-200/50"
+                        style={{ backgroundColor: 'var(--store-accent)', color: 'var(--store-card-text)'}}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
                 <Select value={activeCatalogId} onValueChange={setActiveCatalogId} disabled={initialCatalogsWithProducts.length === 0}>
-                    <SelectTrigger className="w-full sm:w-[250px] store-font store-card border-gray-200/50">
+                    <SelectTrigger 
+                      className="w-full sm:w-[250px] store-font border-gray-200/50"
+                      style={{ backgroundColor: 'var(--store-accent)', color: 'var(--store-card-text)'}}
+                    >
                         <SelectValue placeholder="Seleccionar un catálogo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -207,11 +215,11 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
 
         {showEmptyState ? (
             <div className="py-16 text-center store-card rounded-xl">
-                <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
+                <ShoppingBag className="mx-auto h-12 w-12" style={{ color: 'var(--store-secondary-text)'}} />
                 <h3 className="mt-4 text-xl font-semibold store-text">
                     Esta tienda aún no tiene productos públicos.
                 </h3>
-                <p className="mt-2 text-gray-500 store-font">
+                <p className="mt-2 store-font" style={{ color: 'var(--store-secondary-text)'}}>
                     Añade productos a un catálogo público para que aparezcan aquí.
                 </p>
             </div>
@@ -236,31 +244,41 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                         </div>
                         <div className="mt-4 space-y-2">
                              <p className="text-2xl font-extrabold store-primary-text">${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                            <Button 
+                            <Button
+                              style={{
+                                backgroundColor: storePrimaryColor,
+                                color: getContrastingTextColor(storePrimaryColor),
+                              }}
                               className="w-full"
-                              style={{ backgroundColor: storePrimaryColor, color: getContrastingTextColor(storePrimaryColor) }}
                               onClick={() => handleAddToCart(product)}
                             >
-                                <ShoppingCart 
-                                  className="mr-2 h-4 w-4"
-                                  style={{ color: getContrastingTextColor(storePrimaryColor)}}
-                                />
-                                Añadir al carrito
+                              <ShoppingCart
+                                className="mr-2 h-4 w-4"
+                                style={{ color: getContrastingTextColor(storePrimaryColor) }}
+                              />
+                              Añadir al carrito
                             </Button>
-                            <Button 
-                              asChild 
-                              className="w-full" 
+                            <Button
+                              asChild
                               variant="outline"
-                              style={{ 
-                                  borderColor: storePrimaryColor, 
-                                  color: storePrimaryColor,
-                                  backgroundColor: 'transparent'
-                                }}
+                              className="w-full"
+                              style={{
+                                borderColor: storePrimaryColor,
+                                color: storePrimaryColor,
+                                backgroundColor: 'transparent',
+                              }}
                             >
-                                <a href={getSingleProductWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
-                                    <MessageCircle className="mr-2 h-4 w-4" style={{ color: storePrimaryColor }}/>
-                                    Consultar
-                                </a>
+                              <a
+                                href={getSingleProductWhatsAppLink(product)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <MessageCircle
+                                  className="mr-2 h-4 w-4"
+                                  style={{ color: storePrimaryColor }}
+                                />
+                                Consultar
+                              </a>
                             </Button>
                         </div>
                     </div>
@@ -368,11 +386,17 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                                 <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">
                                 <p>{selectedProduct.description}</p>
                                 </div>
-                                <div className="mt-6 flex flex-col items-start gap-4">
-                                    <p className="text-3xl font-extrabold text-blue-600">${selectedProduct.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                                    <Button size="lg" className="w-full bg-blue-600 text-white hover:bg-blue-700" onClick={() => { handleAddToCart(selectedProduct); closeModal(); }}>
+                                <div className="mt-6 flex flex-col items-start gap-2">
+                                    <p className="text-3xl font-extrabold store-primary-text">${selectedProduct.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                                    <Button size="lg" className="w-full" style={{ backgroundColor: storePrimaryColor, color: getContrastingTextColor(storePrimaryColor)}} onClick={() => { handleAddToCart(selectedProduct); closeModal(); }}>
                                         <ShoppingCart className="mr-2 h-5 w-5" />
                                         Añadir al carrito
+                                    </Button>
+                                     <Button asChild size="lg" className="w-full" variant="outline" style={{ borderColor: storePrimaryColor, color: storePrimaryColor }}>
+                                        <a href={getSingleProductWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
+                                            <MessageCircle className="mr-2 h-5 w-5" />
+                                            Consultar por WhatsApp
+                                        </a>
                                     </Button>
                                 </div>
                             </div>
@@ -380,7 +404,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                     )}
                 </DialogContent>
         </Dialog>
-        <footer className="mt-12 text-center text-sm text-gray-500 store-font">
+        <footer className="mt-12 text-center text-sm store-font" style={{ color: 'var(--store-secondary-text)'}}>
             <p>Potenciado por VentaRapida</p>
         </footer>
       </main>
