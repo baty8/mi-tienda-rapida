@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import type { Product, Catalog, Profile } from '@/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, MessageCircle, Search, X } from 'lucide-react';
+import { ShoppingBag, MessageCircle, Search, X, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -23,6 +23,10 @@ import {
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { useCart } from '@/context/CartContext';
+import { toast } from 'sonner';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
+import { ScrollArea } from './ui/scroll-area';
 
 type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at' | 'is_public'> & {
     products: Product[];
@@ -60,6 +64,9 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCatalogId, setActiveCatalogId] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const { cart, addToCart, removeFromCart, updateQuantity, totalItems, totalPrice } = useCart();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
 
   const allProducts = useMemo(() => {
     const productMap = new Map<string, Product>();
@@ -90,10 +97,25 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
   const openModal = (product: Product) => setSelectedProduct(product);
   const closeModal = () => setSelectedProduct(null);
 
-  const getWhatsAppLink = (product: Product) => {
+  const handleAddToCart = (product: Product) => {
+    addToCart(product);
+    toast.success(`${product.name} añadido al carrito`, {
+      action: {
+        label: "Ver Carrito",
+        onClick: () => setIsCartOpen(true),
+      },
+    });
+  }
+
+  const getWhatsAppLink = () => {
     const sellerPhoneNumber = profile?.phone || '';
     if (!sellerPhoneNumber) return '#';
-    const message = `Hola, estoy interesado en el producto "${product.name}". ¿Está disponible?`;
+    const messageLines = [
+        `Hola ${profile.name || 'Tienda'}, quisiera hacer el siguiente pedido:`,
+        ...cart.map(item => `- ${item.product.name} (x${item.quantity})`),
+        `\n*Total: $${totalPrice.toLocaleString('es-AR', {minimumFractionDigits: 2})}*`
+    ];
+    const message = messageLines.join('\n');
     return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
   
@@ -184,8 +206,8 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filteredProducts.map((product) => product && (
-                <div key={product.id} onClick={() => openModal(product)} className="group flex cursor-pointer transform flex-col overflow-hidden rounded-xl border border-black/10 shadow-lg transition-transform duration-300 hover:scale-[1.02] hover:shadow-2xl store-card">
-                    <div className="aspect-[4/3] w-full overflow-hidden relative">
+                <div key={product.id} className="group flex flex-col overflow-hidden rounded-xl border border-black/10 shadow-lg transition-shadow duration-300 hover:shadow-2xl store-card">
+                    <div onClick={() => openModal(product)} className="aspect-[4/3] w-full overflow-hidden relative cursor-pointer">
                         <Image
                             src={product.image_urls[0]}
                             alt={product.name}
@@ -197,16 +219,14 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                     </div>
                     <div className="flex flex-1 flex-col p-4 justify-between">
                         <div>
-                            <h2 className="text-lg font-bold store-text truncate">{product.name}</h2>
+                           <h2 onClick={() => openModal(product)} className="text-lg font-bold store-text truncate cursor-pointer">{product.name}</h2>
                             {product.description && <p className="mt-1 text-sm line-clamp-2 store-secondary-text">{product.description}</p>}
                         </div>
                         <div className="mt-4 space-y-2">
                              <p className="text-2xl font-extrabold store-primary-text">${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                            <Button asChild className="w-full store-primary-bg hover:opacity-90" disabled={!profile?.phone} onClick={(e) => e.stopPropagation()}>
-                                <a href={getWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
-                                    <MessageCircle className="mr-2 h-4 w-4" />
-                                    Consultar
-                                </a>
+                            <Button className="w-full store-primary-bg hover:opacity-90" onClick={() => handleAddToCart(product)}>
+                                <ShoppingCart className="mr-2 h-4 w-4" />
+                                Añadir al carrito
                             </Button>
                         </div>
                     </div>
@@ -215,6 +235,66 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
             </div>
         )}
         
+        <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+            <SheetTrigger asChild>
+                 <Button className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-2xl store-primary-bg hover:opacity-90 z-20">
+                    <ShoppingCart className="h-7 w-7" />
+                    {totalItems > 0 && <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">{totalItems}</span>}
+                    <span className="sr-only">Ver carrito de compras</span>
+                </Button>
+            </SheetTrigger>
+            <SheetContent className="flex flex-col">
+                <SheetHeader>
+                    <SheetTitle className="text-2xl">Carrito de Compras</SheetTitle>
+                </SheetHeader>
+                {cart.length > 0 ? (
+                    <>
+                    <ScrollArea className="flex-grow pr-4 -mr-6">
+                        <div className="divide-y">
+                        {cart.map(item => (
+                            <div key={item.product.id} className="flex items-center gap-4 py-4">
+                                <Image src={item.product.image_urls[0]} alt={item.product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint="product image" />
+                                <div className="flex-grow">
+                                    <p className="font-semibold">{item.product.name}</p>
+                                    <p className="text-sm text-muted-foreground">${item.product.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.product.id, item.quantity - 1)}><Minus className="h-4 w-4" /></Button>
+                                        <span className="w-8 text-center">{item.quantity}</span>
+                                        <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => updateQuantity(item.product.id, item.quantity + 1)}><Plus className="h-4 w-4" /></Button>
+                                    </div>
+                                </div>
+                                <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => removeFromCart(item.product.id)}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                        </div>
+                    </ScrollArea>
+                    <div className="border-t pt-4 mt-auto">
+                        <div className="flex justify-between font-bold text-lg">
+                            <span>Total:</span>
+                            <span>${totalPrice.toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
+                        </div>
+                        <Button asChild size="lg" className="w-full mt-4 store-primary-bg hover:opacity-90" disabled={!profile?.phone}>
+                            <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer">
+                                <MessageCircle className="mr-2 h-5 w-5" />
+                                Finalizar Compra por WhatsApp
+                            </a>
+                        </Button>
+                        {!profile?.phone && <p className="text-xs text-center text-destructive mt-2">El vendedor no ha configurado un número de contacto.</p>}
+                    </div>
+                    </>
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                        <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
+                        <h3 className="font-semibold text-lg">Tu carrito está vacío</h3>
+                        <p className="text-sm text-muted-foreground mt-1">Añade productos para empezar.</p>
+                    </div>
+                )}
+            </SheetContent>
+        </Sheet>
+
+
         <Dialog open={!!selectedProduct} onOpenChange={(isOpen) => !isOpen && closeModal()}>
                 <DialogContent className="max-w-lg w-full p-0">
                     {selectedProduct && (
@@ -256,11 +336,9 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                                 </div>
                                 <div className="mt-6 flex flex-col items-start gap-4">
                                     <p className="text-3xl font-extrabold text-blue-600">${selectedProduct.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                                    <Button asChild size="lg" className="w-full bg-blue-600 text-white hover:bg-blue-700" disabled={!profile?.phone}>
-                                    <a href={getWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
-                                        <MessageCircle className="mr-2 h-5 w-5" />
-                                        Consultar por WhatsApp
-                                    </a>
+                                    <Button size="lg" className="w-full bg-blue-600 text-white hover:bg-blue-700" onClick={() => { handleAddToCart(selectedProduct); closeModal(); }}>
+                                        <ShoppingCart className="mr-2 h-5 w-5" />
+                                        Añadir al carrito
                                     </Button>
                                 </div>
                             </div>

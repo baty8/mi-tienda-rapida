@@ -1,5 +1,6 @@
 
 import type { ReactNode } from 'react';
+import { CartProvider } from '@/context/CartContext';
 
 // Este es el layout para la tienda pública.
 // Se ha simplificado al máximo para resolver un error de compilación en Vercel.
@@ -10,5 +11,5 @@ export default function StoreLayout({ children }: {
   children: ReactNode;
 }) {
   // Este layout ahora solo renderiza a sus hijos, sin lógica adicional.
-  return <>{children}</>;
+  return <CartProvider>{children}</CartProvider>;
 }
