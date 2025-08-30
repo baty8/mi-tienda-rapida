@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from 'next/navigation';
 import { ThemeProvider } from '@/components/theme-provider';
 
-const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
+const EyMiTiendaWebLogo = (props: React.SVGProps<SVGSVGElement>) => (
     <svg 
         xmlns="http://www.w3.org/2000/svg" 
         viewBox="0 0 24 24" 
@@ -79,7 +79,7 @@ function VendorApp({ children }: { children: ReactNode }) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <VentaRapidaLogo className="h-12 w-12 animate-pulse text-primary" />
+          <EyMiTiendaWebLogo className="h-12 w-12 animate-pulse text-primary" />
           <p className="text-muted-foreground">Cargando tu tienda...</p>
         </div>
       </div>

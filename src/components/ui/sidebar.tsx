@@ -25,7 +25,7 @@ const menuItems = [
   { href: '/profile', label: 'Perfil', icon: User },
 ];
 
-const VentaRapidaLogo = (props: React.SVGProps<SVGSVGElement>) => (
+const EyMiTiendaWebLogo = (props: React.SVGProps<SVGSVGElement>) => (
     <svg 
         xmlns="http://www.w3.org/2000/svg" 
         viewBox="0 0 24 24" 
@@ -80,8 +80,8 @@ export function Sidebar({ profile, className }: SidebarProps) {
     <aside className={cn("flex flex-col border-r bg-sidebar", className)}>
       <div className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-6">
         <Link href="/products" className="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
-          <VentaRapidaLogo className="h-6 w-6 text-primary" />
-          <span>Mi Tienda Rapida</span>
+          <EyMiTiendaWebLogo className="h-6 w-6 text-primary" />
+          <span>ey mi tienda web!</span>
         </Link>
       </div>
       <nav className="flex-1 space-y-1 p-4">

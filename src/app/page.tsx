@@ -50,7 +50,7 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function VentaRapidaLogo(props: React.SVGProps<SVGSVGElement>) {
+function EyMiTiendaWebLogo(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg 
             xmlns="http://www.w3.org/2000/svg" 
@@ -86,14 +86,14 @@ const AuthPage = () => {
     // This listener handles redirection AFTER a successful login or OAuth.
     // It will NOT handle password recovery, as that flow is now separate.
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session) {
+        if (event === 'SIGNED_IN' && session && session.user.recovery_sent_at === undefined) {
             router.push('/products');
         }
     });
 
     // On initial load, check if there's already a valid, non-recovery session.
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      if (session && session.user.recovery_sent_at === undefined) {
         router.push('/products');
       }
     });
@@ -178,7 +178,7 @@ const AuthPage = () => {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-100">
         <div className="flex flex-col items-center gap-4">
-          <VentaRapidaLogo className="h-12 w-12 animate-pulse text-primary" />
+          <EyMiTiendaWebLogo className="h-12 w-12 animate-pulse text-primary" />
           <p className="text-muted-foreground">Cargando tu tienda...</p>
         </div>
       </div>
@@ -191,8 +191,8 @@ const AuthPage = () => {
         {/* Columna del Formulario */}
         <div className="p-8 sm:p-12">
             <div className="md:hidden flex flex-col items-center text-center mb-6">
-                 <VentaRapidaLogo className="h-10 w-10 mb-2 text-primary" />
-                 <h1 className="font-headline text-2xl font-bold text-gray-800">Mi Tienda Rapida</h1>
+                 <EyMiTiendaWebLogo className="h-10 w-10 mb-2 text-primary" />
+                 <h1 className="font-headline text-2xl font-bold text-gray-800">ey mi tienda web!</h1>
             </div>
           <h2 className="font-headline text-3xl font-bold text-gray-800">
             {isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión'}
@@ -299,9 +299,9 @@ const AuthPage = () => {
 
         {/* Columna de Bienvenida */}
         <div className="hidden md:flex flex-col items-center justify-center bg-primary p-12 text-white text-center">
-            <VentaRapidaLogo className="h-16 w-16 mb-4" />
+            <EyMiTiendaWebLogo className="h-16 w-16 mb-4" />
            <h2 className="font-headline text-4xl font-bold">
-            {isSignUp ? '¡Hola!' : 'Bienvenido a Mi Tienda Rapida'}
+            {isSignUp ? '¡Hola!' : 'Bienvenido a ey mi tienda web!'}
           </h2>
           <p className="mt-4 max-w-sm">
              {isSignUp

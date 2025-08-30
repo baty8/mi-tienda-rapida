@@ -1,4 +1,4 @@
-# Mi Tienda Rápida - Panel de Vendedor
+# ey mi tienda web! - Panel de Vendedor
 
 Esta es una aplicación web completa diseñada como un **panel de administración para vendedores de e-commerce**. Permite a los usuarios gestionar todos los aspectos clave de su tienda online de una manera sencilla e intuitiva.
 

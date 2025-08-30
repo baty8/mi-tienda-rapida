@@ -8,7 +8,7 @@ import { Toaster } from '@/components/ui/sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Mi Tienda Rapida',
+  title: 'ey mi tienda web!',
   description: 'Sistema de Ventas para Vendedores',
   icons: {
     icon: '/icon.svg',
