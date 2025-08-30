@@ -10,6 +10,7 @@ import {
   BookOpen,
   LogOut,
   TrendingUp,
+  FileText,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +23,7 @@ const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LineChart },
   { href: '/catalog', label: 'Catálogo', icon: BookOpen },
   { href: '/finance', label: 'Finanzas', icon: TrendingUp },
+  { href: '/reports', label: 'Reportes', icon: FileText },
   { href: '/profile', label: 'Perfil', icon: User },
 ];
 
