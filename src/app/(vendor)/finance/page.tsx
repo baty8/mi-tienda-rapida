@@ -1,6 +1,6 @@
 
 'use client';
-import { Calculator, DollarSign, PercentCircle, TrendingUp, LineChart } from 'lucide-react';
+import { Calculator, DollarSign, PercentCircle, TrendingUp, LineChart, ChevronsUpDown, Check } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -13,14 +13,19 @@ import { Label } from '@/components/ui/label';
 import { useState, useMemo, useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useProduct } from '@/context/ProductContext';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Product } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+
 
 function FinancePage() {
   const { products } = useProduct();
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [margin, setMargin] = useState(0);
   const [profit, setProfit] = useState(0);
+  const [comboboxOpen, setComboboxOpen] = useState(false);
 
   const selectedProduct = useMemo(() => {
     return products.find(p => p.id === selectedProductId) || null;
@@ -120,17 +125,50 @@ function FinancePage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="product-select">Seleccionar Producto</Label>
-                        <Select onValueChange={setSelectedProductId} value={selectedProductId || ''}>
-                            <SelectTrigger id="product-select">
-                                <SelectValue placeholder="Elige un producto..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {products.map(p => (
-                                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Label>Seleccionar Producto</Label>
+                        <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={comboboxOpen}
+                                className="w-full justify-between"
+                                >
+                                {selectedProductId
+                                    ? products.find((p) => p.id === selectedProductId)?.name
+                                    : "Selecciona un producto..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                                <Command>
+                                    <CommandInput placeholder="Buscar producto..." />
+                                    <CommandList>
+                                        <CommandEmpty>No se encontró ningún producto.</CommandEmpty>
+                                        <CommandGroup>
+                                            {products.map((p) => (
+                                                <CommandItem
+                                                key={p.id}
+                                                value={p.name}
+                                                onSelect={() => {
+                                                    setSelectedProductId(p.id);
+                                                    setComboboxOpen(false);
+                                                }}
+                                                >
+                                                <Check
+                                                    className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    selectedProductId === p.id ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {p.name}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
                     </div>
 
                     {selectedProduct && (
