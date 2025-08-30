@@ -49,24 +49,23 @@ const getFontFamily = (fontName: string | null | undefined): string => {
 };
 
 // Helper to determine if a color is light or dark
-const isColorLight = (hexColor: string | null | undefined): boolean => {
-  if (!hexColor) return true; // Default to light for undefined/null colors
+const isColorLight = (hexColor: string): boolean => {
   const color = hexColor.startsWith('#') ? hexColor.substring(1) : hexColor;
+  let r, g, b;
   if (color.length === 3) {
-    const [r, g, b] = color.split('').map(c => parseInt(c + c, 16));
-    return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+    [r, g, b] = color.split('').map(c => parseInt(c + c, 16));
+  } else if (color.length === 6) {
+    r = parseInt(color.substring(0, 2), 16);
+    g = parseInt(color.substring(2, 4), 16);
+    b = parseInt(color.substring(4, 6), 16);
+  } else {
+    return true; // Default for invalid hex codes
   }
-  if (color.length === 6) {
-    const r = parseInt(color.substring(0, 2), 16);
-    const g = parseInt(color.substring(2, 4), 16);
-    const b = parseInt(color.substring(4, 6), 16);
-    return (r * 299 + g * 587 + b * 114) / 1000 > 128;
-  }
-  return true; // Default for invalid hex codes
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
 };
 
 // Helper to get contrasting text color (black or white)
-const getContrastingTextColor = (bgColor: string | null | undefined): '#FFFFFF' | '#000000' => {
+const getContrastingTextColor = (bgColor: string): '#FFFFFF' | '#000000' => {
   return isColorLight(bgColor) ? '#000000' : '#FFFFFF';
 };
 
@@ -161,7 +160,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
             .store-bg { background-color: var(--store-bg); }
             .store-text { color: var(--store-card-text); }
             .store-primary-text { color: var(--store-primary); }
-            .store-secondary-text { color: ${isColorLight(profile.store_bg_color) ? '#6b7280' : '#d1d5db'}; }
+            .store-secondary-text { color: ${isColorLight(profile.store_bg_color || '#FFFFFF') ? '#6b7280' : '#d1d5db'}; }
             .store-primary-bg { background-color: var(--store-primary); color: var(--store-primary-foreground); }
             .store-card { background-color: var(--store-accent); }
             .store-font { font-family: var(--store-font-family); }
@@ -173,7 +172,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
           style={headerStyle}
         >
             {profile.store_banner_url && (
-                <Image src={profile.store_banner_url} alt="Banner de la tienda" fill objectFit="cover" className="z-0" data-ai-hint="product lifestyle" />
+                <Image src={profile.store_banner_url} alt="Banner de la tienda" fill style={{objectFit: 'cover'}} className="z-0" data-ai-hint="product lifestyle" />
             )}
             <div className="absolute inset-0 bg-black/50 z-10"></div>
             <div className="relative z-20 p-6 flex flex-col items-center text-white">
@@ -254,7 +253,6 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                             >
                               <ShoppingCart
                                 className="mr-2 h-4 w-4"
-                                style={{ color: getContrastingTextColor(storePrimaryColor) }}
                               />
                               Añadir al carrito
                             </Button>
@@ -275,7 +273,6 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                               >
                                 <MessageCircle
                                   className="mr-2 h-4 w-4"
-                                  style={{ color: storePrimaryColor }}
                                 />
                                 Consultar
                               </a>
@@ -381,19 +378,19 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                                     </>
                                 )}
                             </Carousel>
-                            <div className="flex flex-col flex-grow text-black">
+                            <div className="flex flex-col flex-grow">
                                 <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
-                                <div className="mt-2 text-gray-600 flex-grow max-h-40 overflow-y-auto pr-2">
+                                <div className="mt-2 text-muted-foreground flex-grow max-h-40 overflow-y-auto pr-2">
                                 <p>{selectedProduct.description}</p>
                                 </div>
                                 <div className="mt-6 flex flex-col items-start gap-2">
                                     <p className="text-3xl font-extrabold store-primary-text">${selectedProduct.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                                    <Button size="lg" className="w-full" style={{ backgroundColor: storePrimaryColor, color: getContrastingTextColor(storePrimaryColor)}} onClick={() => { handleAddToCart(selectedProduct); closeModal(); }}>
+                                    <Button size="lg" className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={() => { handleAddToCart(selectedProduct); closeModal(); }}>
                                         <ShoppingCart className="mr-2 h-5 w-5" />
                                         Añadir al carrito
                                     </Button>
-                                     <Button asChild size="lg" className="w-full" variant="outline" style={{ borderColor: storePrimaryColor, color: storePrimaryColor }}>
-                                        <a href={getSingleProductWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer">
+                                     <Button asChild size="lg" className="w-full" variant="outline">
+                                        <a href={getSingleProductWhatsAppLink(selectedProduct)} target="_blank" rel="noopener noreferrer" className="border-blue-600 text-blue-600 hover:bg-blue-50 hover:text-blue-700">
                                             <MessageCircle className="mr-2 h-5 w-5" />
                                             Consultar por WhatsApp
                                         </a>
@@ -405,7 +402,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                 </DialogContent>
         </Dialog>
         <footer className="mt-12 text-center text-sm store-font" style={{ color: 'var(--store-secondary-text)'}}>
-            <p>Potenciado por VentaRapida</p>
+            <p>Potenciado por ey mi tienda web!</p>
         </footer>
       </main>
     </div>
