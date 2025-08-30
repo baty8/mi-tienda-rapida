@@ -224,7 +224,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filteredProducts.map((product) => product && (
-                <div key={product.id} className="group flex flex-col overflow-hidden rounded-xl border border-black/10 shadow-lg transition-shadow duration-300 hover:shadow-2xl store-card">
+                <div key={product.id} className="group flex flex-col overflow-hidden rounded-xl border border-black/10 transition-transform duration-300 hover:-translate-y-0.5 store-card">
                     <div onClick={() => openModal(product)} className="aspect-[4/3] w-full overflow-hidden relative cursor-pointer">
                         <Image
                             src={product.image_urls[0]}
@@ -377,5 +377,3 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
     </div>
   );
 }
-
-    
