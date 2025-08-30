@@ -26,7 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
-import { ScrollArea } from './ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type CatalogWithProducts = Omit<Catalog, 'product_ids' | 'user_id' | 'created_at' | 'is_public'> & {
     products: Product[];
@@ -377,3 +377,5 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
     </div>
   );
 }
+
+    
