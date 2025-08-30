@@ -168,6 +168,9 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
               color: var(--store-primary-foreground);
               opacity: 0.9;
             }
+            .store-primary-bg:hover {
+                opacity: 0.9;
+            }
         `}</style>
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
         <header 
@@ -224,7 +227,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filteredProducts.map((product) => product && (
-                <div key={product.id} className="group flex flex-col overflow-hidden rounded-xl border border-black/10 transition-transform duration-300 hover:-translate-y-0.5 store-card">
+                <div key={product.id} className="group flex flex-col overflow-hidden rounded-xl border border-black/10 transition-transform duration-300 store-card">
                     <div onClick={() => openModal(product)} className="aspect-[4/3] w-full overflow-hidden relative cursor-pointer">
                         <Image
                             src={product.image_urls[0]}
@@ -242,7 +245,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                         </div>
                         <div className="mt-4 space-y-2">
                              <p className="text-2xl font-extrabold store-primary-text">${product.price.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                            <Button className="w-full store-primary-bg hover:opacity-90" onClick={() => handleAddToCart(product)}>
+                            <Button className="w-full store-primary-bg" onClick={() => handleAddToCart(product)}>
                                 <ShoppingCart className="mr-2 h-4 w-4" />
                                 Añadir al carrito
                             </Button>
@@ -261,7 +264,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
         
         <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetTrigger asChild>
-                 <Button className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-2xl store-primary-bg hover:opacity-90 z-20">
+                 <Button className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-2xl store-primary-bg z-20">
                     <ShoppingCart className="h-7 w-7" />
                     {totalItems > 0 && <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">{totalItems}</span>}
                     <span className="sr-only">Ver carrito de compras</span>
@@ -299,7 +302,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                             <span>Total:</span>
                             <span>${totalPrice.toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
                         </div>
-                        <Button asChild size="lg" className="w-full mt-4 store-primary-bg hover:opacity-90" disabled={!profile?.phone}>
+                        <Button asChild size="lg" className="w-full mt-4 store-primary-bg" disabled={!profile?.phone}>
                             <a href={getCartWhatsAppLink()} target="_blank" rel="noopener noreferrer">
                                 <MessageCircle className="mr-2 h-5 w-5" />
                                 Finalizar Compra por WhatsApp
@@ -377,3 +380,5 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
     </div>
   );
 }
+
+    
