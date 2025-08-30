@@ -124,7 +124,7 @@ function FinancePage() {
                 </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="space-y-2 max-w-sm mx-auto">
+                    <div className="space-y-2">
                         <Label>Seleccionar Producto</Label>
                         <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
                             <PopoverTrigger asChild>
@@ -172,28 +172,29 @@ function FinancePage() {
                     </div>
 
                     {selectedProduct && (
-                         <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
-                            <div className="space-y-2">
-                            <Label htmlFor="cost">Costo del Producto ($)</Label>
-                            <Input id="cost" type="number" readOnly value={selectedProduct.cost}/>
+                        <div className="max-w-sm mx-auto w-full space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                <Label htmlFor="cost">Costo del Producto ($)</Label>
+                                <Input id="cost" type="number" readOnly value={selectedProduct.cost}/>
+                                </div>
+                                <div className="space-y-2">
+                                <Label htmlFor="price">Precio de Venta ($)</Label>
+                                <Input id="price" type="number" readOnly value={selectedProduct.price}/>
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                            <Label htmlFor="price">Precio de Venta ($)</Label>
-                            <Input id="price" type="number" readOnly value={selectedProduct.price}/>
+                            <div className="mt-4 rounded-lg border bg-muted p-4 space-y-2">
+                                <div className="flex justify-between font-medium">
+                                    <span>Ganancia por unidad:</span>
+                                    <span className="text-green-600">${profit.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between font-bold text-lg text-primary">
+                                    <span>Margen de Ganancia:</span>
+                                    <span>{margin.toFixed(2)}%</span>
+                                </div>
                             </div>
                         </div>
                     )}
-                    
-                    <div className="mt-4 rounded-lg border bg-muted p-4 space-y-2 max-w-sm mx-auto">
-                        <div className="flex justify-between font-medium">
-                            <span>Ganancia por unidad:</span>
-                            <span className="text-green-600">${profit.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between font-bold text-lg text-primary">
-                            <span>Margen de Ganancia:</span>
-                            <span>{margin.toFixed(2)}%</span>
-                        </div>
-                    </div>
                 </CardContent>
             </Card>
         </div>
