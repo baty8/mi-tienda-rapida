@@ -1,6 +1,6 @@
 
 'use client';
-import { Calculator, Wand2, DollarSign, PercentCircle, TrendingUp, LineChart } from 'lucide-react';
+import { Calculator, DollarSign, PercentCircle, TrendingUp, LineChart } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -8,12 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState, useMemo, useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { AiPricingAssistant } from '@/components/ai-pricing-assistant';
 import { useProduct } from '@/context/ProductContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Product } from '@/types';
@@ -60,7 +58,9 @@ function FinancePage() {
         }
         return acc;
     }, 0);
-    const averageMargin = (totalMargin / products.length) * 100;
+    const validProductsForMargin = products.filter(p => p.price > 0).length;
+    const averageMargin = validProductsForMargin > 0 ? (totalMargin / validProductsForMargin) * 100 : 0;
+
 
     return { totalCostValue, totalRetailValue, potentialProfit, averageMargin };
   }, [products]);
@@ -108,61 +108,56 @@ function FinancePage() {
                 </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Card>
-                    <CardHeader>
-                    <div className="flex items-center gap-2">
-                        <Calculator className="h-5 w-5 text-primary" />
-                        <CardTitle>Calculadora de Margen de Ganancia</CardTitle>
+            <Card>
+                <CardHeader>
+                <div className="flex items-center gap-2">
+                    <Calculator className="h-5 w-5 text-primary" />
+                    <CardTitle>Calculadora de Margen de Ganancia</CardTitle>
+                </div>
+                <CardDescription>
+                    Selecciona un producto para calcular su rentabilidad individual.
+                </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="product-select">Seleccionar Producto</Label>
+                        <Select onValueChange={setSelectedProductId} value={selectedProductId || ''}>
+                            <SelectTrigger id="product-select">
+                                <SelectValue placeholder="Elige un producto..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {products.map(p => (
+                                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
-                    <CardDescription>
-                        Selecciona un producto para calcular su rentabilidad.
-                    </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="product-select">Seleccionar Producto</Label>
-                            <Select onValueChange={setSelectedProductId} value={selectedProductId || ''}>
-                                <SelectTrigger id="product-select">
-                                    <SelectValue placeholder="Elige un producto..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {products.map(p => (
-                                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
 
-                        {selectedProduct && (
-                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                <Label htmlFor="cost">Costo del Producto ($)</Label>
-                                <Input id="cost" type="number" readOnly value={selectedProduct.cost}/>
-                                </div>
-                                <div className="space-y-2">
-                                <Label htmlFor="price">Precio de Venta ($)</Label>
-                                <Input id="price" type="number" readOnly value={selectedProduct.price}/>
-                                </div>
+                    {selectedProduct && (
+                         <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                            <Label htmlFor="cost">Costo del Producto ($)</Label>
+                            <Input id="cost" type="number" readOnly value={selectedProduct.cost}/>
                             </div>
-                        )}
-                        
-                        <div className="mt-4 rounded-lg border bg-muted p-4 space-y-2">
-                            <div className="flex justify-between font-medium">
-                                <span>Ganancia por unidad:</span>
-                                <span className="text-green-600">${profit.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between font-bold text-lg text-primary">
-                                <span>Margen de Ganancia:</span>
-                                <span>{margin.toFixed(2)}%</span>
+                            <div className="space-y-2">
+                            <Label htmlFor="price">Precio de Venta ($)</Label>
+                            <Input id="price" type="number" readOnly value={selectedProduct.price}/>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
-                
-                <AiPricingAssistant />
-                
-            </div>
+                    )}
+                    
+                    <div className="mt-4 rounded-lg border bg-muted p-4 space-y-2">
+                        <div className="flex justify-between font-medium">
+                            <span>Ganancia por unidad:</span>
+                            <span className="text-green-600">${profit.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-lg text-primary">
+                            <span>Margen de Ganancia:</span>
+                            <span>{margin.toFixed(2)}%</span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
       </main>
     </div>
@@ -170,5 +165,3 @@ function FinancePage() {
 }
 
 export default FinancePage;
-
-    
