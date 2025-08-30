@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Wand2, Loader2, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
@@ -10,16 +10,31 @@ import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { suggestPrice, type SuggestPriceOutput } from '@/ai/flows/pricing-assistant-flow';
 import { toast } from 'sonner';
+import { useProduct } from '@/context/ProductContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 // The AI features are considered configured if the Supabase keys are present.
 const isConfigured = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export function AiPricingAssistant() {
+  const { products } = useProduct();
+  const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [productCost, setProductCost] = useState('');
   const [productDescription, setProductDescription] = useState('');
   const [targetAudience, setTargetAudience] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SuggestPriceOutput | null>(null);
+
+  useEffect(() => {
+    const product = products.find(p => p.id === selectedProductId);
+    if (product) {
+      setProductCost(String(product.cost));
+      setProductDescription(product.description || '');
+    } else {
+      setProductCost('');
+      setProductDescription('');
+    }
+  }, [selectedProductId, products]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +63,7 @@ export function AiPricingAssistant() {
   
   const handleReset = () => {
     setResult(null);
+    setSelectedProductId('');
     setProductCost('');
     setProductDescription('');
     setTargetAudience('');
@@ -87,6 +103,19 @@ export function AiPricingAssistant() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="ai-product-select">Seleccionar Producto (Opcional)</Label>
+              <Select onValueChange={setSelectedProductId} value={selectedProductId}>
+                <SelectTrigger id="ai-product-select">
+                  <SelectValue placeholder="Elige un producto para autocompletar..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {products.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="product-cost">Costo del Producto ($)</Label>
               <Input
                 id="product-cost"
@@ -120,7 +149,7 @@ export function AiPricingAssistant() {
                 disabled={loading}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || !productCost || !productDescription || !targetAudience}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {loading ? 'Obteniendo Sugerencia...' : 'Sugerir Precio'}
             </Button>
@@ -130,3 +159,5 @@ export function AiPricingAssistant() {
     </Card>
   );
 }
+
+    
