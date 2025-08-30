@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useProduct } from '@/context/ProductContext';
-import { generateReport, type GenerateReportInput, type GenerateReportOutput } from '@/ai/flows/report-generator-flow';
+import { generateReport } from '@/ai/flows/report-generator-flow';
+import { type GenerateReportInput, type GenerateReportOutput } from '@/ai/flows/types';
 import { toast } from 'sonner';
 import {
   Select,
