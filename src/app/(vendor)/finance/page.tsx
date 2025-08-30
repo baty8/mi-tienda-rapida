@@ -115,16 +115,16 @@ function FinancePage() {
 
             <Card>
                 <CardHeader>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center gap-2">
                     <Calculator className="h-5 w-5 text-primary" />
                     <CardTitle>Calculadora de Margen de Ganancia</CardTitle>
                 </div>
-                <CardDescription>
+                <CardDescription className="text-center">
                     Selecciona un producto para calcular su rentabilidad individual.
                 </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-w-sm mx-auto">
                         <Label>Seleccionar Producto</Label>
                         <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
                             <PopoverTrigger asChild>
@@ -140,7 +140,7 @@ function FinancePage() {
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-full p-0">
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
                                 <Command>
                                     <CommandInput placeholder="Buscar producto..." />
                                     <CommandList>
@@ -172,7 +172,7 @@ function FinancePage() {
                     </div>
 
                     {selectedProduct && (
-                         <div className="grid grid-cols-2 gap-4">
+                         <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
                             <div className="space-y-2">
                             <Label htmlFor="cost">Costo del Producto ($)</Label>
                             <Input id="cost" type="number" readOnly value={selectedProduct.cost}/>
@@ -184,7 +184,7 @@ function FinancePage() {
                         </div>
                     )}
                     
-                    <div className="mt-4 rounded-lg border bg-muted p-4 space-y-2">
+                    <div className="mt-4 rounded-lg border bg-muted p-4 space-y-2 max-w-sm mx-auto">
                         <div className="flex justify-between font-medium">
                             <span>Ganancia por unidad:</span>
                             <span className="text-green-600">${profit.toFixed(2)}</span>
