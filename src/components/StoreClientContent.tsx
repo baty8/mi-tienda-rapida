@@ -107,7 +107,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
     });
   }
 
-  const getWhatsAppLink = () => {
+  const getCartWhatsAppLink = () => {
     const sellerPhoneNumber = profile?.phone || '';
     if (!sellerPhoneNumber) return '#';
     const messageLines = [
@@ -119,12 +119,20 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
     return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
   
+  const getSingleProductWhatsAppLink = (product: Product) => {
+    const sellerPhoneNumber = profile?.phone || '';
+    if (!sellerPhoneNumber) return '#';
+    const message = `Hola ${profile.name || 'Tienda'}, estoy interesado/a en el producto: ${product.name}.`;
+    return `https://wa.me/${sellerPhoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+  };
+  
   const showEmptyState = initialCatalogsWithProducts.length === 0 && allProducts.length === 0;
 
   const storePrimaryColor = profile.store_primary_color || '#111827';
   const storeAccentColor = profile.store_accent_color || '#F3F4F6';
   const cardTextColor = isColorLight(storeAccentColor) ? '#111827' : '#FFFFFF';
-  const buttonTextColor = isColorLight(storePrimaryColor) ? '#111827' : '#FFFFFF';
+  const buttonTextColor = isColorLight(storePrimaryColor) ? '#FFFFFF' : '#111827';
+  const buttonBgColor = isColorLight(storePrimaryColor) ? '#111827' : '#FFFFFF';
 
   const storeStyle = {
     '--store-bg': profile.store_bg_color || '#FFFFFF',
@@ -150,6 +158,16 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
             .store-primary-bg { background-color: var(--store-primary); color: var(--store-primary-foreground); }
             .store-card { background-color: var(--store-accent); color: var(--store-card-text); }
             .store-font { font-family: var(--store-font-family); }
+            .store-button-outline { 
+              background-color: transparent;
+              color: var(--store-primary);
+              border: 1px solid var(--store-primary);
+            }
+            .store-button-outline:hover {
+              background-color: var(--store-primary);
+              color: var(--store-primary-foreground);
+              opacity: 0.9;
+            }
         `}</style>
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 store-bg">
         <header 
@@ -228,6 +246,12 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                                 <ShoppingCart className="mr-2 h-4 w-4" />
                                 Añadir al carrito
                             </Button>
+                            <Button asChild className="w-full store-button-outline" variant="outline">
+                                <a href={getSingleProductWhatsAppLink(product)} target="_blank" rel="noopener noreferrer">
+                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                    Consultar
+                                </a>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -276,7 +300,7 @@ export function StoreClientContent({ profile, initialCatalogsWithProducts }: Sto
                             <span>${totalPrice.toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
                         </div>
                         <Button asChild size="lg" className="w-full mt-4 store-primary-bg hover:opacity-90" disabled={!profile?.phone}>
-                            <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer">
+                            <a href={getCartWhatsAppLink()} target="_blank" rel="noopener noreferrer">
                                 <MessageCircle className="mr-2 h-5 w-5" />
                                 Finalizar Compra por WhatsApp
                             </a>
