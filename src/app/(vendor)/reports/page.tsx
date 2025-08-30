@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { FileText, Wand2, Loader2, Download, Trash2, Eye } from 'lucide-react';
+import { FileText, Wand2, Loader2, Trash2, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -113,6 +113,7 @@ export default function ReportsPage() {
         }
         setLoading(true);
         setGeneratedReport(null);
+        setViewingReport(null);
 
         try {
             const productData = products.map(p => ({ id: p.id, name: p.name, price: p.price, stock: p.stock, cost: p.cost }));
@@ -158,17 +159,6 @@ export default function ReportsPage() {
                 setViewingReport(null);
             }
         }
-    };
-
-    const downloadReport = (reportContent: string, title: string) => {
-        const blob = new Blob([reportContent], { type: 'text/markdown;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${title.replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.md`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
     };
     
     const currentReport = viewingReport || (generatedReport ? { ...generatedReport, id: 'temp', generated_at: new Date().toISOString(), report_type: selectedTemplate! } : null);
@@ -228,7 +218,7 @@ export default function ReportsPage() {
                                                         <p className="text-xs text-muted-foreground">{new Date(report.generated_at).toLocaleDateString()}</p>
                                                     </div>
                                                     <div className="flex gap-1">
-                                                        <Button variant="ghost" size="icon" onClick={() => setViewingReport(report)}>
+                                                        <Button variant="ghost" size="icon" onClick={() => { setViewingReport(report); setGeneratedReport(null); }}>
                                                             <Eye className="h-4 w-4" />
                                                         </Button>
                                                         <AlertDialog>
@@ -263,14 +253,9 @@ export default function ReportsPage() {
                         <Card className="min-h-[70vh]">
                             <CardHeader>
                                 {currentReport ? (
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <CardTitle>{currentReport.title}</CardTitle>
-                                            <CardDescription>Generado: {new Date(currentReport.generated_at).toLocaleString()}</CardDescription>
-                                        </div>
-                                        <Button variant="outline" onClick={() => downloadReport(currentReport.content, currentReport.title)}>
-                                            <Download className="mr-2 h-4 w-4"/>Descargar (.md)
-                                        </Button>
+                                    <div>
+                                        <CardTitle>{currentReport.title}</CardTitle>
+                                        <CardDescription>Generado: {new Date(currentReport.generated_at).toLocaleString()}</CardDescription>
                                     </div>
                                 ) : (
                                      <CardTitle>Vista Previa del Reporte</CardTitle>

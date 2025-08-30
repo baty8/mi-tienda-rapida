@@ -15,70 +15,70 @@ export async function generateReport(input: GenerateReportInput): Promise<Genera
 }
 
 const performancePrompt = `
-You are a business analyst expert for e-commerce. Your task is to generate a "Sales Performance Report".
-Analyze the provided product and sales data for the period: {{criteria.period}}.
+Eres un experto analista de negocios para e-commerce. Tu tarea es generar un "Reporte de Rendimiento de Ventas".
+Analiza los datos de productos y ventas proporcionados para el período: {{criteria.period}}.
 
-**Product Inventory:**
+**Inventario de Productos:**
 {{#each products}}
 - {{name}}: \${{price}}, Stock: {{stock}}
 {{/each}}
 
-**Sales Data:**
+**Datos de Ventas:**
 {{#each sales}}
-- Sold {{unitsSold}} of "{{productName}}" for \${{totalRevenue}}
+- Vendidas {{unitsSold}} unidades de "{{productName}}" por un total de \${{totalRevenue}}
 {{/each}}
 
-**Report Structure:**
-1.  **Executive Summary:** A brief overview of the key findings.
-2.  **Top-Performing Products:** List the top 3 products by revenue and units sold.
-3.  **Underperforming Products:** Identify products with low sales.
-4.  **Key Insights & Trends:** What trends or patterns can you identify?
-5.  **Actionable Recommendations:** Provide 2-3 concrete recommendations to improve sales or inventory management.
+**Estructura del Reporte (en español):**
+1.  **Resumen Ejecutivo:** Una breve descripción de los hallazgos clave.
+2.  **Productos de Mejor Desempeño:** Lista los 3 productos más vendidos por ingresos y por unidades.
+3.  **Productos de Bajo Desempeño:** Identifica productos con pocas ventas.
+4.  **Ideas Clave y Tendencias:** ¿Qué tendencias o patrones puedes identificar en los datos?
+5.  **Recomendaciones Accionables:** Proporciona 2-3 recomendaciones concretas para mejorar las ventas o la gestión del inventario.
 
-The output should be a detailed report in Markdown format.
+La salida debe ser un reporte detallado en formato Markdown y completamente en español.
 `;
 
 const catalogRecommendationPrompt = `
-You are a merchandising expert. Your task is to generate a "Catalog Recommendation Report".
-Based on the sales data, recommend which products to feature in a new catalog.
+Eres un experto en merchandising y marketing. Tu tarea es generar un "Reporte de Recomendación de Catálogo".
+Basado en los datos de ventas, recomienda qué productos destacar en un nuevo catálogo.
 
-**Product Inventory:**
+**Inventario de Productos:**
 {{#each products}}
 - {{name}}: \${{price}}, Stock: {{stock}}
 {{/each}}
 
-**Sales Data:**
+**Datos de Ventas:**
 {{#each sales}}
-- Sold {{unitsSold}} of "{{productName}}" for \${{totalRevenue}}
+- Vendidas {{unitsSold}} unidades de "{{productName}}" por un total de \${{totalRevenue}}
 {{/each}}
 
-**Report Structure:**
-1.  **Top Sellers to Feature:** List the top 5 products that are selling well and should be highlighted.
-2.  **Hidden Gems:** Identify products with good potential (e.g., high price, good stock) but low sales that could be promoted.
-3.  **Bundling Opportunities:** Suggest 2-3 product bundles that could be offered as a special deal.
-4.  **Catalog Theme Idea:** Propose a creative name or theme for a new catalog based on these recommendations (e.g., "Summer Essentials", "Customer Favorites").
+**Estructura del Reporte (en español):**
+1.  **Éxitos de Venta para Destacar:** Lista los 5 productos que se están vendiendo bien y deberían ser promocionados.
+2.  **Joyas Ocultas:** Identifica productos con buen potencial (ej: precio alto, buen stock) pero con ventas bajas que podrían ser impulsados.
+3.  **Oportunidades de Combos (Bundles):** Sugiere 2-3 combos de productos que podrían ofrecerse como una oferta especial.
+4.  **Idea para el Tema del Catálogo:** Propón un nombre o tema creativo para el nuevo catálogo basado en estas recomendaciones (ej: "Esenciales de Verano", "Favoritos de los Clientes").
 
-The output should be a detailed report in Markdown format.
+La salida debe ser un reporte detallado en formato Markdown y completamente en español.
 `;
 
 const projectionPrompt = `
-You are a data scientist specializing in sales forecasting. Your task is to generate a "Sales Projection Report".
-Analyze the historical sales data and project sales for the next period.
+Eres un científico de datos especializado en proyecciones de ventas. Tu tarea es generar un "Reporte de Proyección de Ventas".
+Analiza los datos históricos de ventas y proyecta las ventas para el próximo período.
 
-**This is a placeholder prompt. In a real scenario, you would use more complex models. For now, provide a qualitative projection.**
+**Esta es una instrucción de marcador de posición. En un escenario real, usarías modelos más complejos. Por ahora, proporciona una proyección cualitativa.**
 
-**Sales Data:**
+**Datos de Ventas:**
 {{#each sales}}
-- Sold {{unitsSold}} of "{{productName}}" for \${{totalRevenue}}
+- Vendidas {{unitsSold}} unidades de "{{productName}}" por un total de \${{totalRevenue}}
 {{/each}}
 
-**Report Structure:**
-1.  **Current Trend Analysis:** Briefly describe the current sales trend (growing, stable, declining).
-2.  **Sales Projection (Next 30 Days):** Based on the current trend, provide a qualitative forecast. Mention which products are likely to continue selling well.
-3.  **Factors to Consider:** List 2-3 external or internal factors that could influence future sales (e.g., seasonality, marketing campaigns, stock levels).
-4.  **Recommendations for Growth:** Suggest one key action to positively impact the projection.
+**Estructura del Reporte (en español):**
+1.  **Análisis de Tendencia Actual:** Describe brevemente la tendencia actual de ventas (creciente, estable, decreciente).
+2.  **Proyección de Ventas (Próximos 30 días):** Basado en la tendencia actual, proporciona un pronóstico cualitativo. Menciona qué productos es probable que sigan vendiéndose bien.
+3.  **Factores a Considerar:** Lista 2-3 factores externos o internos que podrían influir en las ventas futuras (ej: estacionalidad, campañas de marketing, niveles de stock).
+4.  **Recomendaciones para el Crecimiento:** Sugiere una acción clave para impactar positivamente la proyección.
 
-The output should be a detailed report in Markdown format.
+La salida debe ser un reporte detallado en formato Markdown y completamente en español.
 `;
 
 const getPromptForReportType = (reportType: GenerateReportInput['reportType']) => {
