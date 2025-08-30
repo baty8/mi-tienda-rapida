@@ -3,10 +3,9 @@
 import { useProduct } from '@/context/ProductContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { AlertCircle, LineChart, ShoppingBag, TrendingUp, Sparkles } from 'lucide-react';
+import { AlertCircle, LineChart, ShoppingBag, TrendingUp } from 'lucide-react';
 import { StockAlert } from '@/components/stock-alert';
 import { TopProductsChart } from '@/components/top-products-chart';
-import { AiSalesAnalysis } from '@/components/ai-sales-analysis';
 
 function DashboardPage() {
     const { products, loading } = useProduct();
@@ -74,10 +73,6 @@ function DashboardPage() {
                         <StockAlert />
                     </div>
                 </div>
-
-                {/* Fila de Análisis con IA */}
-                <AiSalesAnalysis />
-
               </div>
           ) : (
               <Card>
