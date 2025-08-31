@@ -42,7 +42,7 @@ type ReportRecord = {
     report_type: string;
     generated_at: string;
     content: string;
-    title: string;
+    title: string; // This will be added client-side
     criteria: any;
 }
 
@@ -58,6 +58,10 @@ export default function ReportsPage() {
 
     const supabase = getSupabase();
 
+    const getTitleFromType = (type: string) => {
+        return reportTemplates.find(t => t.id === type)?.name || 'Reporte';
+    }
+
     const fetchHistory = useCallback(async () => {
         if (!supabase) return;
         const { data: { user } } = await supabase.auth.getUser();
@@ -65,14 +69,18 @@ export default function ReportsPage() {
 
         const { data, error } = await supabase
             .from('reports')
-            .select('id, report_type, generated_at, content, title, criteria')
+            .select('id, report_type, generated_at, content, criteria')
             .eq('user_id', user.id)
             .order('generated_at', { ascending: false });
         
         if (error) {
             toast.error("Error", { description: "No se pudo cargar el historial de reportes." });
         } else {
-            setHistory(data as ReportRecord[]);
+            const formattedHistory = data.map(r => ({
+                ...r,
+                title: getTitleFromType(r.report_type),
+            }))
+            setHistory(formattedHistory as ReportRecord[]);
         }
         setHistoryLoaded(true); 
     }, [supabase]);
@@ -137,7 +145,6 @@ export default function ReportsPage() {
             user_id: user.id,
             report_type: lastGeneratedReport.reportType,
             content: lastGeneratedReport.content,
-            title: lastGeneratedReport.title,
             criteria: lastGeneratedReport.criteria,
         });
 
@@ -300,5 +307,3 @@ export default function ReportsPage() {
         </div>
     );
 }
-
-    
