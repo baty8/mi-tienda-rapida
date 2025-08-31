@@ -79,9 +79,6 @@ const reportGeneratorPrompt = ai.definePrompt({
   },
   customize: (prompt) => {
     prompt.helpers = {
-        subtract: (a: number, b: number) => (a - b).toFixed(2),
-        divide: (a: number, b: number) => (b !== 0 ? (a / b) : 0),
-        multiply: (a: number, b: number) => (a * b).toFixed(2),
         eq: (a: string, b: string) => a === b,
     };
     return prompt;
