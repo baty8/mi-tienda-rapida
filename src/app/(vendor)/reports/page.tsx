@@ -1,10 +1,10 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { FileText, Wand2, Loader2, Trash2, Eye } from 'lucide-react';
+import { FileText, Wand2, Loader2, Trash2, Eye, Save } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useProduct } from '@/context/ProductContext';
 import { generateReport } from '@/ai/flows/report-generator-flow';
 import { type GenerateReportInput, type GenerateReportOutput } from '@/ai/flows/types';
@@ -43,13 +43,15 @@ type ReportRecord = {
     generated_at: string;
     content: string;
     title: string;
+    criteria: any;
 }
 
 export default function ReportsPage() {
     const { products } = useProduct();
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [generatedReport, setGeneratedReport] = useState<GenerateReportOutput | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [lastGeneratedReport, setLastGeneratedReport] = useState<GenerateReportOutput & {reportType: string; criteria: any;} | null>(null);
     const [history, setHistory] = useState<ReportRecord[]>([]);
     const [viewingReport, setViewingReport] = useState<ReportRecord | null>(null);
 
@@ -61,7 +63,7 @@ export default function ReportsPage() {
         if (!user) return;
         const { data, error } = await supabase
             .from('reports')
-            .select('id, report_type, generated_at, content, title')
+            .select('id, report_type, generated_at, content, title, criteria')
             .eq('user_id', user.id)
             .order('generated_at', { ascending: false });
         
@@ -69,8 +71,6 @@ export default function ReportsPage() {
             toast.error("Error", { description: "No se pudo cargar el historial." });
             return;
         }
-
-        // The title is now directly fetched from the DB, so no mapping is needed.
         setHistory(data as ReportRecord[]);
     };
 
@@ -80,12 +80,12 @@ export default function ReportsPage() {
     }, []);
 
     const handleGenerateReport = async () => {
-        if (!selectedTemplate || !supabase) {
+        if (!selectedTemplate) {
             toast.error("Error", { description: "Por favor, selecciona una plantilla." });
             return;
         }
         setLoading(true);
-        setGeneratedReport(null);
+        setLastGeneratedReport(null);
         setViewingReport(null);
 
         try {
@@ -106,19 +106,7 @@ export default function ReportsPage() {
             };
 
             const report = await generateReport(input);
-            setGeneratedReport(report);
-
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                await supabase.from('reports').insert({
-                    user_id: user.id,
-                    report_type: selectedTemplate,
-                    content: report.content,
-                    title: report.title, // Make sure title is saved
-                    criteria: input.criteria,
-                });
-                fetchHistory(); // Refresh history
-            }
+            setLastGeneratedReport({ ...report, reportType: selectedTemplate, criteria: input.criteria });
 
         } catch (error: any) {
             toast.error("Error al generar reporte", { description: error.message });
@@ -127,6 +115,37 @@ export default function ReportsPage() {
         }
     };
     
+    const handleSaveReport = async () => {
+        if (!lastGeneratedReport || !supabase) {
+            toast.error("Error", { description: "No hay reporte que guardar." });
+            return;
+        }
+        setSaving(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            toast.error("Error", { description: "Debes iniciar sesión para guardar reportes."});
+            setSaving(false);
+            return;
+        }
+
+        const { error } = await supabase.from('reports').insert({
+            user_id: user.id,
+            report_type: lastGeneratedReport.reportType,
+            content: lastGeneratedReport.content,
+            title: lastGeneratedReport.title,
+            criteria: lastGeneratedReport.criteria,
+        });
+
+        if (error) {
+            toast.error("Error", { description: `No se pudo guardar el reporte: ${error.message}`});
+        } else {
+            toast.success("Éxito", { description: "Reporte guardado en tu historial." });
+            fetchHistory(); // Refresh history
+            setLastGeneratedReport(null); // Clear the temporary report
+        }
+        setSaving(false);
+    };
+
     const handleDeleteReport = async (reportId: string) => {
         if (!supabase) return;
         const { error } = await supabase.from('reports').delete().eq('id', reportId);
@@ -141,7 +160,7 @@ export default function ReportsPage() {
         }
     };
     
-    const currentReport = viewingReport || (generatedReport ? { ...generatedReport, id: 'temp', generated_at: new Date().toISOString(), report_type: selectedTemplate! } : null);
+    const currentReport = viewingReport || (lastGeneratedReport ? { ...lastGeneratedReport, id: 'temp', generated_at: new Date().toISOString() } : null);
 
     return (
         <div className="flex flex-col flex-1">
@@ -198,7 +217,7 @@ export default function ReportsPage() {
                                                         <p className="text-xs text-muted-foreground">{new Date(report.generated_at).toLocaleDateString()}</p>
                                                     </div>
                                                     <div className="flex gap-1">
-                                                        <Button variant="ghost" size="icon" onClick={() => { setViewingReport(report); setGeneratedReport(null); }}>
+                                                        <Button variant="ghost" size="icon" onClick={() => { setViewingReport(report); setLastGeneratedReport(null); }}>
                                                             <Eye className="h-4 w-4" />
                                                         </Button>
                                                         <AlertDialog>
@@ -231,7 +250,7 @@ export default function ReportsPage() {
                     {/* Columna de Visualización de Reporte */}
                     <div className="md:col-span-8 lg:col-span-9">
                         <Card className="min-h-[70vh]">
-                            <CardHeader>
+                             <CardHeader className="flex flex-row justify-between items-center">
                                 {currentReport ? (
                                     <div>
                                         <CardTitle>{currentReport.title}</CardTitle>
@@ -239,6 +258,12 @@ export default function ReportsPage() {
                                     </div>
                                 ) : (
                                      <CardTitle>Vista Previa del Reporte</CardTitle>
+                                )}
+                                {lastGeneratedReport && (
+                                    <Button onClick={handleSaveReport} disabled={saving}>
+                                        {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
+                                        Guardar Reporte
+                                    </Button>
                                 )}
                             </CardHeader>
                             <CardContent>
@@ -270,5 +295,3 @@ export default function ReportsPage() {
         </div>
     );
 }
-
-    

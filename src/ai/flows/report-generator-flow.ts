@@ -27,7 +27,7 @@ const catalogPrompt = ai.definePrompt({
 
     **Productos:**
     {{#each products}}
-    - Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Stock: {{stock}}, Visible: {{#if visible}}Sí{{else}}No{{/if}}, Categoría: {{category}}
+    - Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Stock: {{stock}}, Visible: {{#if visible}}Sí{{else}}No{{/if}}
     {{/each}}
 
     ---
@@ -61,7 +61,7 @@ const stockPrompt = ai.definePrompt({
 
     **Productos:**
     {{#each products}}
-    - Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Stock: {{stock}}, Visible: {{#if visible}}Sí{{else}}No{{/if}}, Categoría: {{category}}
+    - Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Stock: {{stock}}, Visible: {{#if visible}}Sí{{else}}No{{/if}}
     {{/each}}
 
     ---
@@ -94,7 +94,7 @@ const pricingMarginsPrompt = ai.definePrompt({
 
     **Productos:**
     {{#each products}}
-    - Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Stock: {{stock}}, Visible: {{#if visible}}Sí{{else}}No{{/if}}, Categoría: {{category}}
+    - Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Stock: {{stock}}, Visible: {{#if visible}}Sí{{else}}No{{/if}}
     {{/each}}
 
     ---
@@ -147,7 +147,7 @@ const reportGeneratorFlow = ai.defineFlow(
     const { output } = await reportGenerator(input);
 
     if (!output) {
-      throw new Error('The AI model did not return a valid report. Please try again.');
+      throw new Error('El modelo de IA no devolvió un reporte válido. Intenta de nuevo.');
     }
 
     return {

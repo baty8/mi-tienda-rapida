@@ -94,17 +94,13 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
             setCatalogs([]);
             return [];
         }
-        if (!catalogData) {
+        if (!catalogData || catalogData.length === 0) {
             setCatalogs([]);
             return [];
         }
 
         const catalogIds = catalogData.map(c => c.id);
-        if (catalogIds.length === 0) {
-            setCatalogs([]);
-            return [];
-        }
-
+        
         const { data: catalogProductsData, error: catalogProductsError } = await supabase
             .from('catalog_products')
             .select('catalog_id, product_id')
