@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { FileText, Wand2, Loader2, Trash2, Eye, Save } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { useProduct } from '@/context/ProductContext';
 import { generateReport } from '@/ai/flows/report-generator-flow';
 import { type GenerateReportInput, type GenerateReportOutput } from '@/ai/flows/types';
