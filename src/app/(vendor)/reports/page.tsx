@@ -61,7 +61,7 @@ export default function ReportsPage() {
         if (!user) return;
         const { data, error } = await supabase
             .from('reports')
-            .select('id, report_type, generated_at, content, criteria')
+            .select('id, report_type, generated_at, content, title')
             .eq('user_id', user.id)
             .order('generated_at', { ascending: false });
         
@@ -70,18 +70,8 @@ export default function ReportsPage() {
             return;
         }
 
-        const formattedHistory = data.map((report: any) => {
-            const titleMap: {[key: string]: string} = {
-                catalog: 'Análisis de Catálogo',
-                stock: 'Análisis de Stock',
-                pricing_margins: 'Análisis de Precios y Márgenes',
-            };
-            return {
-                ...report,
-                title: titleMap[report.report_type] || 'Reporte'
-            };
-        });
-        setHistory(formattedHistory);
+        // The title is now directly fetched from the DB, so no mapping is needed.
+        setHistory(data as ReportRecord[]);
     };
 
     useEffect(() => {
@@ -124,6 +114,7 @@ export default function ReportsPage() {
                     user_id: user.id,
                     report_type: selectedTemplate,
                     content: report.content,
+                    title: report.title, // Make sure title is saved
                     criteria: input.criteria,
                 });
                 fetchHistory(); // Refresh history
@@ -279,3 +270,5 @@ export default function ReportsPage() {
         </div>
     );
 }
+
+    
