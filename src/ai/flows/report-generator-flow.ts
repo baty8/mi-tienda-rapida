@@ -118,7 +118,7 @@ const reportGeneratorFlow = ai.defineFlow(
       prompt: promptTemplate,
       model: 'googleai/gemini-1.5-flash-latest',
       config: {
-        temperature: 0.3, // Un poco más creativo pero aún basado en hechos
+        temperature: 0.3,
       },
       customize: (prompt) => {
         prompt.helpers = {
