@@ -116,17 +116,19 @@ const reportGeneratorFlow = ai.defineFlow(
       input: { schema: GenerateReportInputSchema },
       output: { schema: z.object({ content: z.string() }) }, // The full report is generated as a single markdown string
       prompt: promptTemplate,
-      model: 'googleai/gemini-2.0-flash', 
+      model: 'gemini-2.0-flash',
       config: {
         temperature: 0.3, // Un poco más creativo pero aún basado en hechos
+      },
+      customize: (prompt) => {
+        prompt.helpers = {
+            subtract: (a: number, b: number) => (a - b).toFixed(2),
+            divide: (a: number, b: number) => (b !== 0 ? (a / b) : 0),
+            multiply: (a: number, b: number) => (a * b).toFixed(2),
+        };
+        return prompt;
       }
     });
-    
-    // Helper for handlebars
-    ai.handlebars.registerHelper('subtract', (a, b) => (a - b).toFixed(2));
-    ai.handlebars.registerHelper('divide', (a, b) => b !== 0 ? (a / b) : 0);
-    ai.handlebars.registerHelper('multiply', (a, b) => (a * b).toFixed(2));
-
 
     const { output } = await prompt(input);
 
