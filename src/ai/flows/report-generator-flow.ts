@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileoverview An AI agent that generates business reports based on product and sales data.
@@ -14,81 +15,81 @@ export async function generateReport(input: GenerateReportInput): Promise<Genera
   return reportGeneratorFlow(input);
 }
 
-const performancePrompt = `
-Eres un experto analista de negocios para e-commerce. Tu tarea es generar un "Reporte de Rendimiento de Ventas".
-Analiza los datos de productos y ventas proporcionados para el período: {{criteria.period}}.
+const catalogPrompt = `
+Eres un experto analista de catálogos de e-commerce para el mercado de Latinoamérica.
+Tu tarea es generar un "Reporte de Catálogo" conciso y útil para un vendedor.
+Analiza la siguiente lista de productos:
 
-**Inventario de Productos:**
+**Productos:**
 {{#each products}}
-- {{name}}: \${{price}}, Stock: {{stock}}
-{{/each}}
-
-**Datos de Ventas:**
-{{#each sales}}
-- Vendidas {{unitsSold}} unidades de "{{productName}}" por un total de \${{totalRevenue}}
+- Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Stock: {{stock}}, Visible: {{#if visible}}Sí{{else}}No{{/if}}, Categoría: {{category}}
 {{/each}}
 
 **Estructura del Reporte (en español):**
-1.  **Resumen Ejecutivo:** Una breve descripción de los hallazgos clave.
-2.  **Productos de Mejor Desempeño:** Lista los 3 productos más vendidos por ingresos y por unidades.
-3.  **Productos de Bajo Desempeño:** Identifica productos con pocas ventas.
-4.  **Ideas Clave y Tendencias:** ¿Qué tendencias o patrones puedes identificar en los datos?
-5.  **Recomendaciones Accionables:** Proporciona 2-3 recomendaciones concretas para mejorar las ventas o la gestión del inventario.
+1.  **Resumen General:** Proporciona un resumen de la situación actual del catálogo. Incluye el número total de productos, cuántos están activos (visibles) y cuántos pausados (ocultos).
+2.  **Análisis de Precios:** Calcula y muestra el precio promedio de los productos.
+3.  **Análisis de Rentabilidad:** Calcula la relación costo/precio promedio (margen bruto porcentual promedio).
+4.  **Análisis de Inventario:** Indica el stock total (suma de todas las unidades) y el stock promedio por producto.
+5.  **Conclusiones Clave (IA):** Basado en los datos, destaca 2 o 3 hallazgos importantes. Por ejemplo:
+    - "Tienes un 60% de tu stock concentrado en solo 3 productos, lo que podría ser un riesgo de concentración."
+    - "Tu margen promedio es del 35%, pero he detectado productos con margen inferior al 10% que podrías revisar."
+    - "Un 40% de tus productos están ocultos. Considera activarlos si tienes stock."
+
+La salida debe ser un reporte detallado en formato Markdown y completamente en español, con un tono amigable y profesional.
+`;
+
+const stockPrompt = `
+Eres un experto en gestión de inventarios para e-commerce en Latinoamérica.
+Tu tarea es generar un "Reporte de Stock" que sea accionable para el vendedor.
+Analiza la siguiente lista de productos:
+
+**Productos:**
+{{#each products}}
+- Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Stock: {{stock}}
+{{/each}}
+
+**Estructura del Reporte (en español):**
+1.  **Productos Sin Stock:** Lista los productos con stock igual a 0. Esto representa consultas o ventas potenciales perdidas.
+2.  **Productos con Stock Alto:** Identifica los 3-5 productos con más unidades en stock. Esto puede indicar un sobre-inventario.
+3.  **Análisis General de Stock:** Muestra el valor total del inventario (suma de stock * costo de cada producto).
+4.  **Sugerencias de la IA:** Proporciona 2-3 recomendaciones claras y directas basadas en los datos. Por ejemplo:
+    - "El producto 'Gorra Azul' tiene 150 unidades y baja rotación. Considera crear una promoción (ej: 2x1 o descuento) para liberar capital."
+    - "Tienes 5 productos sin stock. Es prioritario que repongas 'Camisa Blanca' y 'Jean Negro', ya que son los más consultados."
+    - "El valor de tu inventario detenido es de $XXXX. Optimizar el stock de los productos con más unidades podría mejorar tu flujo de caja."
 
 La salida debe ser un reporte detallado en formato Markdown y completamente en español.
 `;
 
-const catalogRecommendationPrompt = `
-Eres un experto en merchandising y marketing. Tu tarea es generar un "Reporte de Recomendación de Catálogo".
-Basado en los datos de ventas, recomienda qué productos destacar en un nuevo catálogo.
+const pricingMarginsPrompt = `
+Eres un experto en estrategias de precios y rentabilidad para e-commerce en el mercado latinoamericano.
+Tu tarea es generar un "Reporte de Precios y Márgenes".
+Analiza la siguiente lista de productos:
 
-**Inventario de Productos:**
+**Productos:**
 {{#each products}}
-- {{name}}: \${{price}}, Stock: {{stock}}
-{{/each}}
-
-**Datos de Ventas:**
-{{#each sales}}
-- Vendidas {{unitsSold}} unidades de "{{productName}}" por un total de \${{totalRevenue}}
+- Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Margen: \${{subtract price cost}} ({{multiply (divide (subtract price cost) price) 100}}%)
 {{/each}}
 
 **Estructura del Reporte (en español):**
-1.  **Éxitos de Venta para Destacar:** Lista los 5 productos que se están vendiendo bien y deberían ser promocionados.
-2.  **Joyas Ocultas:** Identifica productos con buen potencial (ej: precio alto, buen stock) pero con ventas bajas que podrían ser impulsados.
-3.  **Oportunidades de Combos (Bundles):** Sugiere 2-3 combos de productos que podrían ofrecerse como una oferta especial.
-4.  **Idea para el Tema del Catálogo:** Propón un nombre o tema creativo para el nuevo catálogo basado en estas recomendaciones (ej: "Esenciales de Verano", "Favoritos de los Clientes").
-
-La salida debe ser un reporte detallado en formato Markdown y completamente en español.
-`;
-
-const projectionPrompt = `
-Eres un científico de datos especializado en proyecciones de ventas. Tu tarea es generar un "Reporte de Proyección de Ventas".
-Analiza los datos históricos de ventas y proyecta las ventas para el próximo período.
-
-**Esta es una instrucción de marcador de posición. En un escenario real, usarías modelos más complejos. Por ahora, proporciona una proyección cualitativa.**
-
-**Datos de Ventas:**
-{{#each sales}}
-- Vendidas {{unitsSold}} unidades de "{{productName}}" por un total de \${{totalRevenue}}
-{{/each}}
-
-**Estructura del Reporte (en español):**
-1.  **Análisis de Tendencia Actual:** Describe brevemente la tendencia actual de ventas (creciente, estable, decreciente).
-2.  **Proyección de Ventas (Próximos 30 días):** Basado en la tendencia actual, proporciona un pronóstico cualitativo. Menciona qué productos es probable que sigan vendiéndose bien.
-3.  **Factores a Considerar:** Lista 2-3 factores externos o internos que podrían influir en las ventas futuras (ej: estacionalidad, campañas de marketing, niveles de stock).
-4.  **Recomendaciones para el Crecimiento:** Sugiere una acción clave para impactar positivamente la proyección.
+1.  **Distribución de Precios:** Muestra el producto más caro y el más barato para dar un rango de precios.
+2.  **Análisis de Márgenes:** Calcula el margen de ganancia promedio de todo el catálogo.
+3.  **Productos con Margen Negativo o Bajo:** Identifica y lista cualquier producto donde el costo es mayor o igual al precio (margen <= 0). También menciona productos con un margen muy bajo (ej: < 15%).
+4.  **Advertencias de la IA:** Proporciona 2-3 advertencias o recomendaciones clave. Por ejemplo:
+    - "¡Atención! El producto 'Lámpara de Escritorio' se vende a $500 pero su costo es $520. Estás perdiendo dinero con cada venta."
+    - "Tu precio promedio en la categoría 'Electrónica' es un 20% más alto que en 'Hogar'. Asegúrate de que esto sea intencional y esté justificado."
+    - "El margen promedio de tu tienda es del 45%, lo cual es saludable. Para aumentarlo, considera revisar los costos de los productos con menor margen."
 
 La salida debe ser un reporte detallado en formato Markdown y completamente en español.
 `;
 
 const getPromptForReportType = (reportType: GenerateReportInput['reportType']) => {
   switch (reportType) {
-    case 'performance':
-      return performancePrompt;
-    case 'catalog_recommendation':
-      return catalogRecommendationPrompt;
-    case 'projection':
-      return projectionPrompt;
+    case 'catalog':
+      return catalogPrompt;
+    case 'stock':
+      return stockPrompt;
+    case 'pricing_margins':
+      return pricingMarginsPrompt;
     default:
       throw new Error('Invalid report type');
   }
@@ -103,9 +104,9 @@ const reportGeneratorFlow = ai.defineFlow(
   async (input) => {
 
     const titleMap = {
-        performance: 'Reporte de Rendimiento de Ventas',
-        projection: 'Reporte de Proyección de Ventas',
-        catalog_recommendation: 'Reporte de Recomendación de Catálogo',
+        catalog: 'Reporte de Análisis de Catálogo',
+        stock: 'Reporte de Análisis de Stock',
+        pricing_margins: 'Reporte de Precios y Márgenes',
     }
 
     const promptTemplate = getPromptForReportType(input.reportType);
@@ -115,7 +116,17 @@ const reportGeneratorFlow = ai.defineFlow(
       input: { schema: GenerateReportInputSchema },
       output: { schema: z.object({ content: z.string() }) }, // The full report is generated as a single markdown string
       prompt: promptTemplate,
+      model: ai.model('googleai/gemini-2.0-flash'), // Especificar el modelo aquí también es una buena práctica
+      config: {
+        temperature: 0.3, // Un poco más creativo pero aún basado en hechos
+      }
     });
+    
+    // Helper for handlebars
+    ai.handlebars.registerHelper('subtract', (a, b) => (a - b).toFixed(2));
+    ai.handlebars.registerHelper('divide', (a, b) => b !== 0 ? (a / b) : 0);
+    ai.handlebars.registerHelper('multiply', (a, b) => (a * b).toFixed(2));
+
 
     const { output } = await prompt(input);
 

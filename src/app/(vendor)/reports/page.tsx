@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { FileText, Wand2, Loader2, Trash2, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useProduct } from '@/context/ProductContext';
 import { generateReport } from '@/ai/flows/report-generator-flow';
 import { type GenerateReportInput, type GenerateReportOutput } from '@/ai/flows/types';
@@ -32,9 +32,9 @@ import ReactMarkdown from 'react-markdown';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const reportTemplates = [
-  { id: 'performance', name: 'Análisis de Rendimiento', description: 'Evalúa tus ventas, productos top y tendencias.' },
-  { id: 'catalog_recommendation', name: 'Recomendación de Catálogo', description: 'Obtén sugerencias sobre qué productos destacar o agrupar.' },
-  { id: 'projection', name: 'Proyección de Ventas', description: 'Una estimación cualitativa de tus ventas futuras.' },
+  { id: 'catalog', name: 'Análisis de Catálogo', description: 'Un resumen de la composición y estado de tu catálogo.' },
+  { id: 'stock', name: 'Análisis de Stock', description: 'Identifica productos con mucho o poco stock y recibe sugerencias.' },
+  { id: 'pricing_margins', name: 'Análisis de Precios y Márgenes', description: 'Revisa la rentabilidad y la estructura de precios de tus productos.' },
 ];
 
 type ReportRecord = {
@@ -44,23 +44,6 @@ type ReportRecord = {
     content: string;
     title: string;
 }
-
-const generateMockSales = (products: GenerateReportInput['products']): GenerateReportInput['sales'] => {
-    if (products.length === 0) return [];
-    const sales = [];
-    const salesCount = Math.floor(Math.random() * 25) + 10;
-    for (let i = 0; i < salesCount; i++) {
-        const product = products[Math.floor(Math.random() * products.length)];
-        const unitsSold = Math.floor(Math.random() * 8) + 1;
-        sales.push({
-            productName: product.name,
-            unitsSold,
-            totalRevenue: unitsSold * product.price,
-        });
-    }
-    return sales;
-};
-
 
 export default function ReportsPage() {
     const { products } = useProduct();
@@ -89,9 +72,9 @@ export default function ReportsPage() {
 
         const formattedHistory = data.map((report: any) => {
             const titleMap: {[key: string]: string} = {
-                performance: 'Reporte de Rendimiento',
-                catalog_recommendation: 'Recomendación de Catálogo',
-                projection: 'Proyección de Ventas',
+                catalog: 'Análisis de Catálogo',
+                stock: 'Análisis de Stock',
+                pricing_margins: 'Análisis de Precios y Márgenes',
             };
             return {
                 ...report,
@@ -116,14 +99,20 @@ export default function ReportsPage() {
         setViewingReport(null);
 
         try {
-            const productData = products.map(p => ({ id: p.id, name: p.name, price: p.price, stock: p.stock, cost: p.cost }));
-            const mockSales = generateMockSales(productData);
-
+            const productData = products.map(p => ({ 
+                id: p.id, 
+                name: p.name, 
+                price: p.price, 
+                stock: p.stock, 
+                cost: p.cost,
+                visible: p.visible,
+                category: p.category,
+            }));
+            
             const input: GenerateReportInput = {
                 reportType: selectedTemplate as GenerateReportInput['reportType'],
                 products: productData,
-                sales: mockSales,
-                criteria: { period: "últimos 30 días (simulado)" }
+                criteria: { period: "actual" }
             };
 
             const report = await generateReport(input);

@@ -1,3 +1,4 @@
+
 import { z } from 'genkit';
 
 const ProductSchema = z.object({
@@ -6,21 +7,16 @@ const ProductSchema = z.object({
   price: z.number(),
   stock: z.number(),
   cost: z.number(),
-});
-
-const SalesRecordSchema = z.object({
-  productName: z.string(),
-  unitsSold: z.number(),
-  totalRevenue: z.number(),
+  visible: z.boolean(),
+  category: z.string(),
 });
 
 export const GenerateReportInputSchema = z.object({
-  reportType: z.enum(['performance', 'projection', 'catalog_recommendation'])
+  reportType: z.enum(['catalog', 'stock', 'pricing_margins'])
     .describe('The type of report to generate.'),
   products: z.array(ProductSchema).describe('A list of all products in the inventory.'),
-  sales: z.array(SalesRecordSchema).describe('A list of sales records.'),
   criteria: z.object({
-    period: z.string().describe('The time period for the report, e.g., "last 30 days".'),
+    period: z.string().describe('The time period for the report, e.g., "actual".'),
   }).optional().describe('Optional criteria for the report.'),
 });
 export type GenerateReportInput = z.infer<typeof GenerateReportInputSchema>;
