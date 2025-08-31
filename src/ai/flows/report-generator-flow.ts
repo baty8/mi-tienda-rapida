@@ -114,7 +114,7 @@ const reportGeneratorFlow = ai.defineFlow(
     const prompt = ai.definePrompt({
       name: `reportGeneratorPrompt_${input.reportType}`,
       input: { schema: GenerateReportInputSchema },
-      output: { schema: z.object({ content: z.string() }) }, // The full report is generated as a single markdown string
+      output: { schema: z.string().describe('The full report in markdown format.') },
       prompt: promptTemplate,
       model: 'googleai/gemini-1.5-flash-latest',
       config: {
@@ -138,8 +138,9 @@ const reportGeneratorFlow = ai.defineFlow(
 
     return {
       title: titleMap[input.reportType],
-      content: output.content,
+      content: output,
     };
   }
 );
+
 
