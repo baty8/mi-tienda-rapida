@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FileText, Wand2, Loader2, Trash2, Eye, Save } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,35 +54,34 @@ export default function ReportsPage() {
     const [lastGeneratedReport, setLastGeneratedReport] = useState<GenerateReportOutput & {reportType: string; criteria: any;} | null>(null);
     const [history, setHistory] = useState<ReportRecord[]>([]);
     const [viewingReport, setViewingReport] = useState<ReportRecord | null>(null);
-    const [historyLoaded, setHistoryLoaded] = useState(false); // Estado para controlar la carga
+    const [historyLoaded, setHistoryLoaded] = useState(false);
 
     const supabase = getSupabase();
 
-    const fetchHistory = async () => {
+    const fetchHistory = useCallback(async () => {
         if (!supabase) return;
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+
         const { data, error } = await supabase
             .from('reports')
-            .select('id, report_type, generated_at, content, title')
+            .select('id, report_type, generated_at, content, title, criteria')
             .eq('user_id', user.id)
             .order('generated_at', { ascending: false });
         
-        setHistoryLoaded(true); // Marcar como cargado, con o sin error.
-        
         if (error) {
-            toast.error("Error", { description: "No se pudo cargar el historial." });
-            return;
+            toast.error("Error", { description: "No se pudo cargar el historial de reportes." });
+        } else {
+            setHistory(data as ReportRecord[]);
         }
-        setHistory(data as ReportRecord[]);
-    };
+        setHistoryLoaded(true); 
+    }, [supabase]);
 
     useEffect(() => {
         if (!historyLoaded) {
             fetchHistory();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [historyLoaded]);
+    }, [historyLoaded, fetchHistory]);
 
 
     const handleGenerateReport = async () => {
@@ -301,3 +300,5 @@ export default function ReportsPage() {
         </div>
     );
 }
+
+    

@@ -26,3 +26,5 @@ export const GenerateReportOutputSchema = z.object({
   content: z.string().describe('The full content of the report in markdown format. It should be comprehensive, well-structured with headings, lists, and bold text.'),
 });
 export type GenerateReportOutput = z.infer<typeof GenerateReportOutputSchema>;
+
+    
