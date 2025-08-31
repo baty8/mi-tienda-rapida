@@ -54,6 +54,7 @@ export default function ReportsPage() {
     const [lastGeneratedReport, setLastGeneratedReport] = useState<GenerateReportOutput & {reportType: string; criteria: any;} | null>(null);
     const [history, setHistory] = useState<ReportRecord[]>([]);
     const [viewingReport, setViewingReport] = useState<ReportRecord | null>(null);
+    const [historyLoaded, setHistoryLoaded] = useState(false); // Estado para controlar la carga
 
     const supabase = getSupabase();
 
@@ -63,9 +64,11 @@ export default function ReportsPage() {
         if (!user) return;
         const { data, error } = await supabase
             .from('reports')
-            .select('id, report_type, generated_at, content, title, criteria')
+            .select('id, report_type, generated_at, content, title')
             .eq('user_id', user.id)
             .order('generated_at', { ascending: false });
+        
+        setHistoryLoaded(true); // Marcar como cargado, con o sin error.
         
         if (error) {
             toast.error("Error", { description: "No se pudo cargar el historial." });
@@ -75,9 +78,12 @@ export default function ReportsPage() {
     };
 
     useEffect(() => {
-        fetchHistory();
+        if (!historyLoaded) {
+            fetchHistory();
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [historyLoaded]);
+
 
     const handleGenerateReport = async () => {
         if (!selectedTemplate) {
