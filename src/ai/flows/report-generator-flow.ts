@@ -15,9 +15,9 @@ export async function generateReport(input: GenerateReportInput): Promise<Genera
   return reportGeneratorFlow(input);
 }
 
-const catalogPrompt = `
-Eres un experto analista de catálogos de e-commerce para el mercado de Latinoamérica.
-Tu tarea es generar un "Reporte de Catálogo" conciso y útil para un vendedor.
+const mainPromptTemplate = `
+Eres un experto analista de e-commerce para el mercado de Latinoamérica.
+Tu tarea es generar un reporte conciso y útil para un vendedor, basado en el tipo de reporte solicitado.
 Analiza la siguiente lista de productos:
 
 **Productos:**
@@ -25,7 +25,11 @@ Analiza la siguiente lista de productos:
 - Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Stock: {{stock}}, Visible: {{#if visible}}Sí{{else}}No{{/if}}, Categoría: {{category}}
 {{/each}}
 
-**Estructura del Reporte (en español):**
+---
+
+{{#if (eq reportType "catalog")}}
+**Reporte de Catálogo:**
+
 1.  **Resumen General:** Proporciona un resumen de la situación actual del catálogo. Incluye el número total de productos, cuántos están activos (visibles) y cuántos pausados (ocultos).
 2.  **Análisis de Precios:** Calcula y muestra el precio promedio de los productos.
 3.  **Análisis de Rentabilidad:** Calcula la relación costo/precio promedio (margen bruto porcentual promedio).
@@ -34,21 +38,11 @@ Analiza la siguiente lista de productos:
     - "Tienes un 60% de tu stock concentrado en solo 3 productos, lo que podría ser un riesgo de concentración."
     - "Tu margen promedio es del 35%, pero he detectado productos con margen inferior al 10% que podrías revisar."
     - "Un 40% de tus productos están ocultos. Considera activarlos si tienes stock."
+{{/if}}
 
-La salida debe ser un reporte detallado en formato Markdown y completamente en español, con un tono amigable y profesional.
-`;
+{{#if (eq reportType "stock")}}
+**Reporte de Stock:**
 
-const stockPrompt = `
-Eres un experto en gestión de inventarios para e-commerce en Latinoamérica.
-Tu tarea es generar un "Reporte de Stock" que sea accionable para el vendedor.
-Analiza la siguiente lista de productos:
-
-**Productos:**
-{{#each products}}
-- Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Stock: {{stock}}
-{{/each}}
-
-**Estructura del Reporte (en español):**
 1.  **Productos Sin Stock:** Lista los productos con stock igual a 0. Esto representa consultas o ventas potenciales perdidas.
 2.  **Productos con Stock Alto:** Identifica los 3-5 productos con más unidades en stock. Esto puede indicar un sobre-inventario.
 3.  **Análisis General de Stock:** Muestra el valor total del inventario (suma de stock * costo de cada producto).
@@ -56,21 +50,11 @@ Analiza la siguiente lista de productos:
     - "El producto 'Gorra Azul' tiene 150 unidades y baja rotación. Considera crear una promoción (ej: 2x1 o descuento) para liberar capital."
     - "Tienes 5 productos sin stock. Es prioritario que repongas 'Camisa Blanca' y 'Jean Negro', ya que son los más consultados."
     - "El valor de tu inventario detenido es de $XXXX. Optimizar el stock de los productos con más unidades podría mejorar tu flujo de caja."
+{{/if}}
 
-La salida debe ser un reporte detallado en formato Markdown y completamente en español.
-`;
+{{#if (eq reportType "pricing_margins")}}
+**Reporte de Precios y Márgenes:**
 
-const pricingMarginsPrompt = `
-Eres un experto en estrategias de precios y rentabilidad para e-commerce en el mercado latinoamericano.
-Tu tarea es generar un "Reporte de Precios y Márgenes".
-Analiza la siguiente lista de productos:
-
-**Productos:**
-{{#each products}}
-- Nombre: {{name}}, Precio: \${{price}}, Costo: \${{cost}}, Margen: \${{subtract price cost}} ({{multiply (divide (subtract price cost) price) 100}}%)
-{{/each}}
-
-**Estructura del Reporte (en español):**
 1.  **Distribución de Precios:** Muestra el producto más caro y el más barato para dar un rango de precios.
 2.  **Análisis de Márgenes:** Calcula el margen de ganancia promedio de todo el catálogo.
 3.  **Productos con Margen Negativo o Bajo:** Identifica y lista cualquier producto donde el costo es mayor o igual al precio (margen <= 0). También menciona productos con un margen muy bajo (ej: < 15%).
@@ -78,22 +62,32 @@ Analiza la siguiente lista de productos:
     - "¡Atención! El producto 'Lámpara de Escritorio' se vende a $500 pero su costo es $520. Estás perdiendo dinero con cada venta."
     - "Tu precio promedio en la categoría 'Electrónica' es un 20% más alto que en 'Hogar'. Asegúrate de que esto sea intencional y esté justificado."
     - "El margen promedio de tu tienda es del 45%, lo cual es saludable. Para aumentarlo, considera revisar los costos de los productos con menor margen."
+{{/if}}
 
-La salida debe ser un reporte detallado en formato Markdown y completamente en español.
+La salida debe ser un reporte detallado en formato Markdown y completamente en español, con un tono amigable y profesional.
 `;
 
-const getPromptForReportType = (reportType: GenerateReportInput['reportType']) => {
-  switch (reportType) {
-    case 'catalog':
-      return catalogPrompt;
-    case 'stock':
-      return stockPrompt;
-    case 'pricing_margins':
-      return pricingMarginsPrompt;
-    default:
-      throw new Error('Invalid report type');
+
+const reportGeneratorPrompt = ai.definePrompt({
+  name: `reportGeneratorMasterPrompt`,
+  input: { schema: GenerateReportInputSchema },
+  output: { schema: z.string().describe('The full report in markdown format.') },
+  prompt: mainPromptTemplate,
+  model: 'googleai/gemini-1.5-flash-latest',
+  config: {
+    temperature: 0.3,
+  },
+  customize: (prompt) => {
+    prompt.helpers = {
+        subtract: (a: number, b: number) => (a - b).toFixed(2),
+        divide: (a: number, b: number) => (b !== 0 ? (a / b) : 0),
+        multiply: (a: number, b: number) => (a * b).toFixed(2),
+        eq: (a: string, b: string) => a === b,
+    };
+    return prompt;
   }
-}
+});
+
 
 const reportGeneratorFlow = ai.defineFlow(
   {
@@ -108,32 +102,11 @@ const reportGeneratorFlow = ai.defineFlow(
         stock: 'Reporte de Análisis de Stock',
         pricing_margins: 'Reporte de Precios y Márgenes',
     }
-
-    const promptTemplate = getPromptForReportType(input.reportType);
-
-    const prompt = ai.definePrompt({
-      name: `reportGeneratorPrompt_${input.reportType}`,
-      input: { schema: GenerateReportInputSchema },
-      output: { schema: z.string().describe('The full report in markdown format.') },
-      prompt: promptTemplate,
-      model: 'googleai/gemini-1.5-flash-latest',
-      config: {
-        temperature: 0.3,
-      },
-      customize: (prompt) => {
-        prompt.helpers = {
-            subtract: (a: number, b: number) => (a - b).toFixed(2),
-            divide: (a: number, b: number) => (b !== 0 ? (a / b) : 0),
-            multiply: (a: number, b: number) => (a * b).toFixed(2),
-        };
-        return prompt;
-      }
-    });
-
-    const { output } = await prompt(input);
+    
+    const { output } = await reportGeneratorPrompt(input);
 
     if (!output) {
-      throw new Error('The AI model did not return a valid report.');
+      throw new Error('The AI model did not return a valid report. Please try again.');
     }
 
     return {
