@@ -142,5 +142,3 @@ const reportGeneratorFlow = ai.defineFlow(
     };
   }
 );
-
-
