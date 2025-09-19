@@ -24,7 +24,7 @@ const menuItems = [
   { href: '/catalog', label: 'Catálogo', icon: BookOpen },
   { href: '/finance', label: 'Finanzas', icon: TrendingUp },
   { href: '/reports', label: 'Reportes', icon: FileText },
-  { href: '/profile', label: 'Perfil', icon: User },
+  { href: '/profile', label: 'Perfil y Tienda', icon: User },
 ];
 
 const EyMiTiendaWebLogo = (props: React.SVGProps<SVGSVGElement>) => (
