@@ -69,10 +69,7 @@ function CatalogPage() {
   const { products, fetchProducts, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, deleteCatalog } = useProduct();
   const [newCatalogName, setNewCatalogName] = useState('');
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
-  const [vendorId, setVendorId] = useState<string | null>(null);
   const router = useRouter();
-
-  const [storeLink, setStoreLink] = useState('');
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -80,11 +77,7 @@ function CatalogPage() {
       if (supabase) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-            setVendorId(session.user.id);
             fetchProducts();
-            if (typeof window !== 'undefined') {
-              setStoreLink(`${window.location.origin}/store/${session.user.id}`);
-            }
         }
       }
     };
@@ -138,35 +131,6 @@ function CatalogPage() {
             <Save className="mr-2 h-4 w-4" />
             Guardar Catálogo
           </Button>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button disabled={!storeLink}>
-                <Share2 className="mr-2 h-4 w-4" />
-                Compartir Tienda
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Comparte tu Tienda</DialogTitle>
-                <DialogDescription>
-                  Copia y comparte este enlace público. Cualquiera puede usarlo para ver tu tienda.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex items-center space-x-2">
-                <div className="grid flex-1 gap-2">
-                  <Label htmlFor="link" className="sr-only">Enlace</Label>
-                  <Input id="link" value={storeLink} readOnly />
-                </div>
-                <Button type="submit" size="icon" onClick={() => {
-                  navigator.clipboard.writeText(storeLink);
-                  toast.success('¡Copiado!');
-                }}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
       </header>
 

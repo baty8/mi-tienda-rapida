@@ -1,7 +1,7 @@
 
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { User, Save, UploadCloud, Palette, Eye, Type, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { User, Save, UploadCloud, Palette, Eye, Type, X, Loader2, Image as ImageIcon, Share2, Copy } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -258,6 +258,34 @@ function ProfilePage() {
         </h2>
         <div className="flex items-center gap-4">
           <ThemeToggle />
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" disabled={!storeLink}>
+                <Share2 className="mr-2 h-4 w-4" />
+                Compartir Tienda
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Comparte tu Tienda</DialogTitle>
+                <DialogDescription>
+                  Copia y comparte este enlace público. Cualquiera puede usarlo para ver tu tienda.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center space-x-2">
+                <div className="grid flex-1 gap-2">
+                  <Label htmlFor="link" className="sr-only">Enlace</Label>
+                  <Input id="link" value={storeLink} readOnly />
+                </div>
+                <Button type="submit" size="icon" onClick={() => {
+                  navigator.clipboard.writeText(storeLink);
+                  toast.success('¡Copiado!');
+                }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
            <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
                 <DialogTrigger asChild>
                     <Button variant="outline" onClick={handlePreparePreview} disabled={isPreparingPreview}>
