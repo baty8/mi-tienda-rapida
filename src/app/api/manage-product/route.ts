@@ -1,0 +1,62 @@
+
+import { createClient } from '@/lib/supabase/server';
+import { type NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  const apiKey = request.headers.get('authorization')?.split(' ')[1];
+
+  if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
+  const { sku, action } = await request.json();
+
+  if (!sku || !action) {
+    return NextResponse.json({ error: 'Faltan los parámetros sku o action' }, { status: 400 });
+  }
+
+  const supabase = createClient();
+  const { data: product, error: productError } = await supabase
+    .from('products')
+    .select('id, visible')
+    .eq('sku', sku)
+    .single();
+
+  if (productError || !product) {
+    return NextResponse.json({ error: `Producto con SKU ${sku} no encontrado` }, { status: 404 });
+  }
+
+  let updatePayload: { visible: boolean, scheduled_republish_at?: string | null };
+  let successMessage = '';
+
+  switch (action) {
+    case 'unpublish':
+      updatePayload = { visible: false, scheduled_republish_at: null };
+      successMessage = `Producto ${sku} despublicado correctamente.`;
+      break;
+    case 'pause':
+      // Para una pausa temporal, despublicamos el producto.
+      // La lógica para volver a publicarlo (republish) requeriría un cron job
+      // que verifique una columna como 'scheduled_republish_at'.
+      updatePayload = { visible: false };
+      successMessage = `Producto ${sku} pausado (despublicado) correctamente. La republicación automática requiere configuración adicional (cron job).`;
+      break;
+    case 'republish':
+      updatePayload = { visible: true, scheduled_republish_at: null };
+      successMessage = `Producto ${sku} republicado correctamente.`;
+      break;
+    default:
+      return NextResponse.json({ error: `Acción '${action}' no válida. Las acciones válidas son: unpublish, pause, republish.` }, { status: 400 });
+  }
+
+  const { error: updateError } = await supabase
+    .from('products')
+    .update(updatePayload)
+    .eq('id', product.id);
+
+  if (updateError) {
+    return NextResponse.json({ error: `Error al actualizar el producto: ${updateError.message}` }, { status: 500 });
+  }
+
+  return NextResponse.json({ message: successMessage });
+}
