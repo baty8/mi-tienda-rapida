@@ -26,6 +26,7 @@ export function AddProductDialog() {
   const { addProduct } = useProduct();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
+  const [sku, setSku] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState(0);
   const [cost, setCost] = useState(0);
@@ -63,6 +64,7 @@ export function AddProductDialog() {
 
   const resetForm = () => {
     setName('');
+    setSku('');
     setDescription('');
     setPrice(0);
     setCost(0);
@@ -82,6 +84,7 @@ export function AddProductDialog() {
     }
     await addProduct({
         name,
+        sku,
         description,
         price,
         cost,
@@ -117,6 +120,11 @@ export function AddProductDialog() {
             <div className="space-y-2">
                 <Label htmlFor="name">Nombre del Producto</Label>
                 <Input id="name" placeholder="Ej: Taza de Cerámica Artesanal" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="sku">SKU (Opcional)</Label>
+                <Input id="sku" placeholder="Ej: TAZA-CER-001" value={sku} onChange={(e) => setSku(e.target.value)} />
+                <p className="text-xs text-muted-foreground">Identificador único para tu sistema de inventario.</p>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="description">Descripción</Label>

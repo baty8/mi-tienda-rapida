@@ -45,6 +45,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
 
   const formatProduct = (p: any): Product => ({
       id: p.id,
+      sku: p.sku || '',
       name: p.name,
       description: p.description || '',
       price: p.price,

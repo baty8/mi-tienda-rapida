@@ -33,6 +33,7 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
   
   // Form state
   const [name, setName] = useState(product.name);
+  const [sku, setSku] = useState(product.sku || '');
   const [description, setDescription] = useState(product.description || '');
   const [price, setPrice] = useState(product.price);
   const [cost, setCost] = useState(product.cost);
@@ -46,6 +47,7 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
 
   useEffect(() => {
     setName(product.name);
+    setSku(product.sku || '');
     setDescription(product.description || '');
     setPrice(product.price);
     setCost(product.cost);
@@ -88,6 +90,7 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
     
     await updateProduct(product.id, {
         name,
+        sku,
         description,
         price,
         cost,
@@ -117,6 +120,11 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
             <div className="space-y-2">
                 <Label htmlFor="name">Nombre del Producto</Label>
                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="sku">SKU (Opcional)</Label>
+                <Input id="sku" placeholder="Ej: TAZA-CER-001" value={sku} onChange={(e) => setSku(e.target.value)} />
+                <p className="text-xs text-muted-foreground">Identificador único para tu sistema de inventario.</p>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="description">Descripción</Label>
