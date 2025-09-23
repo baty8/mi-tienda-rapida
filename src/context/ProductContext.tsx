@@ -209,17 +209,16 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         imageUrls.push('https://placehold.co/600x400.png');
     }
 
-    // Build the payload explicitly to prevent data corruption.
     const newProductPayload = {
-        user_id: user.id,
-        name: productData.name,
-        sku: productData.sku,
-        description: productData.description,
-        price: productData.price,
-        cost: productData.cost,
-        stock: productData.stock,
-        visible: productData.visible,
-        image_urls: imageUrls,
+      user_id: user.id,
+      name: productData.name,
+      sku: productData.sku || null,
+      description: productData.description,
+      price: productData.price,
+      cost: productData.cost,
+      stock: productData.stock,
+      visible: productData.visible,
+      image_urls: imageUrls,
     };
 
     const { data: newProductData, error } = await supabase
@@ -267,10 +266,9 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         finalImageUrls.push('https://placehold.co/600x400.png');
       }
       
-      // Build the payload explicitly to prevent data corruption.
       const updatePayload = {
         name: updatedFields.name,
-        sku: updatedFields.sku,
+        sku: updatedFields.sku || null,
         description: updatedFields.description,
         price: updatedFields.price,
         cost: updatedFields.cost,
@@ -418,3 +416,5 @@ export const useProduct = () => {
   }
   return context;
 };
+
+    
