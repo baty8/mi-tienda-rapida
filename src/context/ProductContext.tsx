@@ -194,6 +194,12 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         return;
     }
 
+    // Defensive programming: ensure `imageFiles` is not part of the `productData` object.
+    const cleanProductData = { ...productData };
+    // @ts-ignore
+    delete cleanProductData.imageFiles;
+
+
     let imageUrls: string[] = [];
     if (imageFiles.length > 0) {
       try {
@@ -207,17 +213,10 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       imageUrls = ['https://placehold.co/600x400.png'];
     }
     
-    // Explicitly define the payload to ensure correct structure
     const newProductPayload = {
-      name: productData.name,
-      description: productData.description,
-      price: productData.price,
-      cost: productData.cost,
-      stock: productData.stock,
-      visible: productData.visible,
-      sku: productData.sku,
+      ...cleanProductData,
       user_id: user.id,
-      image_urls: imageUrls, // Ensure this is always an array
+      image_urls: imageUrls,
     };
 
 

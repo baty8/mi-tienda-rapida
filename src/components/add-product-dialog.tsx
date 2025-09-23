@@ -82,7 +82,8 @@ export function AddProductDialog() {
       });
       return;
     }
-    await addProduct({
+
+    const productData = {
         name,
         sku,
         description,
@@ -90,7 +91,9 @@ export function AddProductDialog() {
         cost,
         stock,
         visible,
-    }, imageFiles);
+    };
+
+    await addProduct(productData, imageFiles);
     resetForm();
     setOpen(false);
   };
