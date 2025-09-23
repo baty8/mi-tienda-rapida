@@ -209,6 +209,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         imageUrls.push('https://placehold.co/600x400.png');
     }
 
+    // Build the payload explicitly to prevent data corruption.
     const newProductPayload = {
         user_id: user.id,
         name: productData.name,
@@ -266,8 +267,15 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         finalImageUrls.push('https://placehold.co/600x400.png');
       }
       
+      // Build the payload explicitly to prevent data corruption.
       const updatePayload = {
-        ...updatedFields,
+        name: updatedFields.name,
+        sku: updatedFields.sku,
+        description: updatedFields.description,
+        price: updatedFields.price,
+        cost: updatedFields.cost,
+        stock: updatedFields.stock,
+        visible: updatedFields.visible,
         image_urls: finalImageUrls,
       };
 
