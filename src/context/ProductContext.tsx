@@ -265,10 +265,19 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       if (finalImageUrls.length === 0) {
         finalImageUrls.push('https://placehold.co/600x400.png');
       }
-
-      let updateData: any = { ...updatedFields, image_urls: finalImageUrls };
       
-      const { data, error } = await supabase.from('products').update(updateData).eq('id', productId).eq('user_id', user.id).select().single();
+      const updatePayload = {
+        name: updatedFields.name,
+        sku: updatedFields.sku,
+        description: updatedFields.description,
+        price: updatedFields.price,
+        cost: updatedFields.cost,
+        stock: updatedFields.stock,
+        visible: updatedFields.visible,
+        image_urls: finalImageUrls,
+      };
+
+      const { data, error } = await supabase.from('products').update(updatePayload).eq('id', productId).eq('user_id', user.id).select().single();
 
       if (error) {
         toast.error('Error', { description: `No se pudo actualizar el producto: ${error.message}` });
