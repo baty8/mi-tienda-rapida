@@ -205,23 +205,17 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       }
     }
     
-    // Ensure imageUrls is a valid array, with a placeholder if it's empty.
-    if (!imageUrls || imageUrls.length === 0) {
-      imageUrls = ['https://placehold.co/600x400.png'];
-    }
-    
     const newProductPayload = {
-      user_id: user.id,
-      name: productData.name,
-      sku: productData.sku,
-      description: productData.description,
-      price: productData.price,
-      cost: productData.cost,
-      stock: productData.stock,
-      visible: productData.visible,
-      image_urls: imageUrls,
+        user_id: user.id,
+        name: productData.name,
+        sku: productData.sku,
+        description: productData.description,
+        price: productData.price,
+        cost: productData.cost,
+        stock: productData.stock,
+        visible: productData.visible,
+        image_urls: imageUrls.length > 0 ? imageUrls : ['https://placehold.co/600x400.png'],
     };
-
 
     const { data: newProductData, error } = await supabase
       .from('products')
