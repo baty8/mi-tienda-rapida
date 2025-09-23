@@ -207,11 +207,17 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       imageUrls = ['https://placehold.co/600x400.png'];
     }
 
-    const { data: newProductData, error } = await supabase.from('products').insert({
+    const newProductPayload = {
       ...productData,
       user_id: user.id,
       image_urls: imageUrls,
-    }).select().single();
+    };
+
+    const { data: newProductData, error } = await supabase
+      .from('products')
+      .insert(newProductPayload)
+      .select()
+      .single();
 
     if (error) {
       toast.error('Error', { description: `No se pudo añadir el producto: ${error.message}` });
