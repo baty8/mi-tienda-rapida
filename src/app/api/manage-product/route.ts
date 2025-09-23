@@ -1,6 +1,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { type NextRequest, NextResponse } from 'next/server';
+import { addMinutes } from 'date-fns';
 
 export async function POST(request: NextRequest) {
   const apiKey = request.headers.get('authorization')?.split(' ')[1];
@@ -9,7 +10,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
-  const { sku, action } = await request.json();
+  const { sku, action, pause_duration_minutes } = await request.json();
 
   if (!sku || !action) {
     return NextResponse.json({ error: 'Faltan los parámetros sku o action' }, { status: 400 });
@@ -35,11 +36,15 @@ export async function POST(request: NextRequest) {
       successMessage = `Producto ${sku} despublicado correctamente.`;
       break;
     case 'pause':
-      // Para una pausa temporal, despublicamos el producto.
-      // La lógica para volver a publicarlo (republish) requeriría un cron job
-      // que verifique una columna como 'scheduled_republish_at'.
-      updatePayload = { visible: false };
-      successMessage = `Producto ${sku} pausado (despublicado) correctamente. La republicación automática requiere configuración adicional (cron job).`;
+      const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
+      if (duration > 0) {
+        const republishTime = addMinutes(new Date(), duration);
+        updatePayload = { visible: false, scheduled_republish_at: republishTime.toISOString() };
+        successMessage = `Producto ${sku} pausado por ${duration} minutos. Se republicará automáticamente a las ${republishTime.toLocaleTimeString()}.`;
+      } else {
+        updatePayload = { visible: false, scheduled_republish_at: null };
+        successMessage = `Producto ${sku} pausado (despublicado) indefinidamente.`;
+      }
       break;
     case 'republish':
       updatePayload = { visible: true, scheduled_republish_at: null };
