@@ -211,8 +211,14 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     }
     
     const newProductPayload = {
-      ...productData,
       user_id: user.id,
+      name: productData.name,
+      sku: productData.sku,
+      description: productData.description,
+      price: productData.price,
+      cost: productData.cost,
+      stock: productData.stock,
+      visible: productData.visible,
       image_urls: imageUrls,
     };
 
