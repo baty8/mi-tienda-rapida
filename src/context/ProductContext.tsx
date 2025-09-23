@@ -194,14 +194,8 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         return;
     }
 
-    // Defensive programming: ensure `imageFiles` is not part of the `productData` object.
-    const cleanProductData = { ...productData };
-    // @ts-ignore
-    delete cleanProductData.imageFiles;
-
-
     let imageUrls: string[] = [];
-    if (imageFiles.length > 0) {
+    if (imageFiles && imageFiles.length > 0) {
       try {
         imageUrls = await Promise.all(imageFiles.map(file => uploadImage(file, user.id)));
       } catch (error: any) {
@@ -209,12 +203,15 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         setLoading(false);
         return;
       }
-    } else {
+    }
+    
+    // Ensure imageUrls is a valid array, with a placeholder if it's empty.
+    if (!imageUrls || imageUrls.length === 0) {
       imageUrls = ['https://placehold.co/600x400.png'];
     }
     
     const newProductPayload = {
-      ...cleanProductData,
+      ...productData,
       user_id: user.id,
       image_urls: imageUrls,
     };
