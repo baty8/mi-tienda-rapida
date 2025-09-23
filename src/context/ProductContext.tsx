@@ -267,13 +267,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       }
       
       const updatePayload = {
-        name: updatedFields.name,
-        sku: updatedFields.sku,
-        description: updatedFields.description,
-        price: updatedFields.price,
-        cost: updatedFields.cost,
-        stock: updatedFields.stock,
-        visible: updatedFields.visible,
+        ...updatedFields,
         image_urls: finalImageUrls,
       };
 
