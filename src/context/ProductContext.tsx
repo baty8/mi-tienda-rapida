@@ -205,6 +205,10 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       }
     }
     
+    if (imageUrls.length === 0) {
+        imageUrls.push('https://placehold.co/600x400.png');
+    }
+
     const newProductPayload = {
         user_id: user.id,
         name: productData.name,
@@ -214,7 +218,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         cost: productData.cost,
         stock: productData.stock,
         visible: productData.visible,
-        image_urls: imageUrls.length > 0 ? imageUrls : ['https://placehold.co/600x400.png'],
+        image_urls: imageUrls,
     };
 
     const { data: newProductData, error } = await supabase
