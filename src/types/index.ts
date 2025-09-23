@@ -2,7 +2,7 @@
 
 export interface Product {
   id: string; // uuid
-  sku?: string; // Stock Keeping Unit
+  sku?: string[]; // Stock Keeping Unit - Changed to array
   name: string;
   description: string;
   price: number;

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -33,7 +34,7 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
   
   // Form state
   const [name, setName] = useState(product.name);
-  const [sku, setSku] = useState(product.sku || '');
+  const [sku, setSku] = useState(product.sku?.[0] || '');
   const [description, setDescription] = useState(product.description || '');
   const [price, setPrice] = useState(product.price);
   const [cost, setCost] = useState(product.cost);
@@ -47,7 +48,7 @@ export function EditProductDialog({ product, onClose }: EditProductDialogProps) 
 
   useEffect(() => {
     setName(product.name);
-    setSku(product.sku || '');
+    setSku(product.sku?.[0] || '');
     setDescription(product.description || '');
     setPrice(product.price);
     setCost(product.cost);

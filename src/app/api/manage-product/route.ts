@@ -17,17 +17,19 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createClient();
+  // Since sku is an array, we use the 'cs' (contains) operator.
+  // This finds any product where the sku array contains the provided sku string.
   const { data: product, error: productError } = await supabase
     .from('products')
     .select('id, visible')
-    .eq('sku', sku)
+    .contains('sku', [sku])
     .single();
 
   if (productError || !product) {
     return NextResponse.json({ error: `Producto con SKU ${sku} no encontrado` }, { status: 404 });
   }
 
-  let updatePayload: { visible: boolean, scheduled_republish_at?: string | null };
+  let updatePayload: { visible: boolean, scheduled_republish_at?: string[] | null };
   let successMessage = '';
 
   switch (action) {
@@ -39,7 +41,8 @@ export async function POST(request: NextRequest) {
       const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
       if (duration > 0) {
         const republishTime = addMinutes(new Date(), duration);
-        updatePayload = { visible: false, scheduled_republish_at: republishTime.toISOString() };
+        // scheduled_republish_at is an array, so we wrap the date in an array.
+        updatePayload = { visible: false, scheduled_republish_at: [republishTime.toISOString()] };
         successMessage = `Producto ${sku} pausado por ${duration} minutos. Se republicará automáticamente a las ${republishTime.toLocaleTimeString()}.`;
       } else {
         updatePayload = { visible: false, scheduled_republish_at: null };

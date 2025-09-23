@@ -19,8 +19,8 @@ interface ProductContextType {
   globalLoading: boolean; // For initial data load
   fetchProducts: () => Promise<void>;
   fetchInitialProfile: (user: User) => Promise<void>;
-  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id'>, imageFiles: File[]) => Promise<void>;
-  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
+  addProduct: (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku'> & { sku?: string }, imageFiles: File[]) => Promise<void>;
+  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku'> & { sku?: string }>, imageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   setActiveCatalog: (catalog: Catalog | null) => void;
   saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => Promise<void>;
@@ -45,7 +45,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
 
   const formatProduct = (p: any): Product => ({
       id: p.id,
-      sku: p.sku || '',
+      sku: p.sku || [],
       name: p.name,
       description: p.description || '',
       price: p.price,
@@ -179,7 +179,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     return publicUrl;
   };
 
-  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id'>, imageFiles: File[]) => {
+  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku'> & { sku?: string }, imageFiles: File[]) => {
     setLoading(true);
     if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -212,7 +212,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     const newProductPayload = {
       user_id: user.id,
       name: productData.name,
-      sku: productData.sku || null,
+      sku: productData.sku ? [productData.sku] : [],
       description: productData.description,
       price: productData.price,
       cost: productData.cost,
@@ -236,7 +236,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     setLoading(false);
   };
 
-  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog'>>, imageFiles: File[] = [], existingImageUrls: string[] = []) => {
+  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku'> & { sku?: string }>, imageFiles: File[] = [], existingImageUrls: string[] = []) => {
       setLoading(true);
        if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -268,7 +268,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       
       const updatePayload = {
         name: updatedFields.name,
-        sku: updatedFields.sku || null,
+        sku: updatedFields.sku ? [updatedFields.sku] : [],
         description: updatedFields.description,
         price: updatedFields.price,
         cost: updatedFields.cost,
