@@ -206,12 +206,20 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     } else {
       imageUrls = ['https://placehold.co/600x400.png'];
     }
-
+    
+    // Explicitly define the payload to ensure correct structure
     const newProductPayload = {
-      ...productData,
+      name: productData.name,
+      description: productData.description,
+      price: productData.price,
+      cost: productData.cost,
+      stock: productData.stock,
+      visible: productData.visible,
+      sku: productData.sku,
       user_id: user.id,
-      image_urls: imageUrls,
+      image_urls: imageUrls, // Ensure this is always an array
     };
+
 
     const { data: newProductData, error } = await supabase
       .from('products')
