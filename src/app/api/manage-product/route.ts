@@ -13,10 +13,13 @@ export async function GET(request: NextRequest) {
   const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
   
   const authHeader = request.headers.get('authorization');
-  const providedApiKey = authHeader?.split(' ')[1];
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Encabezado de autorización ausente o malformado' }, { status: 401 });
+  }
+  const providedApiKey = authHeader.substring(7); // Extrae la clave después de "Bearer "
 
-  // Si la clave no está configurada en el servidor O la clave proporcionada no coincide, se rechaza.
-  if (!expectedApiKey || !providedApiKey || providedApiKey !== expectedApiKey) {
+  if (providedApiKey !== expectedApiKey) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
   
@@ -30,19 +33,28 @@ export async function POST(request: NextRequest) {
   const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
   
   const authHeader = request.headers.get('authorization');
-  const providedApiKey = authHeader?.split(' ')[1];
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Encabezado de autorización ausente o malformado' }, { status: 401 });
+  }
+  const providedApiKey = authHeader.substring(7);
 
-  // Si la clave no está configurada en el servidor O la clave proporcionada no coincide, se rechaza.
-  if (!expectedApiKey || !providedApiKey || providedApiKey !== expectedApiKey) {
+  if (providedApiKey !== expectedApiKey) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
   
-  const { sku, action, email, pause_duration_minutes } = await request.json();
+  const body = await request.json();
+  const { sku, email, action, visible, pause_duration_minutes } = body;
 
-  // Ahora, 'email' es obligatorio.
-  if (!sku || !action || !email) {
-    return NextResponse.json({ error: 'Faltan los parámetros sku, action o email' }, { status: 400 });
+  if (!sku || !email) {
+    return NextResponse.json({ error: 'Faltan los parámetros sku o email' }, { status: 400 });
   }
+  
+  // Validar que se provea una acción o el estado de visibilidad
+  if (action === undefined && visible === undefined) {
+      return NextResponse.json({ error: 'Debe proporcionar una "action" (ej: "pause") o un estado "visible" (true/false).' }, { status: 400 });
+  }
+
 
   const supabase = createClient();
   
@@ -57,9 +69,7 @@ export async function POST(request: NextRequest) {
   }
   
   const userId = profile.id;
-  const filterDescription = `SKU: ${sku}, Email: ${email}`;
   
-  // Construir la consulta del producto, ahora siempre filtrando por user_id
   const { data: product, error: productError } = await supabase
     .from('products')
     .select('id, visible')
@@ -68,18 +78,17 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (productError || !product) {
-    return NextResponse.json({ error: `Producto con ${filterDescription} no encontrado` }, { status: 404 });
+    return NextResponse.json({ error: `Producto con SKU ${sku} para el usuario ${email} no encontrado` }, { status: 404 });
   }
 
   let updatePayload: { visible: boolean; scheduled_republish_at?: string | null };
   let successMessage = '';
 
-  switch (action) {
-    case 'unpublish':
-      updatePayload = { visible: false, scheduled_republish_at: null };
-      successMessage = `Producto ${sku} despublicado correctamente para ${email}.`;
-      break;
-    case 'pause':
+  // Lógica de acción principal
+  if (visible !== undefined) {
+      updatePayload = { visible: visible, scheduled_republish_at: null };
+      successMessage = `Producto ${sku} para ${email} ahora está ${visible ? 'visible' : 'oculto'}.`;
+  } else if (action === 'pause') {
       const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
       if (duration > 0) {
         const republishTime = addMinutes(new Date(), duration);
@@ -87,16 +96,12 @@ export async function POST(request: NextRequest) {
         successMessage = `Producto ${sku} pausado por ${duration} minutos para ${email}. Se republicará automáticamente a las ${republishTime.toLocaleTimeString()}.`;
       } else {
         updatePayload = { visible: false, scheduled_republish_at: null };
-        successMessage = `Producto ${sku} pausado (despublicado) indefinidamente para ${email}.`;
+        successMessage = `Producto ${sku} pausado (oculto) indefinidamente para ${email}.`;
       }
-      break;
-    case 'republish':
-      updatePayload = { visible: true, scheduled_republish_at: null };
-      successMessage = `Producto ${sku} republicado correctamente para ${email}.`;
-      break;
-    default:
-      return NextResponse.json({ error: `Acción '${action}' no válida. Las acciones válidas son: unpublish, pause, republish.` }, { status: 400 });
+  } else {
+      return NextResponse.json({ error: `Acción '${action}' no válida o estado 'visible' no especificado.` }, { status: 400 });
   }
+
 
   const { error: updateError } = await supabase
     .from('products')
