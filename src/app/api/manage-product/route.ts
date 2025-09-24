@@ -5,9 +5,28 @@ import { addMinutes } from 'date-fns';
 
 export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
 
+/**
+ * Método GET para verificar la conectividad y autorización de la API.
+ */
+export async function GET(request: NextRequest) {
+  // Se lee la clave de API desde las variables de entorno del servidor.
+  const expectedApiKey = process.env.INTERNAL_API_KEY;
+  
+  const authHeader = request.headers.get('authorization');
+  const providedApiKey = authHeader?.split(' ')[1];
+
+  // Si la clave no está configurada en el servidor O la clave proporcionada no coincide, se rechaza.
+  if (!expectedApiKey || !providedApiKey || providedApiKey !== expectedApiKey) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+  
+  // Si la autorización es exitosa, se devuelve un mensaje de confirmación.
+  return NextResponse.json({ message: '¡Éxito! La API de gestión de productos está funcionando y la autorización es correcta.' });
+}
+
+
 export async function POST(request: NextRequest) {
   // Se lee la clave de API desde las variables de entorno del servidor.
-  // Esta es la forma segura y correcta.
   const expectedApiKey = process.env.INTERNAL_API_KEY;
   
   const authHeader = request.headers.get('authorization');
@@ -37,7 +56,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Producto con SKU ${sku} no encontrado` }, { status: 404 });
   }
 
-  let updatePayload: { visible: boolean; scheduled_republish_at?: string[] | null };
+  let updatePayload: { visible: boolean; scheduled_republish_at?: string | null };
   let successMessage = '';
 
   switch (action) {
@@ -49,7 +68,8 @@ export async function POST(request: NextRequest) {
       const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
       if (duration > 0) {
         const republishTime = addMinutes(new Date(), duration);
-        updatePayload = { visible: false, scheduled_republish_at: [republishTime.toISOString()] };
+        // La columna espera un array de timestamptz, por lo que lo envolvemos en un array.
+        updatePayload = { visible: false, scheduled_republish_at: republishTime.toISOString() };
         successMessage = `Producto ${sku} pausado por ${duration} minutos. Se republicará automáticamente a las ${republishTime.toLocaleTimeString()}.`;
       } else {
         updatePayload = { visible: false, scheduled_republish_at: null };
