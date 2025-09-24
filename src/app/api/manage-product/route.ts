@@ -4,8 +4,16 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { addMinutes } from 'date-fns';
 
 export async function POST(request: NextRequest) {
-  const apiKey = request.headers.get('authorization')?.split(' ')[1];
+  // Robust validation for the Authorization header
+  const authHeader = request.headers.get('authorization');
+  let apiKey: string | undefined;
 
+  if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+    // Trim any whitespace and get the token part
+    apiKey = authHeader.substring(7).trim();
+  }
+
+  // Compare the extracted key with the one from environment variables
   if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
@@ -17,19 +25,17 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createClient();
-  // Since sku is an array, we use the 'cs' (contains) operator.
-  // This finds any product where the sku array contains the provided sku string.
   const { data: product, error: productError } = await supabase
     .from('products')
     .select('id, visible')
-    .contains('sku', [sku])
+    .contains('sku', [sku]) // Search for the SKU within the array
     .single();
 
   if (productError || !product) {
     return NextResponse.json({ error: `Producto con SKU ${sku} no encontrado` }, { status: 404 });
   }
 
-  let updatePayload: { visible: boolean, scheduled_republish_at?: string[] | null };
+  let updatePayload: { visible: boolean; scheduled_republish_at?: string[] | null };
   let successMessage = '';
 
   switch (action) {
@@ -41,7 +47,6 @@ export async function POST(request: NextRequest) {
       const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
       if (duration > 0) {
         const republishTime = addMinutes(new Date(), duration);
-        // scheduled_republish_at is an array, so we wrap the date in an array.
         updatePayload = { visible: false, scheduled_republish_at: [republishTime.toISOString()] };
         successMessage = `Producto ${sku} pausado por ${duration} minutos. Se republicará automáticamente a las ${republishTime.toLocaleTimeString()}.`;
       } else {
