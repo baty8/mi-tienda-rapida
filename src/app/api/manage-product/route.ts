@@ -3,21 +3,17 @@ import { createClient } from '@/lib/supabase/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { addMinutes } from 'date-fns';
 
+export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
+
 export async function POST(request: NextRequest) {
-  // Robust validation for the Authorization header
   const authHeader = request.headers.get('authorization');
-  let apiKey: string | undefined;
+  const apiKey = authHeader?.split(' ')[1];
 
-  if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
-    // Trim any whitespace and get the token part
-    apiKey = authHeader.substring(7).trim();
-  }
-
-  // Compare the extracted key with the one from environment variables
   if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
+    console.error('API Key Mismatch or Missing Header. Received:', apiKey, 'Expected:', process.env.INTERNAL_API_KEY);
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
-
+  
   const { sku, action, pause_duration_minutes } = await request.json();
 
   if (!sku || !action) {
@@ -28,7 +24,7 @@ export async function POST(request: NextRequest) {
   const { data: product, error: productError } = await supabase
     .from('products')
     .select('id, visible')
-    .contains('sku', [sku]) // Search for the SKU within the array
+    .contains('sku', [sku])
     .single();
 
   if (productError || !product) {
