@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
@@ -20,7 +19,8 @@ interface ProductContextType {
   fetchProducts: () => Promise<void>;
   fetchInitialProfile: (user: User) => Promise<void>;
   addProduct: (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku'> & { sku?: string }, imageFiles: File[]) => Promise<void>;
-  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku'> & { sku?: string }>, imageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
+  importProducts: (productsData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at'>[]) => Promise<{ successCount: number, errorCount: number }>;
+  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'> & { sku?: string }>, newImageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   setActiveCatalog: (catalog: Catalog | null) => void;
   saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => Promise<void>;
@@ -236,6 +236,48 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     }
     setLoading(false);
   };
+  
+  const importProducts = async (productsData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at'>[]) => {
+      setLoading(true);
+      if (!supabase) {
+        toast.error('Error', { description: 'Supabase client not initialized.' });
+        setLoading(false);
+        return { successCount: 0, errorCount: productsData.length };
+      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Error', { description: 'Debes iniciar sesión para importar productos.' });
+        setLoading(false);
+        return { successCount: 0, errorCount: productsData.length };
+      }
+
+      const productsToInsert = productsData.map(p => ({
+          ...p,
+          user_id: user.id,
+          sku: p.sku ? [String(p.sku)] : [],
+          image_urls: ['https://placehold.co/600x400.png'], // Default image for bulk import
+      }));
+
+      const { data, error } = await supabase
+          .from('products')
+          .insert(productsToInsert)
+          .select();
+
+      setLoading(false);
+
+      if (error) {
+          toast.error('Error en la importación', { description: error.message });
+          return { successCount: 0, errorCount: productsData.length };
+      }
+      
+      const newProducts = (data || []).map(formatProduct);
+      setProducts(prev => [...newProducts, ...prev]);
+
+      return {
+          successCount: data?.length || 0,
+          errorCount: productsData.length - (data?.length || 0),
+      };
+  };
 
   const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'> & { sku?: string }>, newImageFiles: File[] = [], existingImageUrlsFromForm?: string[]) => {
       setLoading(true);
@@ -276,10 +318,19 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       }
       
       const updatePayload = {
-        ...updatedFields,
+        ...existingProduct, // Start with all existing data
+        ...updatedFields, // Overwrite with new fields
         sku: updatedFields.sku ? [updatedFields.sku] : existingProduct.sku,
         image_urls: finalImageUrls,
       };
+
+      // Remove fields that shouldn't be in the update payload
+      delete (updatePayload as any).id;
+      delete (updatePayload as any).createdAt;
+      delete (updatePayload as any).tags;
+      delete (updatePayload as any).category;
+      delete (updatePayload as any).in_catalog;
+
 
       const { data, error } = await supabase.from('products').update(updatePayload).eq('id', productId).eq('user_id', user.id).select().single();
 
@@ -398,6 +449,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     fetchProducts,
     fetchInitialProfile,
     addProduct,
+    importProducts,
     updateProduct,
     deleteProduct,
     setActiveCatalog,
@@ -420,7 +472,3 @@ export const useProduct = () => {
   }
   return context;
 };
-
-    
-    
-    

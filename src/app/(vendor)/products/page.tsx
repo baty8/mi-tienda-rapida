@@ -3,6 +3,7 @@
 import { ProductTable } from '@/components/product-table';
 import { AddProductDialog } from '@/components/add-product-dialog';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { ImportProductsDialog } from '@/components/import-products-dialog';
 
 function ProductsPage() {
   return (
@@ -13,6 +14,7 @@ function ProductsPage() {
         </h2>
         <div className="flex items-center gap-4">
           <ThemeToggle />
+          <ImportProductsDialog />
           <AddProductDialog />
         </div>
       </header>
