@@ -72,13 +72,11 @@ export function ImportProductsDialog() {
             results.data.forEach((row: any, index) => {
                 const rowIndex = index + 2; // +1 for header, +1 for 0-index
                 
-                // 1. Validar campos obligatorios
                 if (!row.name || !row.price) {
                     errors.push(`Fila ${rowIndex}: Faltan el nombre o el precio.`);
                     return;
                 }
                 
-                // 2. Validar y procesar todos los campos
                 const price = parseFloat(row.price);
                 if (isNaN(price)) {
                     errors.push(`Fila ${rowIndex}: El precio '${row.price}' no es un número válido.`);
