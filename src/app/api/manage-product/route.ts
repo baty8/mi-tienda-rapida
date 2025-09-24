@@ -39,40 +39,33 @@ export async function POST(request: NextRequest) {
   
   const { sku, action, email, pause_duration_minutes } = await request.json();
 
-  if (!sku || !action) {
-    return NextResponse.json({ error: 'Faltan los parámetros sku o action' }, { status: 400 });
+  // Ahora, 'email' es obligatorio.
+  if (!sku || !action || !email) {
+    return NextResponse.json({ error: 'Faltan los parámetros sku, action o email' }, { status: 400 });
   }
 
   const supabase = createClient();
-  let userId: string | null = null;
-  let filterDescription = `SKU: ${sku}`;
+  
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', email)
+    .single();
 
-  if (email) {
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .single();
-
-    if (profileError || !profile) {
-      return NextResponse.json({ error: `Usuario con email ${email} no encontrado` }, { status: 404 });
-    }
-    userId = profile.id;
-    filterDescription += `, Email: ${email}`;
+  if (profileError || !profile) {
+    return NextResponse.json({ error: `Usuario con email ${email} no encontrado` }, { status: 404 });
   }
   
-  // Construir la consulta del producto
-  let productQuery = supabase
+  const userId = profile.id;
+  const filterDescription = `SKU: ${sku}, Email: ${email}`;
+  
+  // Construir la consulta del producto, ahora siempre filtrando por user_id
+  const { data: product, error: productError } = await supabase
     .from('products')
     .select('id, visible')
-    .contains('sku', [sku]);
-
-  // Si tenemos un userId, lo añadimos como filtro
-  if (userId) {
-    productQuery = productQuery.eq('user_id', userId);
-  }
-
-  const { data: product, error: productError } = await productQuery.single();
+    .contains('sku', [sku])
+    .eq('user_id', userId)
+    .single();
 
   if (productError || !product) {
     return NextResponse.json({ error: `Producto con ${filterDescription} no encontrado` }, { status: 404 });
@@ -84,22 +77,22 @@ export async function POST(request: NextRequest) {
   switch (action) {
     case 'unpublish':
       updatePayload = { visible: false, scheduled_republish_at: null };
-      successMessage = `Producto ${sku} despublicado correctamente.`;
+      successMessage = `Producto ${sku} despublicado correctamente para ${email}.`;
       break;
     case 'pause':
       const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
       if (duration > 0) {
         const republishTime = addMinutes(new Date(), duration);
         updatePayload = { visible: false, scheduled_republish_at: republishTime.toISOString() };
-        successMessage = `Producto ${sku} pausado por ${duration} minutos. Se republicará automáticamente a las ${republishTime.toLocaleTimeString()}.`;
+        successMessage = `Producto ${sku} pausado por ${duration} minutos para ${email}. Se republicará automáticamente a las ${republishTime.toLocaleTimeString()}.`;
       } else {
         updatePayload = { visible: false, scheduled_republish_at: null };
-        successMessage = `Producto ${sku} pausado (despublicado) indefinidamente.`;
+        successMessage = `Producto ${sku} pausado (despublicado) indefinidamente para ${email}.`;
       }
       break;
     case 'republish':
       updatePayload = { visible: true, scheduled_republish_at: null };
-      successMessage = `Producto ${sku} republicado correctamente.`;
+      successMessage = `Producto ${sku} republicado correctamente para ${email}.`;
       break;
     default:
       return NextResponse.json({ error: `Acción '${action}' no válida. Las acciones válidas son: unpublish, pause, republish.` }, { status: 400 });
