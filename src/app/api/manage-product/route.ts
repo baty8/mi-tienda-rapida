@@ -44,18 +44,12 @@ export async function POST(request: NextRequest) {
   }
   
   const body = await request.json();
-  const { sku, email, action, visible, pause_duration_minutes } = body;
+  const { sku, email, visible, pause_duration_minutes } = body;
 
-  if (!sku || !email) {
-    return NextResponse.json({ error: 'Faltan los parámetros sku o email' }, { status: 400 });
+  if (!sku || !email || visible === undefined) {
+    return NextResponse.json({ error: 'Faltan los parámetros requeridos: sku, email, y visible (true/false)' }, { status: 400 });
   }
   
-  // Validar que se provea una acción o el estado de visibilidad
-  if (action === undefined && visible === undefined) {
-      return NextResponse.json({ error: 'Debe proporcionar una "action" (ej: "pause") o un estado "visible" (true/false).' }, { status: 400 });
-  }
-
-
   const supabase = createClient();
   
   const { data: profile, error: profileError } = await supabase
@@ -84,11 +78,13 @@ export async function POST(request: NextRequest) {
   let updatePayload: { visible: boolean; scheduled_republish_at?: string | null };
   let successMessage = '';
 
-  // Lógica de acción principal
-  if (visible !== undefined) {
-      updatePayload = { visible: visible, scheduled_republish_at: null };
-      successMessage = `Producto ${sku} para ${email} ahora está ${visible ? 'visible' : 'oculto'}.`;
-  } else if (action === 'pause') {
+  // Si visible es true, siempre hacemos visible el producto y limpiamos cualquier republicación programada.
+  if (visible === true) {
+      updatePayload = { visible: true, scheduled_republish_at: null };
+      successMessage = `Producto ${sku} para ${email} ahora está visible.`;
+  } 
+  // Si visible es false, comprobamos si es una pausa temporal o indefinida.
+  else if (visible === false) {
       const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
       if (duration > 0) {
         const republishTime = addMinutes(new Date(), duration);
@@ -99,9 +95,8 @@ export async function POST(request: NextRequest) {
         successMessage = `Producto ${sku} pausado (oculto) indefinidamente para ${email}.`;
       }
   } else {
-      return NextResponse.json({ error: `Acción '${action}' no válida o estado 'visible' no especificado.` }, { status: 400 });
+      return NextResponse.json({ error: `El valor de 'visible' no es válido.` }, { status: 400 });
   }
-
 
   const { error: updateError } = await supabase
     .from('products')
@@ -114,3 +109,4 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ message: successMessage });
 }
+
