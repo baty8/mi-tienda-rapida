@@ -15,6 +15,7 @@ export interface Product {
   category: string;
   in_catalog: boolean;
   user_id: string; // uuid
+  scheduled_republish_at?: string | null;
 }
 
 export interface Catalog {
@@ -40,4 +41,5 @@ export type Profile = {
   store_font_family?: string | null;
 };
 
+    
     

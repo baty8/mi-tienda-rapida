@@ -58,6 +58,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       category: 'General',
       in_catalog: p.in_catalog || false,
       user_id: p.user_id,
+      scheduled_republish_at: p.scheduled_republish_at,
   });
 
   const fetchProducts = useCallback(async () => {
@@ -179,7 +180,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     return publicUrl;
   };
 
-  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku'> & { sku?: string }, imageFiles: File[]) => {
+  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku' | 'scheduled_republish_at'> & { sku?: string }, imageFiles: File[]) => {
     setLoading(true);
     if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -236,7 +237,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     setLoading(false);
   };
 
-  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku'> & { sku?: string }>, imageFiles: File[] = [], existingImageUrls: string[] = []) => {
+  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'> & { sku?: string }>, imageFiles: File[] = [], existingImageUrls: string[] = []) => {
       setLoading(true);
        if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -245,6 +246,13 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        setLoading(false);
+        return;
+      }
+      
+      const existingProduct = products.find(p => p.id === productId);
+      if (!existingProduct) {
+        toast.error('Error', { description: 'El producto que intentas actualizar no existe.' });
         setLoading(false);
         return;
       }
@@ -267,15 +275,19 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       }
       
       const updatePayload = {
-        name: updatedFields.name,
-        sku: updatedFields.sku ? [updatedFields.sku] : [],
-        description: updatedFields.description,
-        price: updatedFields.price,
-        cost: updatedFields.cost,
-        stock: updatedFields.stock,
-        visible: updatedFields.visible,
+        ...existingProduct, // Start with all existing data
+        ...updatedFields, // Overwrite with new fields
+        sku: updatedFields.sku ? [updatedFields.sku] : existingProduct.sku, // Handle SKU specifically
         image_urls: finalImageUrls,
       };
+
+      // Remove fields that should not be in the update payload to Supabase
+      delete (updatePayload as any).id;
+      delete (updatePayload as any).createdAt;
+      delete (updatePayload as any).tags;
+      delete (updatePayload as any).category;
+      delete (updatePayload as any).in_catalog;
+
 
       const { data, error } = await supabase.from('products').update(updatePayload).eq('id', productId).eq('user_id', user.id).select().single();
 
@@ -417,4 +429,5 @@ export const useProduct = () => {
   return context;
 };
 
+    
     

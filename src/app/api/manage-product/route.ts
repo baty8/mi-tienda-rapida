@@ -1,4 +1,5 @@
 
+
 import { createClient } from '@/lib/supabase/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { addMinutes } from 'date-fns';
@@ -78,24 +79,20 @@ export async function POST(request: NextRequest) {
   let updatePayload: { visible: boolean; scheduled_republish_at?: string | null };
   let successMessage = '';
 
-  // Si visible es true, siempre hacemos visible el producto y limpiamos cualquier republicación programada.
   if (visible === true) {
       updatePayload = { visible: true, scheduled_republish_at: null };
-      successMessage = `Producto ${sku} para ${email} ahora está visible.`;
+      successMessage = `Producto ${sku} para ${email} ahora está visible (habilitado).`;
   } 
-  // Si visible es false, comprobamos si es una pausa temporal o indefinida.
-  else if (visible === false) {
+  else { // visible === false
       const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
       if (duration > 0) {
         const republishTime = addMinutes(new Date(), duration);
         updatePayload = { visible: false, scheduled_republish_at: republishTime.toISOString() };
-        successMessage = `Producto ${sku} pausado por ${duration} minutos para ${email}. Se republicará automáticamente a las ${republishTime.toLocaleTimeString()}.`;
+        successMessage = `Producto ${sku} pausado temporalmente por ${duration} minutos para ${email}.`;
       } else {
         updatePayload = { visible: false, scheduled_republish_at: null };
-        successMessage = `Producto ${sku} pausado (oculto) indefinidamente para ${email}.`;
+        successMessage = `Producto ${sku} pausado indefinidamente para ${email}.`;
       }
-  } else {
-      return NextResponse.json({ error: `El valor de 'visible' no es válido.` }, { status: 400 });
   }
 
   const { error: updateError } = await supabase
@@ -110,3 +107,4 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ message: successMessage });
 }
 
+    
