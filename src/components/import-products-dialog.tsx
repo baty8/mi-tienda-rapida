@@ -40,7 +40,7 @@ export function ImportProductsDialog() {
   });
   
   const handleDownloadTemplate = () => {
-    const headers = "name,price,sku,description,cost,stock,visible";
+    const headers = "name,price,cost,stock,sku,description,visible";
     const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     if (link.href) {
@@ -95,15 +95,15 @@ export function ImportProductsDialog() {
                     return;
                 }
                 
-                const visible = row.visible ? ['true', '1', 'yes', 'verdadero'].includes(row.visible.toLowerCase()) : true;
+                const visible = row.visible ? ['true', '1', 'yes', 'verdadero'].includes(String(row.visible).toLowerCase()) : true;
 
                 productsToImport.push({
                     name: row.name.trim(),
                     price: price,
-                    sku: row.sku ? String(row.sku).trim() : '',
-                    description: row.description ? String(row.description).trim() : '',
                     cost: cost,
                     stock: stock,
+                    sku: row.sku ? String(row.sku).trim() : '',
+                    description: row.description ? String(row.description).trim() : '',
                     visible: visible,
                     row: rowIndex,
                 });
@@ -168,7 +168,7 @@ export function ImportProductsDialog() {
                 <h3 className="font-semibold">Instrucciones y Plantilla</h3>
                 <p className="text-sm text-muted-foreground">
                     Asegúrate de que tu archivo CSV tenga las siguientes cabeceras: <br />
-                    <code className="bg-muted px-1 py-0.5 rounded text-xs">name</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">price</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">sku</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">description</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">cost</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">stock</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">visible</code>.
+                    <code className="bg-muted px-1 py-0.5 rounded text-xs">name</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">price</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">cost</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">stock</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">sku</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">description</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">visible</code>.
                 </p>
                 <p className="text-xs text-muted-foreground">
                     <span className="font-bold">name</span> y <span className="font-bold">price</span> son obligatorios. Las demás columnas son opcionales.
