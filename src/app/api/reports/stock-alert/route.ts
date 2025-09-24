@@ -9,6 +9,7 @@ const LOW_STOCK_THRESHOLD = 10;
 
 /**
  * Método GET para obtener productos con bajo stock.
+ * Acepta un parámetro opcional `userId` para filtrar por vendedor.
  * Ideal para alertas en n8n o sistemas de monitoreo.
  */
 export async function GET(request: NextRequest) {
@@ -23,18 +24,33 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createClient();
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId');
 
-  // Consulta para obtener productos con stock bajo (mayor que 0 y menor o igual al umbral)
-  const { data: lowStockProducts, error } = await supabase
+  let query = supabase
     .from('products')
     .select('name, sku, stock')
     .gt('stock', 0)
     .lte('stock', LOW_STOCK_THRESHOLD)
     .order('stock', { ascending: true });
+
+  // Si se proporciona un userId, se añade el filtro a la consulta.
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  const { data: lowStockProducts, error } = await query;
     
   if (error) {
     return NextResponse.json({ error: `Error al consultar productos: ${error.message}` }, { status: 500 });
   }
 
-  return NextResponse.json(lowStockProducts);
+  const response = {
+    count: lowStockProducts.length,
+    filter: userId ? `user_id: ${userId}` : 'global',
+    products: lowStockProducts,
+    generated_at: new Date().toISOString()
+  };
+
+  return NextResponse.json(response);
 }
