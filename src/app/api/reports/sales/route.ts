@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 
 /**
  * Método GET para obtener un informe financiero general del inventario.
- * Acepta un parámetro opcional `userEmail` para filtrar por vendedor.
+ * Acepta un parámetro opcional `email` para filtrar por vendedor.
  */
 export async function GET(request: NextRequest) {
   // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   const supabase = createClient();
   const { searchParams } = new URL(request.url);
-  const userEmail = searchParams.get('userEmail');
+  const userEmail = searchParams.get('email');
   let userId: string | null = null;
   let filterDescription = 'global';
 
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: `Usuario con email ${userEmail} no encontrado` }, { status: 404 });
     }
     userId = profile.id;
-    filterDescription = `userEmail: ${userEmail}`;
+    filterDescription = `email: ${userEmail}`;
   }
 
 
