@@ -11,6 +11,7 @@ import {
   Eye,
   EyeOff,
   Trash2,
+  Search,
 } from 'lucide-react';
 
 import {
@@ -69,6 +70,7 @@ function CatalogPage() {
   const { products, fetchProducts, catalogs, activeCatalog, setActiveCatalog, saveCatalog, createCatalog, deleteCatalog } = useProduct();
   const [newCatalogName, setNewCatalogName] = useState('');
   const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -118,6 +120,10 @@ function CatalogPage() {
   
   const productsInCatalog = activeCatalog ? products.filter(p => activeCatalog.product_ids.includes(p.id)) : [];
   const availableProducts = products.filter(p => p.visible);
+
+  const filteredAvailableProducts = availableProducts.filter(p =>
+    p.name.toLowerCase().includes(productSearch.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col flex-1">
@@ -257,8 +263,18 @@ function CatalogPage() {
                       Elige qué productos incluir en el catálogo "{activeCatalog.name}".
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-                    {availableProducts.map((product) => (
+                  <CardContent>
+                    <div className="relative mb-4">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Buscar productos para añadir..."
+                            className="pl-8"
+                            value={productSearch}
+                            onChange={(e) => setProductSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {filteredAvailableProducts.map((product) => (
                         <div key={product.id} className="flex items-center space-x-4 p-2 rounded-lg hover:bg-muted">
                           <Checkbox
                             id={`product-${product.id}`}
@@ -272,7 +288,11 @@ function CatalogPage() {
                           <div className="text-sm text-muted-foreground">${product.price.toFixed(2)}</div>
                         </div>
                     ))}
+                    {availableProducts.length > 0 && filteredAvailableProducts.length === 0 && (
+                      <p className="text-center text-muted-foreground py-4">No se encontraron productos con ese nombre.</p>
+                    )}
                     {availableProducts.length === 0 && <p className="text-center text-muted-foreground py-4">No tienes productos visibles para añadir.</p>}
+                    </div>
                   </CardContent>
                    <CardFooter>
                       <div className="text-xs text-muted-foreground">
@@ -295,3 +315,5 @@ function CatalogPage() {
 }
 
 export default CatalogPage;
+
+    
