@@ -9,7 +9,7 @@ const LOW_STOCK_THRESHOLD = 10;
 
 /**
  * Método GET para obtener productos con bajo stock.
- * Acepta un parámetro opcional `userId` para filtrar por vendedor.
+ * Acepta un parámetro opcional `userEmail` para filtrar por vendedor.
  * Ideal para alertas en n8n o sistemas de monitoreo.
  */
 export async function GET(request: NextRequest) {
@@ -25,7 +25,24 @@ export async function GET(request: NextRequest) {
 
   const supabase = createClient();
   const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
+  const userEmail = searchParams.get('userEmail');
+  let userId: string | null = null;
+  let filterDescription = 'global';
+
+  if (userEmail) {
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', userEmail)
+        .single();
+    
+    if (profileError || !profile) {
+        return NextResponse.json({ error: `Usuario con email ${userEmail} no encontrado` }, { status: 404 });
+    }
+    userId = profile.id;
+    filterDescription = `userEmail: ${userEmail}`;
+  }
+
 
   let query = supabase
     .from('products')
@@ -34,7 +51,7 @@ export async function GET(request: NextRequest) {
     .lte('stock', LOW_STOCK_THRESHOLD)
     .order('stock', { ascending: true });
 
-  // Si se proporciona un userId, se añade el filtro a la consulta.
+  // Si se encontró un userId a partir del email, se añade el filtro a la consulta.
   if (userId) {
     query = query.eq('user_id', userId);
   }
@@ -47,7 +64,7 @@ export async function GET(request: NextRequest) {
 
   const response = {
     count: lowStockProducts.length,
-    filter: userId ? `user_id: ${userId}` : 'global',
+    filter: filterDescription,
     products: lowStockProducts,
     generated_at: new Date().toISOString()
   };

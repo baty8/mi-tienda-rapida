@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 
 /**
  * Método GET para obtener un informe financiero general del inventario.
- * Acepta un parámetro opcional `userId` para filtrar por vendedor.
+ * Acepta un parámetro opcional `userEmail` para filtrar por vendedor.
  */
 export async function GET(request: NextRequest) {
   // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
@@ -21,13 +21,30 @@ export async function GET(request: NextRequest) {
 
   const supabase = createClient();
   const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
+  const userEmail = searchParams.get('userEmail');
+  let userId: string | null = null;
+  let filterDescription = 'global';
+
+  if (userEmail) {
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', userEmail)
+        .single();
+    
+    if (profileError || !profile) {
+        return NextResponse.json({ error: `Usuario con email ${userEmail} no encontrado` }, { status: 404 });
+    }
+    userId = profile.id;
+    filterDescription = `userEmail: ${userEmail}`;
+  }
+
 
   let query = supabase
     .from('products')
     .select('cost, price, stock');
 
-  // Si se proporciona un userId, se añade el filtro a la consulta.
+  // Si se encontró un userId a partir del email, se añade el filtro a la consulta.
   if (userId) {
     query = query.eq('user_id', userId);
   }
@@ -44,7 +61,7 @@ export async function GET(request: NextRequest) {
         total_potential_revenue: 0,
         total_potential_profit: 0,
         product_count: 0,
-        filter: userId ? `user_id: ${userId}` : 'global'
+        filter: filterDescription
     });
   }
   
@@ -58,7 +75,7 @@ export async function GET(request: NextRequest) {
     total_potential_revenue: parseFloat(totalPotentialRevenue.toFixed(2)),
     total_potential_profit: parseFloat(totalPotentialProfit.toFixed(2)),
     product_count: products.length,
-    filter: userId ? `user_id: ${userId}` : 'global',
+    filter: filterDescription,
     generated_at: new Date().toISOString(),
   };
 
