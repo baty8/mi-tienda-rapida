@@ -6,13 +6,15 @@ import { addMinutes } from 'date-fns';
 export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
 
 export async function POST(request: NextRequest) {
-  // Clave de API interna incrustada directamente para evitar problemas de entorno.
-  const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
+  // Se lee la clave de API desde las variables de entorno del servidor.
+  // Esta es la forma segura y correcta.
+  const expectedApiKey = process.env.INTERNAL_API_KEY;
   
   const authHeader = request.headers.get('authorization');
   const providedApiKey = authHeader?.split(' ')[1];
 
-  if (!providedApiKey || providedApiKey !== expectedApiKey) {
+  // Si la clave no está configurada en el servidor O la clave proporcionada no coincide, se rechaza.
+  if (!expectedApiKey || !providedApiKey || providedApiKey !== expectedApiKey) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
   
