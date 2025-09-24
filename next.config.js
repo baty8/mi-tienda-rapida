@@ -17,6 +17,9 @@ const nextConfig = {
       },
     ],
   },
+  env: {
+    INTERNAL_API_KEY: process.env.INTERNAL_API_KEY,
+  }
 };
 
 module.exports = nextConfig;
