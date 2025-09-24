@@ -40,7 +40,7 @@ Ahora, vamos a conectar tu flujo externo con tu nueva API.
     *   **Method**: `POST`
     *   **URL**: Usa la URL de tu API.
         *   Para pruebas locales: `http://localhost:9002/api/manage-product`
-        *   Para producción: `https://tu-dominio-desplegado.com/api/manage-product`
+        *   Para producción: `https://eymitiendaweb.com/api/manage-product`
     *   **Authentication**: `Header Auth`.
     *   **Name**: `Authorization`.
     *   **Value**: `Bearer TU_INTERNAL_API_KEY` (reemplaza `TU_INTERNAL_API_KEY` con la clave que inventaste y pusiste en el archivo `.env`).
