@@ -6,11 +6,13 @@ import { addMinutes } from 'date-fns';
 export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
 
 export async function POST(request: NextRequest) {
+  // Clave de API interna incrustada directamente para evitar problemas de entorno.
+  const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
+  
   const authHeader = request.headers.get('authorization');
-  const apiKey = authHeader?.split(' ')[1];
+  const providedApiKey = authHeader?.split(' ')[1];
 
-  if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
-    console.error('API Key Mismatch or Missing Header. Received:', apiKey, 'Expected:', process.env.INTERNAL_API_KEY);
+  if (!providedApiKey || providedApiKey !== expectedApiKey) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
   
@@ -21,10 +23,12 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createClient();
+  
+  // Buscar producto por SKU dentro del array
   const { data: product, error: productError } = await supabase
     .from('products')
     .select('id, visible')
-    .contains('sku', [sku])
+    .contains('sku', [sku]) 
     .single();
 
   if (productError || !product) {
