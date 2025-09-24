@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
@@ -19,7 +20,7 @@ interface ProductContextType {
   fetchProducts: () => Promise<void>;
   fetchInitialProfile: (user: User) => Promise<void>;
   addProduct: (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku'> & { sku?: string }, imageFiles: File[]) => Promise<void>;
-  importProducts: (productsData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at'>[]) => Promise<{ successCount: number, errorCount: number }>;
+  importProducts: (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at'> & { row: number })[]) => Promise<{ successCount: number, errorCount: number }>;
   updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'> & { sku?: string }>, newImageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   setActiveCatalog: (catalog: Catalog | null) => void;
@@ -237,7 +238,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     setLoading(false);
   };
   
-  const importProducts = async (productsData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at'>[]) => {
+  const importProducts = async (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at'> & { row: number })[]) => {
       setLoading(true);
       if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -251,12 +252,15 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         return { successCount: 0, errorCount: productsData.length };
       }
 
-      const productsToInsert = productsData.map(p => ({
-          ...p,
-          user_id: user.id,
-          sku: p.sku ? [String(p.sku)] : [],
-          image_urls: ['https://placehold.co/600x400.png'], // Default image for bulk import
-      }));
+      const productsToInsert = productsData.map(p => {
+          const { row, ...productToInsert } = p; // Exclude the 'row' property
+          return {
+              ...productToInsert,
+              user_id: user.id,
+              sku: p.sku ? [String(p.sku)] : [],
+              image_urls: ['https://placehold.co/600x400.png'], // Default image for bulk import
+          }
+      });
 
       const { data, error } = await supabase
           .from('products')
@@ -317,20 +321,11 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         finalImageUrls.push('https://placehold.co/600x400.png');
       }
       
-      const updatePayload = {
-        ...existingProduct, // Start with all existing data
-        ...updatedFields, // Overwrite with new fields
+      const updatePayload: Partial<Product> = {
+        ...updatedFields,
         sku: updatedFields.sku ? [updatedFields.sku] : existingProduct.sku,
         image_urls: finalImageUrls,
       };
-
-      // Remove fields that shouldn't be in the update payload
-      delete (updatePayload as any).id;
-      delete (updatePayload as any).createdAt;
-      delete (updatePayload as any).tags;
-      delete (updatePayload as any).category;
-      delete (updatePayload as any).in_catalog;
-
 
       const { data, error } = await supabase.from('products').update(updatePayload).eq('id', productId).eq('user_id', user.id).select().single();
 
