@@ -71,31 +71,56 @@ export function ImportProductsDialog() {
 
             results.data.forEach((row: any, index) => {
                 const rowIndex = index + 2; // +1 for header, +1 for 0-index
+                
+                // 1. Validar campos obligatorios
                 if (!row.name || !row.price) {
                     errors.push(`Fila ${rowIndex}: Faltan el nombre o el precio.`);
                     return;
                 }
                 
+                // 2. Validar y procesar todos los campos
                 const price = parseFloat(row.price);
                 if (isNaN(price)) {
-                    errors.push(`Fila ${rowIndex}: El precio no es un número válido.`);
+                    errors.push(`Fila ${rowIndex}: El precio '${row.price}' no es un número válido.`);
+                    return;
+                }
+                
+                const cost = row.cost ? parseFloat(row.cost) : 0;
+                if (isNaN(cost)) {
+                    errors.push(`Fila ${rowIndex}: El costo '${row.cost}' no es un número válido.`);
                     return;
                 }
 
+                const stock = row.stock ? parseInt(row.stock, 10) : 0;
+                if (isNaN(stock)) {
+                    errors.push(`Fila ${rowIndex}: El stock '${row.stock}' no es un número válido.`);
+                    return;
+                }
+                
+                const visible = row.visible ? ['true', '1', 'yes', 'verdadero'].includes(row.visible.toLowerCase()) : true;
+
                 productsToImport.push({
-                    name: row.name,
+                    name: row.name.trim(),
                     price: price,
-                    sku: row.sku || '',
-                    description: row.description || '',
-                    cost: row.cost ? parseFloat(row.cost) : 0,
-                    stock: row.stock ? parseInt(row.stock, 10) : 0,
-                    visible: row.visible ? ['true', '1', 'yes'].includes(row.visible.toLowerCase()) : true,
+                    sku: row.sku ? String(row.sku).trim() : '',
+                    description: row.description ? String(row.description).trim() : '',
+                    cost: cost,
+                    stock: stock,
+                    visible: visible,
                     row: rowIndex,
                 });
             });
 
             if (errors.length > 0) {
-                toast.error('Errores en el archivo', { description: errors.join(' ') });
+                toast.error('Errores en el archivo CSV', { 
+                    description: (
+                        <div className="flex flex-col gap-2">
+                            {errors.slice(0, 5).map((e, i) => <span key={i}>{e}</span>)}
+                            {errors.length > 5 && <span>Y {errors.length - 5} más...</span>}
+                        </div>
+                    ),
+                    duration: 10000,
+                 });
                 setIsImporting(false);
                 return;
             }
