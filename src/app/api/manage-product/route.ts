@@ -37,23 +37,45 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
   
-  const { sku, action, pause_duration_minutes } = await request.json();
+  const { sku, action, email, pause_duration_minutes } = await request.json();
 
   if (!sku || !action) {
     return NextResponse.json({ error: 'Faltan los parámetros sku o action' }, { status: 400 });
   }
 
   const supabase = createClient();
+  let userId: string | null = null;
+  let filterDescription = `SKU: ${sku}`;
+
+  if (email) {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (profileError || !profile) {
+      return NextResponse.json({ error: `Usuario con email ${email} no encontrado` }, { status: 404 });
+    }
+    userId = profile.id;
+    filterDescription += `, Email: ${email}`;
+  }
   
-  // Buscar producto por SKU dentro del array
-  const { data: product, error: productError } = await supabase
+  // Construir la consulta del producto
+  let productQuery = supabase
     .from('products')
     .select('id, visible')
-    .contains('sku', [sku]) 
-    .single();
+    .contains('sku', [sku]);
+
+  // Si tenemos un userId, lo añadimos como filtro
+  if (userId) {
+    productQuery = productQuery.eq('user_id', userId);
+  }
+
+  const { data: product, error: productError } = await productQuery.single();
 
   if (productError || !product) {
-    return NextResponse.json({ error: `Producto con SKU ${sku} no encontrado` }, { status: 404 });
+    return NextResponse.json({ error: `Producto con ${filterDescription} no encontrado` }, { status: 404 });
   }
 
   let updatePayload: { visible: boolean; scheduled_republish_at?: string | null };
