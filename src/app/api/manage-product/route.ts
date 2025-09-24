@@ -1,5 +1,4 @@
 
-
 import { createClient } from '@/lib/supabase/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { addMinutes } from 'date-fns';
@@ -10,15 +9,11 @@ export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
  * Método GET para verificar la conectividad y autorización de la API.
  */
 export async function GET(request: NextRequest) {
-  // CLAVE INCRUSTADA PARA EVITAR PROBLEMAS CON VARIABLES DE ENTORNO EN VERCEL
+  // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
   const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
   
   const authHeader = request.headers.get('authorization');
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Encabezado de autorización ausente o malformado' }, { status: 401 });
-  }
-  const providedApiKey = authHeader.substring(7); // Extrae la clave después de "Bearer "
+  const providedApiKey = authHeader?.split('Bearer ')[1];
 
   if (providedApiKey !== expectedApiKey) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -30,15 +25,11 @@ export async function GET(request: NextRequest) {
 
 
 export async function POST(request: NextRequest) {
-  // CLAVE INCRUSTADA PARA EVITAR PROBLEMAS CON VARIABLES DE ENTORNO EN VERCEL
+  // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
   const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
   
   const authHeader = request.headers.get('authorization');
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Encabezado de autorización ausente o malformado' }, { status: 401 });
-  }
-  const providedApiKey = authHeader.substring(7);
+  const providedApiKey = authHeader?.split('Bearer ')[1];
 
   if (providedApiKey !== expectedApiKey) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -67,7 +58,7 @@ export async function POST(request: NextRequest) {
   
   const { data: product, error: productError } = await supabase
     .from('products')
-    .select('id, visible')
+    .select('id')
     .contains('sku', [sku])
     .eq('user_id', userId)
     .single();
@@ -88,7 +79,7 @@ export async function POST(request: NextRequest) {
       if (duration > 0) {
         const republishTime = addMinutes(new Date(), duration);
         updatePayload = { visible: false, scheduled_republish_at: republishTime.toISOString() };
-        successMessage = `Producto ${sku} pausado temporalmente por ${duration} minutos para ${email}.`;
+        successMessage = `Producto ${sku} pausado temporalmente por ${duration} minutos para ${email}. Se republicará automáticamente.`;
       } else {
         updatePayload = { visible: false, scheduled_republish_at: null };
         successMessage = `Producto ${sku} pausado indefinidamente para ${email}.`;
@@ -106,5 +97,3 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ message: successMessage });
 }
-
-    
