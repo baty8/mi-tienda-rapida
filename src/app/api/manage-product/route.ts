@@ -9,8 +9,8 @@ export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
  * Método GET para verificar la conectividad y autorización de la API.
  */
 export async function GET(request: NextRequest) {
-  // Se lee la clave de API desde las variables de entorno del servidor.
-  const expectedApiKey = process.env.INTERNAL_API_KEY;
+  // CLAVE INCRUSTADA PARA EVITAR PROBLEMAS CON VARIABLES DE ENTORNO EN VERCEL
+  const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
   
   const authHeader = request.headers.get('authorization');
   const providedApiKey = authHeader?.split(' ')[1];
@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
 
 
 export async function POST(request: NextRequest) {
-  // Se lee la clave de API desde las variables de entorno del servidor.
-  const expectedApiKey = process.env.INTERNAL_API_KEY;
+  // CLAVE INCRUSTADA PARA EVITAR PROBLEMAS CON VARIABLES DE ENTORNO EN VERCEL
+  const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
   
   const authHeader = request.headers.get('authorization');
   const providedApiKey = authHeader?.split(' ')[1];
@@ -68,7 +68,6 @@ export async function POST(request: NextRequest) {
       const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
       if (duration > 0) {
         const republishTime = addMinutes(new Date(), duration);
-        // La columna espera un array de timestamptz, por lo que lo envolvemos en un array.
         updatePayload = { visible: false, scheduled_republish_at: republishTime.toISOString() };
         successMessage = `Producto ${sku} pausado por ${duration} minutos. Se republicará automáticamente a las ${republishTime.toLocaleTimeString()}.`;
       } else {
