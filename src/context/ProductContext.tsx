@@ -237,7 +237,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     setLoading(false);
   };
 
-  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'> & { sku?: string }>, imageFiles: File[] = [], existingImageUrls: string[] = []) => {
+  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'> & { sku?: string }>, newImageFiles: File[] = [], existingImageUrlsFromForm?: string[]) => {
       setLoading(true);
        if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -257,10 +257,10 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         return;
       }
 
-      let newImageUrls: string[] = [];
-       if (imageFiles.length > 0) {
+      let newUploadedImageUrls: string[] = [];
+       if (newImageFiles.length > 0) {
          try {
-            newImageUrls = await Promise.all(imageFiles.map(file => uploadImage(file, user.id)));
+            newUploadedImageUrls = await Promise.all(newImageFiles.map(file => uploadImage(file, user.id)));
          } catch(error: any) {
             toast.error('Error de Carga', { description: error.message });
             setLoading(false);
@@ -268,26 +268,18 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
          }
        }
       
-      const finalImageUrls = [...existingImageUrls, ...newImageUrls];
+      const imageUrlsFromForm = existingImageUrlsFromForm !== undefined ? existingImageUrlsFromForm : existingProduct.image_urls;
+      const finalImageUrls = [...imageUrlsFromForm, ...newUploadedImageUrls];
       
       if (finalImageUrls.length === 0) {
         finalImageUrls.push('https://placehold.co/600x400.png');
       }
       
       const updatePayload = {
-        ...existingProduct, // Start with all existing data
-        ...updatedFields, // Overwrite with new fields
-        sku: updatedFields.sku ? [updatedFields.sku] : existingProduct.sku, // Handle SKU specifically
+        ...updatedFields,
+        sku: updatedFields.sku ? [updatedFields.sku] : existingProduct.sku,
         image_urls: finalImageUrls,
       };
-
-      // Remove fields that should not be in the update payload to Supabase
-      delete (updatePayload as any).id;
-      delete (updatePayload as any).createdAt;
-      delete (updatePayload as any).tags;
-      delete (updatePayload as any).category;
-      delete (updatePayload as any).in_catalog;
-
 
       const { data, error } = await supabase.from('products').update(updatePayload).eq('id', productId).eq('user_id', user.id).select().single();
 
@@ -429,5 +421,6 @@ export const useProduct = () => {
   return context;
 };
 
+    
     
     
