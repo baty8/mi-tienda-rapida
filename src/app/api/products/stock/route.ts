@@ -7,10 +7,10 @@ export const runtime = 'nodejs';
 /**
  * Método PATCH para ajustar el stock de un producto específico.
  * Se utiliza para registrar ventas offline o ajustes manuales de inventario.
+ * El SKU se pasa en el body para evitar problemas de codificación en la URL.
  */
 export async function PATCH(
-    request: NextRequest,
-    { params }: { params: { sku: string } }
+    request: NextRequest
 ) {
     // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
     const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
@@ -22,17 +22,11 @@ export async function PATCH(
         return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const { sku: encodedSku } = params;
-    if (!encodedSku) {
-        return NextResponse.json({ error: 'Falta el SKU del producto en la URL' }, { status: 400 });
-    }
-    const sku = decodeURIComponent(encodedSku);
-
     const body = await request.json();
-    const { email, adjustment } = body;
+    const { email, sku, adjustment } = body;
 
-    if (!email || adjustment === undefined) {
-        return NextResponse.json({ error: 'Faltan los parámetros requeridos: email y adjustment' }, { status: 400 });
+    if (!email || !sku || adjustment === undefined) {
+        return NextResponse.json({ error: 'Faltan los parámetros requeridos en el body: email, sku, y adjustment' }, { status: 400 });
     }
 
     const adjustmentValue = parseInt(adjustment, 10);
@@ -40,7 +34,6 @@ export async function PATCH(
         return NextResponse.json({ error: 'El valor de "adjustment" debe ser un número entero' }, { status: 400 });
     }
 
-    // Utilizar el service_role key para operaciones de escritura desde el servidor
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -59,7 +52,7 @@ export async function PATCH(
 
     const userId = profile.id;
 
-    // 2. SOLUCIÓN ROBUSTA Y CONSISTENTE: Buscar el producto por SKU en el array 'sku'.
+    // 2. Buscar el producto por SKU en el array 'sku'.
     const { data: products, error: productError } = await supabaseAdmin
         .from('products')
         .select('id, stock, name')
