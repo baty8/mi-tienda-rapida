@@ -56,11 +56,12 @@ export async function PATCH(
     const userId = profile.id;
 
     // 2. Encontrar el producto por SKU y usuario (de forma robusta)
+    // CORRECCIÓN: Se usa .contains() para buscar dentro del array de SKU.
     const { data: products, error: productError } = await supabase
         .from('products')
         .select('id, stock')
-        .contains('sku', [sku])
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .contains('sku', [sku]);
 
     if (productError) {
         return NextResponse.json({ error: `Error buscando el producto: ${productError.message}` }, { status: 500 });
