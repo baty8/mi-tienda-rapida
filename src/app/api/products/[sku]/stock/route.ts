@@ -55,6 +55,7 @@ export async function PATCH(
     const userId = profile.id;
 
     // 2. Encontrar el producto por SKU y usuario
+    // CORRECCIÓN: Usar .contains() porque el campo 'sku' es un array de texto (text[])
     const { data: product, error: productError } = await supabase
         .from('products')
         .select('id, stock')
