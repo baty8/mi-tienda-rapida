@@ -19,9 +19,9 @@ interface ProductContextType {
   globalLoading: boolean; // For initial data load
   fetchProducts: () => Promise<void>;
   fetchInitialProfile: (user: User) => Promise<void>;
-  addProduct: (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku'> & { sku?: string }, imageFiles: File[]) => Promise<void>;
-  importProducts: (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at'> & { row: number })[]) => Promise<{ successCount: number, errorCount: number }>;
-  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'> & { sku?: string }>, newImageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
+  addProduct: (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku' | 'scheduled_republish_at'>, imageFiles: File[]) => Promise<void>;
+  importProducts: (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at' | 'sku'> & { row: number, sku?: string })[]) => Promise<{ successCount: number, errorCount: number }>;
+  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'>>, newImageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   setActiveCatalog: (catalog: Catalog | null) => void;
   saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => Promise<void>;
@@ -34,6 +34,14 @@ const ProductContext = createContext<ProductContextType | undefined>(undefined);
 interface ProductProviderProps {
   children: ReactNode;
 }
+
+const generateSkuFromName = (name: string): string => {
+    return name
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/[^A-Z0-9-]/g, ''); // Remove non-alphanumeric characters except hyphens
+};
 
 export const ProductProvider = ({ children }: ProductProviderProps) => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -181,7 +189,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     return publicUrl;
   };
 
-  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku' | 'scheduled_republish_at'> & { sku?: string }, imageFiles: File[]) => {
+  const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku' | 'scheduled_republish_at'>, imageFiles: File[]) => {
     setLoading(true);
     if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -210,16 +218,13 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     if (imageUrls.length === 0) {
         imageUrls.push('https://placehold.co/600x400.png');
     }
+    
+    const sku = generateSkuFromName(productData.name);
 
     const newProductPayload = {
+      ...productData,
       user_id: user.id,
-      name: productData.name,
-      sku: productData.sku ? [productData.sku] : [],
-      description: productData.description,
-      price: productData.price,
-      cost: productData.cost,
-      stock: productData.stock,
-      visible: productData.visible,
+      sku: [sku],
       image_urls: imageUrls,
     };
 
@@ -238,7 +243,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     setLoading(false);
   };
   
-  const importProducts = async (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at'> & { row: number })[]) => {
+  const importProducts = async (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at' | 'sku'> & { row: number, sku?: string })[]) => {
       setLoading(true);
       if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -254,10 +259,11 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
 
       const productsToInsert = productsData.map(p => {
           const { row, ...productToInsert } = p; // Exclude the 'row' property
+          const sku = p.sku ? String(p.sku) : generateSkuFromName(p.name);
           return {
               ...productToInsert,
               user_id: user.id,
-              sku: p.sku ? [String(p.sku)] : [],
+              sku: [sku],
               image_urls: ['https://placehold.co/600x400.png'], // Default image for bulk import
           }
       });
@@ -283,7 +289,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       };
   };
 
-  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'> & { sku?: string }>, newImageFiles: File[] = [], existingImageUrlsFromForm?: string[]) => {
+  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'>>, newImageFiles: File[] = [], existingImageUrlsFromForm?: string[]) => {
       setLoading(true);
        if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -322,10 +328,16 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       }
       
       const updatePayload: Partial<Product> = {
-        ...updatedFields,
-        sku: updatedFields.sku ? [updatedFields.sku] : existingProduct.sku,
-        image_urls: finalImageUrls,
+        ...existingProduct, // Start with existing data
+        ...updatedFields, // Overwrite with new fields
       };
+      
+      // If name is being updated, regenerate SKU
+      if (updatedFields.name) {
+          updatePayload.sku = [generateSkuFromName(updatedFields.name)];
+      }
+
+      updatePayload.image_urls = finalImageUrls;
 
       const { data, error } = await supabase.from('products').update(updatePayload).eq('id', productId).eq('user_id', user.id).select().single();
 

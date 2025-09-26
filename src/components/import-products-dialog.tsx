@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -102,7 +103,7 @@ export function ImportProductsDialog() {
                     price: price,
                     cost: cost,
                     stock: stock,
-                    sku: row.sku ? String(row.sku).trim() : '',
+                    sku: row.sku ? String(row.sku).trim() : undefined,
                     description: row.description ? String(row.description).trim() : '',
                     visible: visible,
                     row: rowIndex,
