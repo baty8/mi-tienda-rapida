@@ -37,15 +37,16 @@ export async function PATCH(request: NextRequest) {
   
   const userId = profile.id;
   
+  // CORRECCIÓN: Usar .contains() porque el campo 'sku' es un array de texto (text[])
   const { data: product, error: productError } = await supabase
     .from('products')
     .select('id')
-    .contains('sku', [sku])
+    .contains('sku', [sku]) 
     .eq('user_id', userId)
     .single();
 
   if (productError || !product) {
-    return NextResponse.json({ error: `Producto con SKU ${sku} para el usuario ${email} no encontrado` }, { status: 404 });
+    return NextResponse.json({ error: `Producto con SKU ${sku} para el usuario ${email} no encontrado. Error: ${productError?.message}` }, { status: 404 });
   }
 
   let updatePayload: { visible: boolean; scheduled_republish_at?: string | null };
