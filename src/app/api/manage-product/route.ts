@@ -37,12 +37,12 @@ export async function PATCH(request: NextRequest) {
   
   const userId = profile.id;
   
-  // CORRECCIÓN: Se elimina .single() para manejar múltiples o ninguna coincidencia.
+  // SOLUCIÓN ROBUSTA: Búsqueda insensible a mayúsculas/minúsculas y espacios
   const { data: products, error: productError } = await supabase
     .from('products')
     .select('id')
     .eq('user_id', userId)
-    .contains('sku', [sku]);
+    .ilike('name', sku.trim()); // .ilike es case-insensitive
 
   if (productError) {
       return NextResponse.json({ error: `Error buscando el producto: ${productError.message}` }, { status: 500 });
