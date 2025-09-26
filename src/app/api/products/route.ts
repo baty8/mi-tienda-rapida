@@ -1,8 +1,14 @@
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
+
+// Utilizar el service_role key para operaciones de escritura desde el servidor
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 const generateSkuFromName = (name: string): string => {
     return name.trim();
@@ -34,10 +40,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Faltan parámetros requeridos: email, name, y price' }, { status: 400 });
     }
     
-    const supabase = createClient();
-  
     // 1. Encontrar al usuario por su email
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('id')
         .eq('email', email)
@@ -66,7 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Buscar un producto existente por el SKU en el array 'sku'
-    const { data: existingProducts, error: findError } = await supabase
+    const { data: existingProducts, error: findError } = await supabaseAdmin
         .from('products')
         .select('id')
         .eq('user_id', userId)
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     if (existingProduct) {
         // --- ACTUALIZAR PRODUCTO ---
-        const { data: updatedProduct, error: updateError } = await supabase
+        const { data: updatedProduct, error: updateError } = await supabaseAdmin
             .from('products')
             .update(productPayload)
             .eq('id', existingProduct.id)
@@ -98,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     } else {
         // --- CREAR PRODUCTO ---
-        const { data: newProduct, error: createError } = await supabase
+        const { data: newProduct, error: createError } = await supabaseAdmin
             .from('products')
             .insert(productPayload)
             .select()

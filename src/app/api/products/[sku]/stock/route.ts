@@ -1,8 +1,14 @@
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
+
+// Utilizar el service_role key para operaciones de escritura desde el servidor
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 /**
  * Método PATCH para ajustar el stock de un producto específico.
@@ -40,10 +46,8 @@ export async function PATCH(
         return NextResponse.json({ error: 'El valor de "adjustment" debe ser un número entero' }, { status: 400 });
     }
 
-    const supabase = createClient();
-
     // 1. Encontrar al usuario por su email
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('id')
         .eq('email', email)
@@ -56,7 +60,7 @@ export async function PATCH(
     const userId = profile.id;
 
     // 2. SOLUCIÓN ROBUSTA Y CONSISTENTE: Buscar el producto por SKU en el array 'sku'.
-    const { data: products, error: productError } = await supabase
+    const { data: products, error: productError } = await supabaseAdmin
         .from('products')
         .select('id, stock, name')
         .eq('user_id', userId)
@@ -81,7 +85,7 @@ export async function PATCH(
         return NextResponse.json({ error: `El ajuste resultaría en stock negativo (${newStock}). Stock actual: ${product.stock}.` }, { status: 409 });
     }
 
-    const { data: updatedProduct, error: updateError } = await supabase
+    const { data: updatedProduct, error: updateError } = await supabaseAdmin
         .from('products')
         .update({ stock: newStock })
         .eq('id', product.id)

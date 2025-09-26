@@ -1,9 +1,15 @@
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
 import { addMinutes } from 'date-fns';
 
 export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
+
+// Utilizar el service_role key para operaciones de escritura desde el servidor
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function PATCH(request: NextRequest) {
   // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
@@ -23,9 +29,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Faltan los parámetros requeridos: sku, email, y visible (true/false)' }, { status: 400 });
   }
   
-  const supabase = createClient();
-  
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
     .select('id')
     .eq('email', email)
@@ -38,7 +42,7 @@ export async function PATCH(request: NextRequest) {
   const userId = profile.id;
   
   // SOLUCIÓN ROBUSTA Y CONSISTENTE: Búsqueda por SKU en el array 'sku'.
-  const { data: products, error: productError } = await supabase
+  const { data: products, error: productError } = await supabaseAdmin
     .from('products')
     .select('id')
     .eq('user_id', userId)
@@ -75,7 +79,7 @@ export async function PATCH(request: NextRequest) {
       }
   }
 
-  const { error: updateError } = await supabase
+  const { error: updateError } = await supabaseAdmin
     .from('products')
     .update(updatePayload)
     .eq('id', product.id);
