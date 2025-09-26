@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 }
 
 
-export async function POST(request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
   const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
   
