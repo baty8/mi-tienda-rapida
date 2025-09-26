@@ -10,7 +10,7 @@ const generateSkuFromName = (name: string): string => {
 
 /**
  * Método POST para crear o actualizar (Upsert) un producto.
- * Genera un SKU a partir del nombre y lo usa para buscar el producto.
+ * Genera un SKU a partir del nombre y lo usa para buscar el producto en el campo 'sku' (array).
  * - Si existe, lo actualiza.
  * - Si no existe, lo crea.
  * Este endpoint es ideal para integraciones con n8n y Google Sheets.
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const productPayload: any = {
         name,
         price: parseFloat(price),
-        sku: [generatedSku],
+        sku: [generatedSku], // El SKU se guarda como un array
         user_id: userId,
     };
     if (cost !== undefined) productPayload.cost = parseFloat(cost);
@@ -65,17 +65,22 @@ export async function POST(request: NextRequest) {
         productPayload.image_urls = ['https://placehold.co/600x400.png'];
     }
 
-    // 3. Buscar un producto existente por el SKU generado a partir del nombre
-    const { data: existingProduct, error: findError } = await supabase
+    // 3. Buscar un producto existente por el SKU en el array 'sku'
+    const { data: existingProducts, error: findError } = await supabase
         .from('products')
         .select('id')
         .eq('user_id', userId)
-        .contains('sku', [generatedSku])
-        .single();
+        .contains('sku', [generatedSku]);
 
-    if (findError && findError.code !== 'PGRST116') { // PGRST116: single() did not return exactly one row
+    if (findError) {
         return NextResponse.json({ error: `Error buscando el producto: ${findError.message}` }, { status: 500 });
     }
+
+    if (existingProducts && existingProducts.length > 1) {
+        return NextResponse.json({ error: `Conflicto: Múltiples productos encontrados con SKU '${generatedSku}'. El SKU debe ser único.` }, { status: 409 });
+    }
+    
+    const existingProduct = existingProducts?.[0];
 
     if (existingProduct) {
         // --- ACTUALIZAR PRODUCTO ---

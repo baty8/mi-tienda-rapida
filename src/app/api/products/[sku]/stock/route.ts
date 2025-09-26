@@ -55,12 +55,12 @@ export async function PATCH(
 
     const userId = profile.id;
 
-    // 2. SOLUCIÓN ROBUSTA: Encontrar el producto por SKU (nombre) y usuario de forma case-insensitive
+    // 2. SOLUCIÓN ROBUSTA Y CONSISTENTE: Buscar el producto por SKU en el array 'sku'.
     const { data: products, error: productError } = await supabase
         .from('products')
         .select('id, stock, name')
         .eq('user_id', userId)
-        .ilike('name', sku.trim()); // .ilike es case-insensitive y trim() quita espacios
+        .contains('sku', [sku.trim()]);
 
     if (productError) {
         return NextResponse.json({ error: `Error buscando el producto: ${productError.message}` }, { status: 500 });

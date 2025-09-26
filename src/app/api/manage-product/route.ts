@@ -37,12 +37,12 @@ export async function PATCH(request: NextRequest) {
   
   const userId = profile.id;
   
-  // SOLUCIÓN ROBUSTA: Búsqueda insensible a mayúsculas/minúsculas y espacios en el campo 'name'
+  // SOLUCIÓN ROBUSTA Y CONSISTENTE: Búsqueda por SKU en el array 'sku'.
   const { data: products, error: productError } = await supabase
     .from('products')
     .select('id')
     .eq('user_id', userId)
-    .ilike('name', sku.trim()); // .ilike es case-insensitive y busca en la columna de texto 'name'
+    .contains('sku', [sku.trim()]);
 
   if (productError) {
       return NextResponse.json({ error: `Error buscando el producto: ${productError.message}` }, { status: 500 });
