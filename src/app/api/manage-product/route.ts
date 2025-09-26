@@ -37,17 +37,24 @@ export async function PATCH(request: NextRequest) {
   
   const userId = profile.id;
   
-  // CORRECCIÓN: Se añade el filtro por `user_id` para garantizar una única coincidencia.
-  const { data: product, error: productError } = await supabase
+  // CORRECCIÓN: Se elimina .single() para manejar múltiples o ninguna coincidencia.
+  const { data: products, error: productError } = await supabase
     .from('products')
     .select('id')
-    .contains('sku', [sku]) 
     .eq('user_id', userId)
-    .single();
+    .contains('sku', [sku]);
 
-  if (productError || !product) {
-    return NextResponse.json({ error: `Producto con SKU ${sku} para el usuario ${email} no encontrado. Error: ${productError?.message}` }, { status: 404 });
+  if (productError) {
+      return NextResponse.json({ error: `Error buscando el producto: ${productError.message}` }, { status: 500 });
   }
+  if (!products || products.length === 0) {
+    return NextResponse.json({ error: `Producto con SKU '${sku}' para el usuario '${email}' no encontrado.` }, { status: 404 });
+  }
+  if (products.length > 1) {
+    return NextResponse.json({ error: `Conflicto: Múltiples productos encontrados con SKU '${sku}' para el usuario '${email}'. El SKU debe ser único por usuario.` }, { status: 409 });
+  }
+
+  const product = products[0];
 
   let updatePayload: { visible: boolean; scheduled_republish_at?: string | null };
   let successMessage = '';
