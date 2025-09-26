@@ -7,7 +7,7 @@ import type { Product, Catalog, Profile } from '@/types';
 import { getSupabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { User } from '@supabase/supabase-js';
+import { User, type RealtimeChannel } from '@supabase/supabase-js';
 
 
 interface ProductContextType {
@@ -160,16 +160,50 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
   }, [supabase, fetchProducts, fetchAllCatalogs]);
 
   useEffect(() => {
-    const supabase = getSupabase();
-    if(supabase) {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-                fetchInitialProfile(session.user);
-            }
-        });
-        return () => subscription.unsubscribe();
-    }
-  }, [fetchInitialProfile]);
+    if (!supabase) return;
+    
+    // --- Autenticación y Carga Inicial ---
+    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            fetchInitialProfile(session.user);
+        }
+    });
+
+    // --- Suscripción a Cambios en Tiempo Real ---
+    let productsChannel: RealtimeChannel | null = null;
+    
+    const setupRealtime = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+             productsChannel = supabase.channel(`public:products:user_id=eq.${user.id}`)
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'products', filter: `user_id=eq.${user.id}` },
+                    (payload) => {
+                        if (payload.eventType === 'INSERT') {
+                            const newProduct = formatProduct(payload.new);
+                            setProducts(prev => [newProduct, ...prev]);
+                        } else if (payload.eventType === 'UPDATE') {
+                            const updatedProduct = formatProduct(payload.new);
+                            setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+                        } else if (payload.eventType === 'DELETE') {
+                            setProducts(prev => prev.filter(p => p.id !== payload.old.id));
+                        }
+                    }
+                )
+                .subscribe();
+        }
+    };
+    
+    setupRealtime();
+
+    return () => {
+      authSub.unsubscribe();
+      if (productsChannel) {
+        supabase.removeChannel(productsChannel);
+      }
+    };
+  }, [supabase, fetchInitialProfile]);
 
 
   const uploadImage = async (file: File, userId: string): Promise<string> => {
@@ -244,7 +278,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       toast.error('Error', { description: `No se pudo añadir el producto: ${error.message}` });
     } else {
       toast.success('Éxito', { description: 'Producto añadido correctamente.' });
-      setProducts(prev => [formatProduct(newProductData), ...prev]);
+      // El estado se actualizará a través de la suscripción en tiempo real
     }
     setLoading(false);
   };
@@ -316,9 +350,9 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
 
       setLoading(false);
 
-      if (successCount > 0) {
-        await fetchProducts();
-      }
+      // No necesitamos llamar a fetchProducts() aquí, el tiempo real se encargará
+      // aunque para importaciones masivas puede ser mejor un fetch manual al final.
+      // Por ahora, dejamos que el realtime actúe.
       
       return {
           successCount: successCount,
@@ -378,7 +412,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         toast.error('Error', { description: `No se pudo actualizar el producto: ${error.message}` });
       } else {
         toast.success('Éxito', { description: 'Producto actualizado.' });
-        setProducts(prevProducts => prevProducts.map(p => p.id === productId ? formatProduct(data) : p));
+        // El estado se actualizará a través de la suscripción en tiempo real
       }
       setLoading(false);
   };
@@ -395,7 +429,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
        toast.error('Error', { description: `No se pudo eliminar el producto: ${error.message}` });
     } else {
        toast.success('Éxito', { description: 'Producto eliminado.' });
-       setProducts(prev => prev.filter(p => p.id !== productId));
+       // El estado se actualizará a través de la suscripción en tiempo real
     }
     setLoading(false);
   };
