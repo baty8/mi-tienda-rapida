@@ -19,6 +19,9 @@ import { useProduct } from '@/context/ProductContext';
 import { toast } from 'sonner';
 import Papa from 'papaparse';
 import type { Product } from '@/types';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Terminal } from 'lucide-react';
+
 
 type StagingProduct = Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at' | 'sku'> & { row: number };
 
@@ -42,7 +45,7 @@ export function ImportProductsDialog() {
   
   const handleDownloadTemplate = () => {
     const headers = "nombre,price,cost,stock,description,visible";
-    const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([`\uFEFF${headers}`], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel
     const link = document.createElement("a");
     if (link.href) {
         URL.revokeObjectURL(link.href);
@@ -153,19 +156,27 @@ export function ImportProductsDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <Upload className="mr-2" />
+          <Upload className="mr-2 h-4 w-4" />
           Importar
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle className="font-headline text-2xl">Importar Productos</DialogTitle>
+          <DialogTitle className="font-headline text-2xl">Importar Productos desde CSV</DialogTitle>
           <DialogDescription>
-            Sube un archivo CSV para añadir o actualizar múltiples productos a la vez. El sistema usará el nombre del producto para saber si debe crear uno nuevo o actualizar uno existente.
+            Añade o actualiza múltiples productos a la vez. El sistema usará el nombre del producto para saber si debe crear uno nuevo o actualizar uno existente.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+             <Alert variant="destructive">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>¡Importante!</AlertTitle>
+                <AlertDescription>
+                   El archivo debe ser un **CSV (Valores Separados por Comas)** con codificación **UTF-8**. Si usas Excel, asegúrate de guardar el archivo con la opción "CSV UTF-8 (delimitado por comas)".
+                </AlertDescription>
+            </Alert>
+
             <div className="space-y-2 rounded-lg border border-dashed p-4">
                 <h3 className="font-semibold">Instrucciones y Plantilla</h3>
                 <p className="text-sm text-muted-foreground">
@@ -173,7 +184,7 @@ export function ImportProductsDialog() {
                     <code className="bg-muted px-1 py-0.5 rounded text-xs">nombre</code> (o <code className="bg-muted px-1 py-0.5 rounded text-xs">name</code>), <code className="bg-muted px-1 py-0.5 rounded text-xs">price</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">cost</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">stock</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">description</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">visible</code>.
                 </p>
                 <p className="text-xs text-muted-foreground">
-                    <span className="font-bold">nombre</span> y <span className="font-bold">price</span> son obligatorios. Las demás columnas son opcionales.
+                    <span className="font-bold">nombre</span> (o <span className="font-bold">name</span>) y <span className="font-bold">price</span> son obligatorios. Las demás columnas son opcionales.
                 </p>
                 <Button variant="secondary" size="sm" onClick={handleDownloadTemplate}>
                     Descargar Plantilla CSV
@@ -197,7 +208,7 @@ export function ImportProductsDialog() {
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={isImporting}>Cancelar</Button>
           <Button onClick={handleImport} disabled={!file || isImporting}>
-            {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Upload className="mr-2"/>}
+            {isImporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Upload className="mr-2 h-4 w-4"/>}
             {isImporting ? 'Importando...' : 'Importar Archivo'}
           </Button>
         </DialogFooter>
