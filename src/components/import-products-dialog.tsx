@@ -41,7 +41,7 @@ export function ImportProductsDialog() {
   });
   
   const handleDownloadTemplate = () => {
-    const headers = "name,price,cost,stock,description,visible";
+    const headers = "nombre,price,cost,stock,description,visible";
     const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     if (link.href) {
@@ -73,8 +73,10 @@ export function ImportProductsDialog() {
             results.data.forEach((row: any, index) => {
                 const rowIndex = index + 2; // +1 for header, +1 for 0-index
                 
-                if (!row.name || !row.price) {
-                    errors.push(`Fila ${rowIndex}: Faltan el nombre o el precio.`);
+                const productName = row.name || row.nombre;
+
+                if (!productName || !row.price) {
+                    errors.push(`Fila ${rowIndex}: Faltan la columna de nombre ('name' o 'nombre') o de precio ('price').`);
                     return;
                 }
                 
@@ -99,7 +101,7 @@ export function ImportProductsDialog() {
                 const visible = row.visible ? ['true', '1', 'yes', 'verdadero'].includes(String(row.visible).toLowerCase()) : true;
 
                 productsToImport.push({
-                    name: row.name.trim(),
+                    name: productName.trim(),
                     price: price,
                     cost: cost,
                     stock: stock,
@@ -126,7 +128,7 @@ export function ImportProductsDialog() {
             if (productsToImport.length > 0) {
                 const { successCount, errorCount } = await importProducts(productsToImport);
                 toast.success('Importación completada', {
-                    description: `${successCount} productos importados, ${errorCount} fallaron.`,
+                    description: `${successCount} productos importados/actualizados, ${errorCount} filas fallaron.`,
                 });
                 if (successCount > 0) {
                   await fetchProducts();
@@ -159,7 +161,7 @@ export function ImportProductsDialog() {
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">Importar Productos</DialogTitle>
           <DialogDescription>
-            Sube un archivo CSV para añadir múltiples productos a la vez.
+            Sube un archivo CSV para añadir o actualizar múltiples productos a la vez. El sistema usará el nombre del producto para saber si debe crear uno nuevo o actualizar uno existente.
           </DialogDescription>
         </DialogHeader>
 
@@ -167,11 +169,11 @@ export function ImportProductsDialog() {
             <div className="space-y-2 rounded-lg border border-dashed p-4">
                 <h3 className="font-semibold">Instrucciones y Plantilla</h3>
                 <p className="text-sm text-muted-foreground">
-                    Asegúrate de que tu archivo CSV tenga las siguientes cabeceras: <br />
-                    <code className="bg-muted px-1 py-0.5 rounded text-xs">name</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">price</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">cost</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">stock</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">description</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">visible</code>.
+                    Tu archivo CSV debe tener las siguientes cabeceras: <br />
+                    <code className="bg-muted px-1 py-0.5 rounded text-xs">nombre</code> (o <code className="bg-muted px-1 py-0.5 rounded text-xs">name</code>), <code className="bg-muted px-1 py-0.5 rounded text-xs">price</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">cost</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">stock</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">description</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">visible</code>.
                 </p>
                 <p className="text-xs text-muted-foreground">
-                    <span className="font-bold">name</span> y <span className="font-bold">price</span> son obligatorios. Las demás columnas son opcionales.
+                    <span className="font-bold">nombre</span> y <span className="font-bold">price</span> son obligatorios. Las demás columnas son opcionales.
                 </p>
                 <Button variant="secondary" size="sm" onClick={handleDownloadTemplate}>
                     Descargar Plantilla CSV

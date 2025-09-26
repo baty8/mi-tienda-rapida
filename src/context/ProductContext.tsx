@@ -20,8 +20,8 @@ interface ProductContextType {
   fetchProducts: () => Promise<void>;
   fetchInitialProfile: (user: User) => Promise<void>;
   addProduct: (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku' | 'scheduled_republish_at'>, imageFiles: File[]) => Promise<void>;
-  importProducts: (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at' | 'sku'> & { row: number, sku?: string })[]) => Promise<{ successCount: number, errorCount: number }>;
-  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'>>, newImageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
+  importProducts: (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at' | 'sku'> & { row: number })[]) => Promise<{ successCount: number, errorCount: number }>;
+  updateProduct: (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'>>, newImageFiles?: File[], existingImageUrls?: string[]) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   setActiveCatalog: (catalog: Catalog | null) => void;
   saveCatalog: (catalogId: string, catalogData: { name: string; product_ids: string[]; is_public: boolean }) => Promise<void>;
@@ -239,7 +239,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
     setLoading(false);
   };
   
-  const importProducts = async (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at' | 'sku'> & { row: number, sku?: string })[]) => {
+  const importProducts = async (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at' | 'sku'> & { row: number })[]) => {
       setLoading(true);
       if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -253,39 +253,52 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         return { successCount: 0, errorCount: productsData.length };
       }
 
-      const productsToInsert = productsData.map(p => {
-          const { row, ...productToInsert } = p;
-          const sku = p.sku ? String(p.sku) : generateSkuFromName(p.name);
-          return {
-              ...productToInsert,
+      const upsertPromises = productsData.map(async (p) => {
+          const { row, ...productToUpsert } = p;
+          const sku = generateSkuFromName(p.name);
+          const productPayload = {
+              ...productToUpsert,
               user_id: user.id,
               sku: [sku],
-              image_urls: ['https://placehold.co/600x400.png'], // Default image for bulk import
+              image_urls: ['https://placehold.co/600x400.png'], // Default image
+          };
+
+          const { data: existing } = await supabase
+            .from('products')
+            .select('id')
+            .eq('user_id', user.id)
+            .contains('sku', [sku])
+            .single();
+
+          if (existing) {
+              return supabase.from('products').update(productPayload).eq('id', existing.id);
+          } else {
+              return supabase.from('products').insert(productPayload);
           }
       });
-
-      const { data, error } = await supabase
-          .from('products')
-          .insert(productsToInsert)
-          .select();
+      
+      const results = await Promise.allSettled(upsertPromises);
+      
+      let successCount = 0;
+      results.forEach(result => {
+        if (result.status === 'fulfilled' && !result.value.error) {
+          successCount++;
+        }
+      });
 
       setLoading(false);
 
-      if (error) {
-          toast.error('Error en la importación', { description: error.message });
-          return { successCount: 0, errorCount: productsData.length };
+      if (successCount > 0) {
+        await fetchProducts();
       }
       
-      const newProducts = (data || []).map(formatProduct);
-      setProducts(prev => [...newProducts, ...prev]);
-
       return {
-          successCount: data?.length || 0,
-          errorCount: productsData.length - (data?.length || 0),
+          successCount: successCount,
+          errorCount: productsData.length - successCount,
       };
   };
 
-  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'tags' | 'category' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'>>, newImageFiles: File[] = [], existingImageUrlsFromForm?: string[]) => {
+  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'>>, newImageFiles: File[] = [], existingImageUrlsFromForm?: string[]) => {
       setLoading(true);
        if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -323,7 +336,10 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         finalImageUrls.push('https://placehold.co/600x400.png');
       }
       
-      const updatePayload: any = { ...updatedFields };
+      // Explicitly remove client-side only fields before sending to DB
+      const { tags, category, ...restOfFields } = updatedFields;
+
+      const updatePayload: any = { ...restOfFields };
       
       // If name is being updated, regenerate SKU
       if (updatedFields.name) {
