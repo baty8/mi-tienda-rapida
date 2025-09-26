@@ -22,10 +22,11 @@ export async function PATCH(
         return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const { sku } = params;
-    if (!sku) {
+    const { sku: encodedSku } = params;
+    if (!encodedSku) {
         return NextResponse.json({ error: 'Falta el SKU del producto en la URL' }, { status: 400 });
     }
+    const sku = decodeURIComponent(encodedSku);
 
     const body = await request.json();
     const { email, adjustment } = body;
