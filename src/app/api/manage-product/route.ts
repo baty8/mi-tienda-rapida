@@ -5,12 +5,6 @@ import { addMinutes } from 'date-fns';
 
 export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
 
-// Utilizar el service_role key para operaciones de escritura desde el servidor
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function PATCH(request: NextRequest) {
   // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
   const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
@@ -28,6 +22,12 @@ export async function PATCH(request: NextRequest) {
   if (!sku || !email || visible === undefined) {
     return NextResponse.json({ error: 'Faltan los parámetros requeridos: sku, email, y visible (true/false)' }, { status: 400 });
   }
+
+  // Utilizar el service_role key para operaciones de escritura desde el servidor
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
   
   const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')

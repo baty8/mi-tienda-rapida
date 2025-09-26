@@ -4,12 +4,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-// Utilizar el service_role key para operaciones de escritura desde el servidor
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 /**
  * Método PATCH para ajustar el stock de un producto específico.
  * Se utiliza para registrar ventas offline o ajustes manuales de inventario.
@@ -45,6 +39,12 @@ export async function PATCH(
     if (isNaN(adjustmentValue)) {
         return NextResponse.json({ error: 'El valor de "adjustment" debe ser un número entero' }, { status: 400 });
     }
+
+    // Utilizar el service_role key para operaciones de escritura desde el servidor
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // 1. Encontrar al usuario por su email
     const { data: profile, error: profileError } = await supabaseAdmin

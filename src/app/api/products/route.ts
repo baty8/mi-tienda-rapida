@@ -4,12 +4,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-// Utilizar el service_role key para operaciones de escritura desde el servidor
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 const generateSkuFromName = (name: string): string => {
     return name.trim();
 };
@@ -40,6 +34,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Faltan parámetros requeridos: email, name, y price' }, { status: 400 });
     }
     
+    // Utilizar el service_role key para operaciones de escritura desde el servidor
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // 1. Encontrar al usuario por su email
     const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
