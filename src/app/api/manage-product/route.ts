@@ -5,25 +5,6 @@ import { addMinutes } from 'date-fns';
 
 export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
 
-/**
- * Método GET para verificar la conectividad y autorización de la API.
- */
-export async function GET(request: NextRequest) {
-  // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
-  const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
-  
-  const authHeader = request.headers.get('authorization');
-  const providedApiKey = authHeader?.split('Bearer ')[1];
-
-  if (providedApiKey !== expectedApiKey) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  }
-  
-  // Si la autorización es exitosa, se devuelve un mensaje de confirmación.
-  return NextResponse.json({ message: '¡Éxito! La API de gestión de productos está funcionando y la autorización es correcta.' });
-}
-
-
 export async function PATCH(request: NextRequest) {
   // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
   const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
