@@ -25,7 +25,11 @@ import { Terminal } from 'lucide-react';
 
 type StagingProduct = Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at' | 'sku'> & { row: number };
 
-export function ImportProductsDialog() {
+interface ImportProductsDialogProps {
+  disabled?: boolean;
+}
+
+export function ImportProductsDialog({ disabled = false }: ImportProductsDialogProps) {
   const { importProducts, fetchProducts } = useProduct();
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -155,7 +159,7 @@ export function ImportProductsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" disabled={disabled}>
           <Upload className="mr-2 h-4 w-4" />
           Importar
         </Button>

@@ -146,7 +146,11 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         if (profileError) console.error(`Error loading profile: ${profileError.message}`);
 
         if(profileData) {
-            setProfile({ ...profileData, email: user.email || null });
+            setProfile({
+                ...profileData,
+                email: user.email || null,
+                product_limit: profileData.product_limit || 100,
+            });
         }
     } catch (error: any) {
         toast.error("Error", { description: `Hubo un error cargando los datos iniciales: ${error.message}`});
@@ -187,8 +191,14 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
 
   const addProduct = async (productData: Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'sku' | 'scheduled_republish_at'>, imageFiles: File[]) => {
     setLoading(true);
-    if (!supabase) {
-        toast.error('Error', { description: 'Supabase client not initialized.' });
+    if (!supabase || !profile) {
+        toast.error('Error', { description: 'El cliente no está inicializado o el perfil no está cargado.' });
+        setLoading(false);
+        return;
+    }
+    
+    if (products.length >= (profile.product_limit || 100)) {
+        toast.error('Límite de productos alcanzado', { description: `Has alcanzado tu límite de ${profile.product_limit || 100} productos. Contacta al soporte para aumentarlo.` });
         setLoading(false);
         return;
     }
@@ -241,11 +251,29 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
   
   const importProducts = async (productsData: (Omit<Product, 'id' | 'createdAt' | 'tags' | 'category' | 'image_urls' | 'in_catalog' | 'user_id' | 'scheduled_republish_at' | 'sku'> & { row: number })[]) => {
       setLoading(true);
-      if (!supabase) {
-        toast.error('Error', { description: 'Supabase client not initialized.' });
+      if (!supabase || !profile) {
+        toast.error('Error', { description: 'El cliente no está inicializado o el perfil no está cargado.' });
         setLoading(false);
         return { successCount: 0, errorCount: productsData.length };
       }
+      
+      const currentProductCount = products.length;
+      const limit = profile.product_limit || 100;
+      const canImportCount = limit - currentProductCount;
+
+      if (canImportCount <= 0) {
+          toast.error('Límite de productos alcanzado', { description: `Ya has alcanzado tu límite de ${limit} productos. No puedes importar más.` });
+          setLoading(false);
+          return { successCount: 0, errorCount: productsData.length };
+      }
+
+      const productsToImport = productsData.slice(0, canImportCount);
+      const remainingRows = productsData.length - productsToImport.length;
+
+      if (remainingRows > 0) {
+          toast.warning('Límite de importación excedido', { description: `Tu plan te permite añadir ${canImportCount} productos más. Se importarán solo los primeros ${canImportCount} productos de tu archivo.` });
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Error', { description: 'Debes iniciar sesión para importar productos.' });
@@ -253,7 +281,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         return { successCount: 0, errorCount: productsData.length };
       }
 
-      const upsertPromises = productsData.map(async (p) => {
+      const upsertPromises = productsToImport.map(async (p) => {
           const { row, ...productToUpsert } = p;
           const sku = generateSkuFromName(p.name);
           const productPayload = {
@@ -298,7 +326,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       };
   };
 
-  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at'>>, newImageFiles: File[] = [], existingImageUrlsFromForm?: string[]) => {
+  const updateProduct = async (productId: string, updatedFields: Partial<Omit<Product, 'id' | 'image_urls' | 'createdAt' | 'user_id' | 'in_catalog' | 'sku' | 'scheduled_republish_at' | 'category' | 'tags'>>, newImageFiles: File[] = [], existingImageUrlsFromForm?: string[]) => {
       setLoading(true);
        if (!supabase) {
         toast.error('Error', { description: 'Supabase client not initialized.' });
@@ -335,13 +363,9 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       if (finalImageUrls.length === 0) {
         finalImageUrls.push('https://placehold.co/600x400.png');
       }
-      
-      // Explicitly remove client-side only fields before sending to DB
-      const { tags, category, ...restOfFields } = updatedFields;
 
-      const updatePayload: any = { ...restOfFields };
+      const updatePayload: any = { ...updatedFields };
       
-      // If name is being updated, regenerate SKU
       if (updatedFields.name) {
           updatePayload.sku = [generateSkuFromName(updatedFields.name)];
       }

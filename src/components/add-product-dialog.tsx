@@ -23,7 +23,12 @@ import Image from 'next/image';
 import { useProduct } from '@/context/ProductContext';
 import { useDropzone } from 'react-dropzone';
 
-export function AddProductDialog() {
+interface AddProductDialogProps {
+  disabled?: boolean;
+}
+
+
+export function AddProductDialog({ disabled = false }: AddProductDialogProps) {
   const { addProduct } = useProduct();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -104,7 +109,7 @@ export function AddProductDialog() {
         }
     }}>
       <DialogTrigger asChild>
-        <Button>
+        <Button disabled={disabled}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Añadir Producto
         </Button>
