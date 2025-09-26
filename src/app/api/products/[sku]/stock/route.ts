@@ -55,7 +55,7 @@ export async function PATCH(
     const userId = profile.id;
 
     // 2. Encontrar el producto por SKU y usuario
-    // CORRECCIÓN: Usar .contains() porque el campo 'sku' es un array de texto (text[])
+    // CORRECCIÓN: Se añade el filtro por `user_id` para garantizar una única coincidencia.
     const { data: product, error: productError } = await supabase
         .from('products')
         .select('id, stock')
@@ -64,7 +64,7 @@ export async function PATCH(
         .single();
 
     if (productError || !product) {
-        return NextResponse.json({ error: `Producto con SKU ${sku} para el usuario ${email} no encontrado` }, { status: 404 });
+        return NextResponse.json({ error: `Producto con SKU ${sku} para el usuario ${email} no encontrado. Error: ${productError?.message}` }, { status: 404 });
     }
 
     // 3. Calcular el nuevo stock y actualizar

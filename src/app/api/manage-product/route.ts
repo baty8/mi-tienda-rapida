@@ -37,7 +37,7 @@ export async function PATCH(request: NextRequest) {
   
   const userId = profile.id;
   
-  // CORRECCIÓN: Usar .contains() porque el campo 'sku' es un array de texto (text[])
+  // CORRECCIÓN: Se añade el filtro por `user_id` para garantizar una única coincidencia.
   const { data: product, error: productError } = await supabase
     .from('products')
     .select('id')
