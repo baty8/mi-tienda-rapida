@@ -254,8 +254,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       }
 
       const productsToInsert = productsData.map(p => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { row, ...productToInsert } = p; // Exclude the 'row' property
+          const { row, ...productToInsert } = p;
           const sku = p.sku ? String(p.sku) : generateSkuFromName(p.name);
           return {
               ...productToInsert,
@@ -324,13 +323,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
         finalImageUrls.push('https://placehold.co/600x400.png');
       }
       
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, createdAt, user_id, ...restOfProduct } = existingProduct;
-
-      const updatePayload: Partial<Product> = {
-        ...restOfProduct, // Start with existing data
-        ...updatedFields, // Overwrite with new fields
-      };
+      const updatePayload: any = { ...updatedFields };
       
       // If name is being updated, regenerate SKU
       if (updatedFields.name) {
@@ -338,7 +331,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
       }
 
       updatePayload.image_urls = finalImageUrls;
-
+      
       const { data, error } = await supabase.from('products').update(updatePayload).eq('id', productId).eq('user_id', user.id).select().single();
 
       if (error) {
