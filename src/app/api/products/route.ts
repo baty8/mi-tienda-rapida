@@ -4,9 +4,13 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
+const generateSkuFromName = (name: string): string => {
+    return name.trim();
+};
+
 /**
  * Método POST para crear o actualizar (Upsert) un producto.
- * Busca un producto por su SKU para un usuario específico.
+ * Genera un SKU a partir del nombre y lo usa para buscar el producto.
  * - Si existe, lo actualiza.
  * - Si no existe, lo crea.
  * Este endpoint es ideal para integraciones con n8n y Google Sheets.
@@ -23,11 +27,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, sku, name, price, cost, stock, description, visible } = body;
+    const { email, name, price, cost, stock, description, visible } = body;
 
     // Validaciones básicas
-    if (!email || !sku || !name || price === undefined) {
-        return NextResponse.json({ error: 'Faltan parámetros requeridos: email, sku, name, y price' }, { status: 400 });
+    if (!email || !name || price === undefined) {
+        return NextResponse.json({ error: 'Faltan parámetros requeridos: email, name, y price' }, { status: 400 });
     }
     
     const supabase = createClient();
@@ -44,13 +48,13 @@ export async function POST(request: NextRequest) {
     }
   
     const userId = profile.id;
+    const generatedSku = generateSkuFromName(name);
     
     // 2. Construir el objeto del producto con los datos recibidos
-    // Los campos opcionales se añaden solo si están definidos en el body
     const productPayload: any = {
         name,
         price: parseFloat(price),
-        sku: [String(sku)],
+        sku: [generatedSku],
         user_id: userId,
     };
     if (cost !== undefined) productPayload.cost = parseFloat(cost);
@@ -61,15 +65,12 @@ export async function POST(request: NextRequest) {
         productPayload.image_urls = ['https://placehold.co/600x400.png'];
     }
 
-    // 3. Intentar hacer un "upsert"
-    // 'sku' debe ser una clave única o primaria para que onConflict funcione correctamente.
-    // Como SKU es un array y no tiene una restricción única, haremos una lógica manual.
-    
+    // 3. Buscar un producto existente por el SKU generado a partir del nombre
     const { data: existingProduct, error: findError } = await supabase
         .from('products')
         .select('id')
         .eq('user_id', userId)
-        .contains('sku', [sku])
+        .contains('sku', [generatedSku])
         .single();
 
     if (findError && findError.code !== 'PGRST116') { // PGRST116: single() did not return exactly one row
