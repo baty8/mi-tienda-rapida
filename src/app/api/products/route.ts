@@ -27,14 +27,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, name, price, cost, stock, description, visible } = body;
+    const { userEmail, name, price, cost, stock, description, visible } = body;
 
     // Validaciones básicas
-    if (!email || !name || price === undefined) {
-        return NextResponse.json({ error: 'Faltan parámetros requeridos: email, name, y price' }, { status: 400 });
+    if (!userEmail || !name || price === undefined) {
+        return NextResponse.json({ error: 'Faltan parámetros requeridos: userEmail, name, y price' }, { status: 400 });
     }
     
-    // Utilizar el service_role key para operaciones de escritura desde el servidor
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -44,11 +43,11 @@ export async function POST(request: NextRequest) {
     const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('id')
-        .eq('email', email)
+        .eq('email', userEmail)
         .single();
 
     if (profileError || !profile) {
-        return NextResponse.json({ error: `Usuario con email ${email} no encontrado` }, { status: 404 });
+        return NextResponse.json({ error: `Usuario con email ${userEmail} no encontrado` }, { status: 404 });
     }
   
     const userId = profile.id;

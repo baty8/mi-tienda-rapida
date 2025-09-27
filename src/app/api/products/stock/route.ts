@@ -7,11 +7,8 @@ export const runtime = 'nodejs';
 /**
  * Método PATCH para ajustar el stock de un producto específico.
  * Se utiliza para registrar ventas offline o ajustes manuales de inventario.
- * El SKU se pasa en el body para evitar problemas de codificación en la URL.
  */
-export async function PATCH(
-    request: NextRequest
-) {
+export async function PATCH(request: NextRequest) {
     // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
     const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
     
@@ -23,10 +20,10 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { email, sku, adjustment } = body;
+    const { userEmail, sku, adjustment } = body;
 
-    if (!email || !sku || adjustment === undefined) {
-        return NextResponse.json({ error: 'Faltan los parámetros requeridos en el body: email, sku, y adjustment' }, { status: 400 });
+    if (!userEmail || !sku || adjustment === undefined) {
+        return NextResponse.json({ error: 'Faltan los parámetros requeridos en el body: userEmail, sku, y adjustment' }, { status: 400 });
     }
 
     const adjustmentValue = parseInt(adjustment, 10);
@@ -43,11 +40,11 @@ export async function PATCH(
     const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('id')
-        .eq('email', email)
+        .eq('email', userEmail)
         .single();
 
     if (profileError || !profile) {
-        return NextResponse.json({ error: `Usuario con email ${email} no encontrado` }, { status: 404 });
+        return NextResponse.json({ error: `Usuario con email ${userEmail} no encontrado` }, { status: 404 });
     }
 
     const userId = profile.id;
@@ -63,10 +60,10 @@ export async function PATCH(
         return NextResponse.json({ error: `Error buscando el producto: ${productError.message}` }, { status: 500 });
     }
     if (!products || products.length === 0) {
-        return NextResponse.json({ error: `Producto con SKU '${sku}' para el usuario '${email}' no encontrado.` }, { status: 404 });
+        return NextResponse.json({ error: `Producto con SKU '${sku}' para el usuario '${userEmail}' no encontrado.` }, { status: 404 });
     }
     if (products.length > 1) {
-        return NextResponse.json({ error: `Conflicto: Múltiples productos encontrados con SKU '${sku}' para el usuario '${email}'. El SKU debe ser único.` }, { status: 409 });
+        return NextResponse.json({ error: `Conflicto: Múltiples productos encontrados con SKU '${sku}' para el usuario '${userEmail}'. El SKU debe ser único.` }, { status: 409 });
     }
 
     const product = products[0];

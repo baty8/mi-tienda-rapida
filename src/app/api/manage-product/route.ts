@@ -17,13 +17,12 @@ export async function PATCH(request: NextRequest) {
   }
   
   const body = await request.json();
-  const { sku, email, visible, pause_duration_minutes } = body;
+  const { sku, userEmail, visible, pause_duration_minutes } = body;
 
-  if (!sku || !email || visible === undefined) {
-    return NextResponse.json({ error: 'Faltan los parámetros requeridos: sku, email, y visible (true/false)' }, { status: 400 });
+  if (!sku || !userEmail || visible === undefined) {
+    return NextResponse.json({ error: 'Faltan los parámetros requeridos: sku, userEmail, y visible (true/false)' }, { status: 400 });
   }
 
-  // Utilizar el service_role key para operaciones de escritura desde el servidor
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -32,16 +31,15 @@ export async function PATCH(request: NextRequest) {
   const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
     .select('id')
-    .eq('email', email)
+    .eq('email', userEmail)
     .single();
 
   if (profileError || !profile) {
-    return NextResponse.json({ error: `Usuario con email ${email} no encontrado` }, { status: 404 });
+    return NextResponse.json({ error: `Usuario con email ${userEmail} no encontrado` }, { status: 404 });
   }
   
   const userId = profile.id;
   
-  // SOLUCIÓN ROBUSTA Y CONSISTENTE: Búsqueda por SKU en el array 'sku'.
   const { data: products, error: productError } = await supabaseAdmin
     .from('products')
     .select('id')
@@ -52,10 +50,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: `Error buscando el producto: ${productError.message}` }, { status: 500 });
   }
   if (!products || products.length === 0) {
-    return NextResponse.json({ error: `Producto con SKU '${sku}' para el usuario '${email}' no encontrado.` }, { status: 404 });
+    return NextResponse.json({ error: `Producto con SKU '${sku}' para el usuario '${userEmail}' no encontrado.` }, { status: 404 });
   }
   if (products.length > 1) {
-    return NextResponse.json({ error: `Conflicto: Múltiples productos encontrados con SKU '${sku}' para el usuario '${email}'. El SKU debe ser único por usuario.` }, { status: 409 });
+    return NextResponse.json({ error: `Conflicto: Múltiples productos encontrados con SKU '${sku}' para el usuario '${userEmail}'. El SKU debe ser único por usuario.` }, { status: 409 });
   }
 
   const product = products[0];
@@ -65,17 +63,17 @@ export async function PATCH(request: NextRequest) {
 
   if (visible === true) {
       updatePayload = { visible: true, scheduled_republish_at: null };
-      successMessage = `Producto ${sku} para ${email} ahora está visible (habilitado).`;
+      successMessage = `Producto ${sku} para ${userEmail} ahora está visible (habilitado).`;
   } 
   else { // visible === false
       const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
       if (duration > 0) {
         const republishTime = addMinutes(new Date(), duration);
         updatePayload = { visible: false, scheduled_republish_at: republishTime.toISOString() };
-        successMessage = `Producto ${sku} pausado temporalmente por ${duration} minutos para ${email}. Se republicará automáticamente.`;
+        successMessage = `Producto ${sku} pausado temporalmente por ${duration} minutos para ${userEmail}. Se republicará automáticamente.`;
       } else {
         updatePayload = { visible: false, scheduled_republish_at: null };
-        successMessage = `Producto ${sku} pausado indefinidamente para ${email}.`;
+        successMessage = `Producto ${sku} pausado indefinidamente para ${userEmail}.`;
       }
   }
 
