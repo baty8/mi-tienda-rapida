@@ -6,6 +6,10 @@ import { addMinutes } from 'date-fns';
 export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
 
 export async function PATCH(request: NextRequest) {
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
   // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
   const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
   
@@ -17,16 +21,11 @@ export async function PATCH(request: NextRequest) {
   }
   
   const body = await request.json();
-  const { sku, userEmail, visible, pause_duration_minutes } = body;
+  const { userEmail, sku, visible, pause_duration_minutes } = body;
 
   if (!sku || !userEmail || visible === undefined) {
     return NextResponse.json({ error: 'Faltan los parámetros requeridos: sku, userEmail, y visible (true/false)' }, { status: 400 });
   }
-
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
   
   const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')

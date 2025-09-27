@@ -16,6 +16,10 @@ const generateSkuFromName = (name: string): string => {
  * Este endpoint es ideal para integraciones con n8n y Google Sheets.
  */
 export async function POST(request: NextRequest) {
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
     const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
     
@@ -34,11 +38,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Faltan parámetros requeridos: userEmail, name, y price' }, { status: 400 });
     }
     
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     // 1. Encontrar al usuario por su email
     const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')

@@ -9,6 +9,10 @@ export const runtime = 'nodejs';
  * Se utiliza para registrar ventas offline o ajustes manuales de inventario.
  */
 export async function PATCH(request: NextRequest) {
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
     const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
     
@@ -30,11 +34,6 @@ export async function PATCH(request: NextRequest) {
     if (isNaN(adjustmentValue)) {
         return NextResponse.json({ error: 'El valor de "adjustment" debe ser un número entero' }, { status: 400 });
     }
-
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     // 1. Encontrar al usuario por su email
     const { data: profile, error: profileError } = await supabaseAdmin
