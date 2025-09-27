@@ -1,4 +1,5 @@
 
+
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
@@ -16,8 +17,9 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}/auth/reset-password`)
     }
 
-    // Si es un login normal, redirigimos a donde corresponda (usualmente /products)
+    // Si es un login o signup normal, redirigimos a donde corresponda (usualmente /products)
     if (!error) {
+      // La lógica de aprobación en el layout se encargará de redirigir a /auth/pending si es necesario
       return NextResponse.redirect(`${origin}${next ?? '/products'}`)
     }
   }

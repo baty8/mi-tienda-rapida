@@ -1,89 +1,196 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
 import { addMinutes } from 'date-fns';
 
-export const runtime = 'nodejs'; // Forzar el entorno de ejecución a Node.js
+export const runtime = 'nodejs';
+
+const ok = (data: any, status = 200) => NextResponse.json(data, { status });
+const err = (message: string, status = 500, meta?: any) =>
+  NextResponse.json({ error: message, ...meta }, { status });
+
+const toSlug = (s: string) =>
+  (s ?? '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'sku-sin-nombre';
+
+const scheduleIsArray = (process.env.SCHEDULE_IS_ARRAY ?? '').toString().trim() === '1';
+
+export async function GET() {
+  return ok({ ok: true, hint: 'usa PATCH para pausar/activar y programar re-publicación' });
+}
 
 export async function PATCH(request: NextRequest) {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-  // CLAVE INCRUSTADA PARA GARANTIZAR FUNCIONAMIENTO
+  const url = new URL(request.url);
+  const debug = url.searchParams.get('debug') === '1';
+
+  // API key
   const expectedApiKey = 'ey_tienda_sk_prod_9f8e7d6c5b4a3210';
-  
-  const authHeader = request.headers.get('authorization');
-  const providedApiKey = authHeader?.split('Bearer ')[1];
+  const providedApiKey = request.headers.get('authorization')?.split('Bearer ')[1];
+  if (providedApiKey !== expectedApiKey) return err('No autorizado', 401);
 
-  if (providedApiKey !== expectedApiKey) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  // ENVs
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const srk = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !srk) {
+    return err('Faltan envs de Supabase', 500, {
+      NEXT_PUBLIC_SUPABASE_URL: !!supabaseUrl,
+      SUPABASE_SERVICE_ROLE_KEY: !!srk,
+    });
   }
-  
-  const body = await request.json();
-  const { userEmail, sku, visible, pause_duration_minutes } = body;
+  const supabase = createClient(supabaseUrl, srk);
 
-  if (!sku || !userEmail || visible === undefined) {
-    return NextResponse.json({ error: 'Faltan los parámetros requeridos: sku, userEmail, y visible (true/false)' }, { status: 400 });
+  // Body (tolerante) + alias
+  let raw: any = {};
+  try {
+    if (request.headers.get('content-type')?.includes('application/json')) {
+      raw = await request.json();
+    } else {
+      const text = await request.text();
+      try { raw = JSON.parse(text); } catch { raw = {}; }
+    }
+  } catch { return err('Body JSON inválido', 400); }
+
+  const candidate = { ...raw, ...raw?.data, ...raw?.record, ...raw?.body };
+  const pick = (obj: any, aliases: string[]) => {
+    for (const k of Object.keys(obj ?? {})) {
+      if (aliases.some(a => a.toLowerCase() === String(k).toLowerCase())) return obj[k];
+    }
+    return undefined;
+  };
+
+  const userEmail = pick(candidate, ['userEmail', 'email', 'user_email']);
+  const skuIn = pick(candidate, ['sku', 'SKU', 'Sku']);
+  const nameIn = pick(candidate, ['name', 'productName', 'product_name', 'nombre']);
+  const visibleIn = pick(candidate, ['visible', 'isVisible']);
+  const pauseIn = pick(candidate, ['pause_duration_minutes', 'pause', 'pauseMinutes', 'resume_in']);
+
+  const rawSku = skuIn != null ? String(skuIn).trim() : undefined;
+  const rawName = nameIn != null ? String(nameIn).trim() : undefined;
+  const slug = toSlug(rawSku ?? rawName ?? '');
+
+  const skuCandidates = Array.from(
+    new Set(
+      [rawSku, rawName, slug, rawSku?.toLowerCase(), rawName?.toLowerCase()]
+        .filter(Boolean) as string[]
+    )
+  );
+
+  if (!userEmail || skuCandidates.length === 0) {
+    return err('Faltan parámetros: sku o name, y userEmail', 400, debug ? { received: candidate } : undefined);
   }
-  
-  const { data: profile, error: profileError } = await supabaseAdmin
+
+  // parse visible
+  const hasVisible =
+    typeof visibleIn === 'boolean' ||
+    ['true', 'false', '1', '0'].includes(String(visibleIn).toLowerCase());
+  const visible =
+    hasVisible ? (String(visibleIn).toLowerCase() === 'true' || String(visibleIn) === '1') : undefined;
+
+  // parse pause minutes
+  let pauseMins: number | null = null;
+  if (pauseIn !== undefined) {
+    const n = typeof pauseIn === 'number' ? pauseIn : parseInt(String(pauseIn), 10);
+    if (!Number.isFinite(n) || n < 0) {
+      return err('pause_duration_minutes debe ser entero >= 0', 400, debug ? { received: pauseIn } : undefined);
+    }
+    pauseMins = n;
+  }
+
+  // Owner
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('id')
-    .eq('email', userEmail)
-    .single();
+    .eq('email', String(userEmail))
+    .maybeSingle();
 
-  if (profileError || !profile) {
-    return NextResponse.json({ error: `Usuario con email ${userEmail} no encontrado` }, { status: 404 });
+  if (profileError || !profile?.id) {
+    return err(`Usuario con email ${userEmail} no encontrado en profiles`, 404, debug ? { profileError: profileError?.message } : undefined);
   }
-  
-  const userId = profile.id;
-  
-  const { data: products, error: productError } = await supabaseAdmin
+  const ownerId = profile.id;
+
+  // Buscar por overlap en sku[]
+  let { data: rows, error: findError } = await supabase
     .from('products')
-    .select('id')
-    .eq('user_id', userId)
-    .contains('sku', [sku.trim()]);
+    .select('id, name, sku, visible, scheduled_republish_at')
+    .eq('user_id', ownerId)
+    .overlaps('sku', skuCandidates);
 
-  if (productError) {
-      return NextResponse.json({ error: `Error buscando el producto: ${productError.message}` }, { status: 500 });
+  if (findError) return err('Error buscando producto', 500, debug ? { findError: findError.message } : undefined);
+
+  // ✅ Fallback por name exacto case-insensitive SOLO si tenemos rawName
+  if (rawName && (!rows || rows.length === 0)) {
+    const byName = await supabase
+      .from('products')
+      .select('id, name, sku, visible, scheduled_republish_at')
+      .eq('user_id', ownerId)
+      .ilike('name', rawName); // sin % => igualdad case-insensitive
+    if (byName.error) return err('Error buscando por name', 500, debug ? { error: byName.error.message } : undefined);
+    rows = byName.data ?? [];
   }
-  if (!products || products.length === 0) {
-    return NextResponse.json({ error: `Producto con SKU '${sku}' para el usuario '${userEmail}' no encontrado.` }, { status: 404 });
+
+  if (!rows || rows.length === 0) {
+    return err(`Producto no encontrado (candidatos: ${skuCandidates.join(', ')})`, 404);
   }
-  if (products.length > 1) {
-    return NextResponse.json({ error: `Conflicto: Múltiples productos encontrados con SKU '${sku}' para el usuario '${userEmail}'. El SKU debe ser único por usuario.` }, { status: 409 });
+  if (rows.length > 1) {
+    return err('Conflicto: múltiples productos coinciden con ese SKU/Name', 409, debug ? {
+      matches: rows.map(r => ({ id: r.id, name: r.name, sku: r.sku }))
+    } : undefined);
   }
 
-  const product = products[0];
+  const product = rows[0];
 
-  let updatePayload: { visible: boolean; scheduled_republish_at?: string | null };
-  let successMessage = '';
+  // Build update
+  const updatePayload: Record<string, any> = {};
+  let successMessage = `Producto actualizado para ${userEmail}.`;
 
-  if (visible === true) {
-      updatePayload = { visible: true, scheduled_republish_at: null };
-      successMessage = `Producto ${sku} para ${userEmail} ahora está visible (habilitado).`;
-  } 
-  else { // visible === false
-      const duration = pause_duration_minutes ? parseInt(pause_duration_minutes, 10) : 0;
-      if (duration > 0) {
-        const republishTime = addMinutes(new Date(), duration);
-        updatePayload = { visible: false, scheduled_republish_at: republishTime.toISOString() };
-        successMessage = `Producto ${sku} pausado temporalmente por ${duration} minutos para ${userEmail}. Se republicará automáticamente.`;
+  if (typeof visible !== 'undefined') {
+    updatePayload.visible = visible;
+    if (visible) {
+      updatePayload.scheduled_republish_at = null;
+      successMessage = `Producto activado (visible=true).`;
+    } else {
+      if (pauseMins && pauseMins > 0) {
+        const republishAt = addMinutes(new Date(), pauseMins);
+        updatePayload.scheduled_republish_at = scheduleIsArray
+          ? [republishAt.toISOString()]
+          : republishAt.toISOString();
+        successMessage = `Producto pausado ${pauseMins} min (se republicará automáticamente).`;
       } else {
-        updatePayload = { visible: false, scheduled_republish_at: null };
-        successMessage = `Producto ${sku} pausado indefinidamente para ${userEmail}.`;
+        updatePayload.scheduled_republish_at = null;
+        successMessage = `Producto pausado indefinidamente.`;
       }
+    }
   }
 
-  const { error: updateError } = await supabaseAdmin
+  if (typeof visible === 'undefined' && pauseMins !== null) {
+    if (pauseMins === 0) {
+      updatePayload.scheduled_republish_at = null;
+      successMessage = `Programación cancelada.`;
+    } else {
+      const republishAt = addMinutes(new Date(), pauseMins);
+      updatePayload.scheduled_republish_at = scheduleIsArray
+        ? [republishAt.toISOString()]
+        : republishAt.toISOString();
+      successMessage = `Re-publicación en ${pauseMins} min programada.`;
+    }
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    return err('No se enviaron cambios (visible o pause_duration_minutes)', 400);
+  }
+
+  const { data: updated, error: updateError } = await supabase
     .from('products')
     .update(updatePayload)
-    .eq('id', product.id);
+    .eq('id', product.id)
+    .select()
+    .single();
 
-  if (updateError) {
-    return NextResponse.json({ error: `Error al actualizar el producto: ${updateError.message}` }, { status: 500 });
-  }
+  if (updateError) return err('Error al actualizar el producto', 500, debug ? { updateError: updateError.message } : undefined);
 
-  return NextResponse.json({ message: successMessage });
+  return ok({ message: successMessage, product: updated }, 200);
 }

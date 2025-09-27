@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
@@ -46,9 +47,9 @@ function VendorApp({ children }: { children: ReactNode }) {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const isResetPasswordPage = pathname.includes('/reset-password');
+      const isPermittedPublicPath = ['/auth/reset-password', '/auth/pending'].includes(pathname);
       
-      if (!session && !isResetPasswordPage) {
+      if (!session && !isPermittedPublicPath) {
         router.push('/');
       } else if (session) {
         await fetchInitialProfile(session.user);
@@ -62,8 +63,8 @@ function VendorApp({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_OUT') {
         router.push('/');
       } else if (event === 'SIGNED_IN' && session) {
-        // Solo redirigir si no estamos ya en el flujo de reseteo de contraseña
-        if (!pathname.includes('/reset-password')) {
+        // Solo redirigir si no estamos ya en el flujo de reseteo de contraseña o pendiente
+        if (!['/auth/reset-password', '/auth/pending'].includes(pathname)) {
             fetchInitialProfile(session.user);
         }
       }
@@ -75,7 +76,18 @@ function VendorApp({ children }: { children: ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, pathname]); 
 
-  if (!authChecked || globalLoading) {
+  // New effect to handle redirection based on approval status
+  useEffect(() => {
+    if (!globalLoading && profile) {
+      if (profile.is_approved === false && pathname !== '/auth/pending') {
+        router.push('/auth/pending');
+      } else if (profile.is_approved === true && pathname === '/auth/pending') {
+        router.push('/products');
+      }
+    }
+  }, [globalLoading, profile, pathname, router]);
+
+  if (!authChecked || globalLoading || (profile && !profile.is_approved && pathname !== '/auth/pending')) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -84,6 +96,11 @@ function VendorApp({ children }: { children: ReactNode }) {
         </div>
       </div>
     );
+  }
+  
+  // If user is not approved and is on the pending page, show only that page.
+  if (profile && !profile.is_approved && pathname === '/auth/pending') {
+      return <>{children}</>;
   }
   
   return (

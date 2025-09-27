@@ -40,6 +40,7 @@ export type Profile = {
   store_accent_color?: string | null;
   store_font_family?: string | null;
   product_limit: number;
+  is_approved: boolean;
 };
 
     

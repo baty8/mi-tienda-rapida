@@ -150,6 +150,7 @@ export const ProductProvider = ({ children }: ProductProviderProps) => {
                 ...profileData,
                 email: user.email || null,
                 product_limit: profileData.product_limit || 100,
+                is_approved: profileData.is_approved === true,
             });
         }
     } catch (error: any) {
