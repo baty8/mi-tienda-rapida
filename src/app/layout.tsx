@@ -11,9 +11,12 @@ export const metadata: Metadata = {
   title: 'ey mi tienda web!',
   description: 'Sistema de Ventas para Vendedores',
   icons: {
-    icon: '/icon.svg',
-  }
+    icon: '/favicon.ico',         // para navegadores clásicos
+    shortcut: '/favicon.png',     // alternativa en PNG
+    apple: '/apple-touch-icon.png', // para iOS/Android
+  },
 };
+
 
 export default function RootLayout({
   children,
@@ -31,6 +34,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+
       </head>
       <body className="font-body antialiased">
           {children}
