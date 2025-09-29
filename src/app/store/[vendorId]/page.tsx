@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: StorePageProps): Promise<Meta
     title: profile.name || 'Tienda',
     icons: {
         // Usa el avatar del vendedor como favicon, con un fallback si no existe.
-        icon: profile.avatar_url || "/favicon.ico",
+        icon: profile.avatar_url || "/icon.svg",
     }
   };
 }
